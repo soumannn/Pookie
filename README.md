@@ -1,5 +1,10 @@
 Um virtuelle umgebung zu starten:
 
+Beides:
+```
+python -m venv venv
+```
+
 Mac:
 ```
 source venv/bin/activate

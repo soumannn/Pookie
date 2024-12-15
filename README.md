@@ -26,5 +26,5 @@ um die Pakete herunterzuladen
 
 Jetzt müsste alles funktionieren
 ```
-python3 main.py
+python main.py
 ```

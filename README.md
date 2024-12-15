@@ -21,5 +21,5 @@ um die Pakete herunterzuladen
 
 Jetzt müsste alles funktionieren
 ```
-python3 pytest.py
+python3 main.py
 ```

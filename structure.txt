@@ -1,0 +1,30 @@
+project/
+│
+├── assets/                   # All media files
+│   ├── sprites/              # Sprites for characters and objects
+│   │   ├── character/        # Character-specific sprites
+│   │   └── environment/      # Backgrounds and environment assets
+│   ├── sounds/               # Sound effects and music
+│   └── fonts/                # Fonts used in the scenes
+│
+├── scenes/                   # Scene-specific logic
+│   ├── base_scene.py         # Base class for all scenes
+│   ├── main_menu.py          # Main menu scene
+│   ├── sport_mode.py         # Sport mode scene
+│   └── question_scene.py     # Question/answer scene
+│
+├── core/                     # Core game logic
+│   ├── engine.py             # Game loop, event handling
+│   ├── sprite_manager.py     # Manage sprite animations and interactions
+│   ├── scene_manager.py      # Switch between scenes
+│   └── input_handler.py      # Handle user input (e.g., double clicks)
+│
+├── config/                   # Configuration files
+│   ├── settings.py           # Global settings (screen size, FPS, etc.)
+│   └── keys.py               # Key bindings or button mappings
+│
+├── tests/                    # Unit and integration tests
+│
+├── main.py                   # Entry point for the application
+│
+└── README.md                 # Project documentation

@@ -1,5 +1,10 @@
 Um virtuelle umgebung zu starten:
 
+Beides:
+```
+python -m venv venv
+```
+
 Mac:
 ```
 source venv/bin/activate
@@ -21,5 +26,5 @@ um die Pakete herunterzuladen
 
 Jetzt müsste alles funktionieren
 ```
-python3 pytest.py
+python main.py
 ```

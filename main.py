@@ -1,6 +1,8 @@
 import pygame
 from core.scene_manager import SceneManager
 from scenes.main_scene import MainScene
+from scenes.dachboden_scene import DachbodenScene
+import locale
 
 def main():
     pygame.init()
@@ -8,8 +10,11 @@ def main():
     pygame.display.set_caption("Pookie")
     clock = pygame.time.Clock()
 
+    locale.setlocale(locale.LC_TIME, 'de_DE.UTF-8')  # For Linux/Mac
+    locale.setlocale(locale.LC_TIME, 'German_Germany.1252')
+
     scene_manager = SceneManager()
-    scene_manager.set_scene(MainScene(scene_manager))
+    scene_manager.set_scene(DachbodenScene(scene_manager))
 
     running = True
     while running:

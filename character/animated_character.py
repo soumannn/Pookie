@@ -28,6 +28,36 @@ class AnimatedCharacter(pygame.sprite.Sprite):
         self.move_interval = 1000  # Change direction every 1000ms
         self.direction = random.choice(["up", "down", "left", "right"])
 
+        self.dragging = False
+        self.is_falling = False
+        self.fall_speed = 10  # Gravity effect
+
+    def set_position(self, x, y):
+        """Set the character's position (used during dragging)."""
+        print("Setting position to ({}, {})".format(x, y))
+        self.current_animation = "flying"
+        self.image = self.animations[self.current_animation][0]
+        self.rect.x = x
+        self.rect.y = y
+
+    def start_falling(self):
+        """Trigger the falling animation."""
+        print("Character is falling!")
+        self.is_falling = True
+        self.current_animation = "fall_down"
+
+    def snap_to_grid(self):
+        """Snap the character back to the allowed grid."""
+        if self.rect.top < 346:
+            self.start_falling()  # Trigger falling animation if above grid
+        else:
+            if self.rect.left < 0:
+                self.rect.left = 0
+            if self.rect.right > 600:
+                self.rect.right = 600
+            if self.rect.bottom > 600:
+                self.rect.bottom = 600
+
     def load_animations(self):
         """Load all animations from the sprite sheet."""
         frames = self.slice_frames()
@@ -42,11 +72,12 @@ class AnimatedCharacter(pygame.sprite.Sprite):
             "jump_up": frames[34:40],  # Frames 34-39
             "fall_down": frames[40:44],  # Frames 40-43
             "pushup": frames[40:44],
+            "flying": frames[40:44]
         }
         return animations
 
     def slice_frames(self):
-        """Extract frames from the single-row sprite sheet and scale them."""
+        """Extract frames from the sprite sheet and scale them."""
         frames = []
         num_frames = self.sprite_sheet.get_width() // self.frame_width  # 44 frames
         for col in range(num_frames):
@@ -61,8 +92,18 @@ class AnimatedCharacter(pygame.sprite.Sprite):
         return frames
 
     def update(self, dt):
-        # Disable movement if movement is turned off (e.g., in SportModeScene)
-        if not self.disable_movement:
+        if self.is_falling:
+            # Apply gravity effect
+            self.rect.y += self.fall_speed
+
+            # Check if the character is close enough to the grid
+            if abs(self.rect.top - 346) <= self.fall_speed:
+                print("Character landed.")
+                self.rect.top = 346  # Snap to the grid
+                self.is_falling = False  # Stop falling
+                self.current_animation = "idle"  # Reset to idle animation
+
+        elif not self.disable_movement:
             # Update autonomous movement direction periodically
             self.move_timer += dt
             if self.move_timer >= self.move_interval:
@@ -117,3 +158,4 @@ class AnimatedCharacter(pygame.sprite.Sprite):
 
     def render(self, screen):
         screen.blit(self.image, self.rect)
+

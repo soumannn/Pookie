@@ -4,6 +4,9 @@ class AnimatedCharacter(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
 
+        self.allowed_top = 346  # Default top bound
+        self.allowed_bottom = 600  # Default bottom bound
+
         # Load sprite sheet
         self.sprite_sheet = pygame.image.load("assets/characters/Girl-Sheet.png").convert_alpha()
         self.frame_width = 24
@@ -72,7 +75,8 @@ class AnimatedCharacter(pygame.sprite.Sprite):
             "jump_up": frames[34:40],  # Frames 34-39
             "fall_down": frames[40:44],  # Frames 40-43
             "pushup": frames[40:44],
-            "flying": frames[40:44]
+            "flying": frames[40:44],
+            "hantel": frames[46:45]
         }
         return animations
 
@@ -90,6 +94,26 @@ class AnimatedCharacter(pygame.sprite.Sprite):
             )
             frames.append(scaled_frame)
         return frames
+
+    def force_animation(self, animation_name):
+        """
+        Force the character to use a specific animation.
+        e.g. the character should walk to the window upfront
+        """
+        if animation_name in self.animations:
+            self.current_animation = animation_name
+
+    def flip_bounds(self, flipped: bool):
+        """
+        Adjust the character's movement bounds based on the flipped state of the scene.
+        When flipped, the Y-coordinates are inverted.
+        """
+        if flipped:
+            self.allowed_top = 0
+            self.allowed_bottom = 346  # The previous allowed top in normal mode
+        else:
+            self.allowed_top = 346
+            self.allowed_bottom = 600
 
     def update(self, dt):
         if self.is_falling:

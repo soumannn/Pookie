@@ -5,10 +5,8 @@ import pygame
 from scenes.sport_mode import SportModeScene
 import requests
 from datetime import datetime
+from config import WEATHER_URL
 
-API_KEY = "df2aff53d4447b60a08c391650e58d32"
-CITY = "Wiesbaden"
-WEATHER_URL = f"http://api.openweathermap.org/data/2.5/weather?q={CITY}&appid={API_KEY}&units=metric&lang=de"
 
 class MainScene:
     def __init__(self, scene_manager):
@@ -16,6 +14,10 @@ class MainScene:
 
         self.falling = False
         self.fall_speed = 5  # Geschwindigkeit des Fallens
+        self.scene_flipped = False  # Tracks whether the scene is flipped
+
+        self.movement_resume_timer = 0
+        self.resume_movement_delay = 500  # 500ms delay before resuming random movement
 
         # Zielpositionen für fallende Objekte
         self.character_target_y = 600
@@ -33,10 +35,6 @@ class MainScene:
 
         # Clock setup
         self.clock = pygame.time.Clock()
-
-        # Background
-        self.background = pygame.image.load("assets/backgrounds/wohnzimmer.png").convert()
-        self.background = pygame.transform.scale(self.background, (600, 600))
 
         self.bg_sprites = Item("assets/spritesheets/floorwall.png", 64, 112, 1, 5)
         # Scale the first sprite from the list
@@ -84,7 +82,6 @@ class MainScene:
         """Print the position of a mouse click to the terminal."""
         if event.type == pygame.MOUSEBUTTONDOWN:
             print(f"Mouse clicked at position: {event.pos}")
-
 
     def update_weather(self):
         """Fetch the weather data from OpenWeatherMap."""
@@ -161,7 +158,6 @@ class MainScene:
                 self.character.set_position(event.pos[0] - self.character.rect.width // 2,
                                             event.pos[1] - self.character.rect.height // 2)
 
-
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
                 # Use an index to toggle
@@ -175,47 +171,94 @@ class MainScene:
             elif event.key == pygame.K_o:
                 self.walk_to_window = True
 
-            elif event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_DOWN:  # Pfeil nach unten
-                    self.falling = not self.falling  # Zustand umschalten
 
-    def update(self, dt):
-        if not self.character.dragging:
-            self.character.update(dt)
+            elif event.key == pygame.K_DOWN:  # Pfeil nach unten
+                self.falling = True
+                self.flip_scene()
 
-        if self.falling:
-            # Charakter fällt
-            if self.character.rect.y < self.character_target_y:
+            elif event.key == pygame.K_r:  # Zurücksetzen
+                    print("restart")
+                    self.falling = False
+                    self.reset_positions()
+
+    def reset_positions(self):
+        self.character.rect.y = 549
+        self.window_rect.y = 120
+        self.door_rect.y = 160
+        self.sofa_rect.y = 365
+        self.standing_lamp_rect.y = 376
+
+    def flip_scene(self):
+        """Flip the entire scene upside down, including bounds."""
+        self.scene_flipped = not self.scene_flipped
+        self.character.flip_bounds(self.scene_flipped)
+
+    def everything_falls(self):
+        """Make all objects in the scene fall (including character)."""
+        # Character falls
+        if self.scene_flipped:
+            if self.character.rect.top > 0:
+                self.character.rect.y -= self.fall_speed
+            else:
+                self.character.rect.y = 0
+        else:
+            if self.character.rect.bottom < 600:
                 self.character.rect.y += self.fall_speed
+            else:
+                self.character.rect.y = 600 - self.character.rect.height
 
-            # Fenster fällt
-            if self.window_rect.y < self.window_target_y:
+        # Window falls
+        if self.scene_flipped:
+            if self.window_rect.top > 0:
+                self.window_rect.y -= self.fall_speed
+            else:
+                self.window_rect.y = 0
+        else:
+            if self.window_rect.bottom < 600:
                 self.window_rect.y += self.fall_speed
+            else:
+                self.window_rect.y = 600 - self.window_rect.height
 
-            # Tür fällt
-            if self.door_rect.y < self.door_target_y:
+        # Door falls
+        if self.scene_flipped:
+            if self.door_rect.top > 0:
+                self.door_rect.y -= self.fall_speed
+            else:
+                self.door_rect.y = 0
+        else:
+            if self.door_rect.bottom < 600:
                 self.door_rect.y += self.fall_speed
+            else:
+                self.door_rect.y = 600 - self.door_rect.height
 
-            # Sofa fällt
-            if self.sofa_rect.y < self.sofa_target_y:
+        # Sofa falls
+        if self.scene_flipped:
+            if self.sofa_rect.top > 0:
+                self.sofa_rect.y -= self.fall_speed
+            else:
+                self.sofa_rect.y = 0
+        else:
+            if self.sofa_rect.bottom < 600:
                 self.sofa_rect.y += self.fall_speed
+            else:
+                self.sofa_rect.y = 600 - self.sofa_rect.height
 
-            # Lampe fällt
-            if self.standing_lamp_rect.y < self.lamp_target_y:
+        # Lamp falls
+        if self.scene_flipped:
+            if self.standing_lamp_rect.top > 0:
+                self.standing_lamp_rect.y -= self.fall_speed
+            else:
+                self.standing_lamp_rect.y = 0
+        else:
+            if self.standing_lamp_rect.bottom < 600:
                 self.standing_lamp_rect.y += self.fall_speed
+            else:
+                self.standing_lamp_rect.y = 600 - self.standing_lamp_rect.height
 
-            # Überprüfen, ob alle Objekte unten sind
-            if (
-                    self.character.rect.y >= self.character_target_y
-                    and self.window_rect.y >= self.window_target_y
-                    and self.door_rect.y >= self.door_target_y
-                    and self.sofa_rect.y >= self.sofa_target_y
-                    and self.standing_lamp_rect.y >= self.lamp_target_y
-            ):
-                self.falling = False  # Fallmodus deaktivieren
-
+    def handle_walk_to_window(self):
         if self.walk_to_window:
             self.character.disable_movement = True
+            self.character.force_animation("walk_up")
             window_center = self.window_rect.center
             character_center = self.character.rect.center
 
@@ -235,6 +278,8 @@ class MainScene:
 
             if self.character.rect.colliderect(self.window_rect):
                 self.walk_to_window = False
+
+                # Switch weather
                 if self.current_weather_index == 0:
                     self.current_weather_index = 2
                 elif self.current_weather_index == 2:
@@ -247,38 +292,58 @@ class MainScene:
                 # Update the window sprite
                 self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (128, 128))
 
-                # start random walking again
-                #self.character.disable_movement = False
+                # Start movement resume timer
+                self.movement_resume_timer = self.resume_movement_delay
+
+    def handle_walk_to_door(self):
+        self.character.disable_movement = True
+        self.character.force_animation("walk_left")
+        # Move character toward the door
+        door_center = self.door_rect.center
+        character_center = self.character.rect.center
+
+        # Calculate direction
+        direction_x = door_center[0] - character_center[0]
+        direction_y = door_center[1] - character_center[1]
+
+        # Normalize direction
+        distance = max(abs(direction_x), abs(direction_y))
+        if distance > 0:
+            self.character.velocity.x = direction_x / distance
+            self.character.velocity.y = direction_y / distance
+
+        # Move character
+        movement_speed = 2  # Faster speed for walking to the door
+        self.character.rect.x += self.character.velocity.x * movement_speed
+        self.character.rect.y += self.character.velocity.y * movement_speed
+
+        # Check if the character reached the door
+        if self.character.rect.colliderect(self.door_rect):
+            self.walk_to_door = False  # Stop walking
+            self.transition_to_sport_mode = True  # Start transition
+            self.door_index = 1  # Open door animation
+            self.door = pygame.transform.scale(self.door_sprites[self.door_index], (130, 200))  # Open door animation
+            self.door_open_timer = pygame.time.get_ticks()  # Start door open timer
+
+    def update(self, dt):
+        if not self.character.dragging:
+            self.character.update(dt)
+
+        if self.falling:
+            self.everything_falls()
+
+        if self.walk_to_window:
+            self.handle_walk_to_window()
+
+        if not self.walk_to_window and self.movement_resume_timer > 0:
+            self.movement_resume_timer -= dt
+            if self.movement_resume_timer <= 0:
+                self.movement_resume_timer = 0
+                self.character.disable_movement = False  # Resume movement
 
 
         if self.walk_to_door:
-            self.character.disable_movement = True
-            # Move character toward the door
-            door_center = self.door_rect.center
-            character_center = self.character.rect.center
-
-            # Calculate direction
-            direction_x = door_center[0] - character_center[0]
-            direction_y = door_center[1] - character_center[1]
-
-            # Normalize direction
-            distance = max(abs(direction_x), abs(direction_y))
-            if distance > 0:
-                self.character.velocity.x = direction_x / distance
-                self.character.velocity.y = direction_y / distance
-
-            # Move character
-            movement_speed = 2  # Faster speed for walking to the door
-            self.character.rect.x += self.character.velocity.x * movement_speed
-            self.character.rect.y += self.character.velocity.y * movement_speed
-
-            # Check if the character reached the door
-            if self.character.rect.colliderect(self.door_rect):
-                self.walk_to_door = False  # Stop walking
-                self.transition_to_sport_mode = True  # Start transition
-                self.door_index = 1 # Open door animation
-                self.door = pygame.transform.scale(self.door_sprites[self.door_index], (130, 200)) # Open door animation
-                self.door_open_timer = pygame.time.get_ticks()  # Start door open timer
+            self.handle_walk_to_door()
 
             # Handle door open timer and transition
         if self.transition_to_sport_mode:

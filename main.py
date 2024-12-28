@@ -14,7 +14,7 @@ def main():
     locale.setlocale(locale.LC_TIME, 'German_Germany.1252')
 
     scene_manager = SceneManager()
-    scene_manager.set_scene(DachbodenScene(scene_manager))
+    scene_manager.set_scene(MainScene(scene_manager))
 
     running = True
     while running:

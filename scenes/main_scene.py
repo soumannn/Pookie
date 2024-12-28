@@ -14,6 +14,16 @@ class MainScene:
     def __init__(self, scene_manager):
         self.scene_manager = scene_manager
 
+        self.falling = False
+        self.fall_speed = 5  # Geschwindigkeit des Fallens
+
+        # Zielpositionen für fallende Objekte
+        self.character_target_y = 600
+        self.window_target_y = 600
+        self.door_target_y = 600
+        self.sofa_target_y = 600
+        self.lamp_target_y = 600
+
         # Time and weather setup
         self.message_font = pygame.font.SysFont('system-ui', 40)
         self.message_font_uhrzeit = pygame.font.SysFont('system-ui', 40)
@@ -165,9 +175,44 @@ class MainScene:
             elif event.key == pygame.K_o:
                 self.walk_to_window = True
 
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_DOWN:  # Pfeil nach unten
+                    self.falling = not self.falling  # Zustand umschalten
+
     def update(self, dt):
         if not self.character.dragging:
             self.character.update(dt)
+
+        if self.falling:
+            # Charakter fällt
+            if self.character.rect.y < self.character_target_y:
+                self.character.rect.y += self.fall_speed
+
+            # Fenster fällt
+            if self.window_rect.y < self.window_target_y:
+                self.window_rect.y += self.fall_speed
+
+            # Tür fällt
+            if self.door_rect.y < self.door_target_y:
+                self.door_rect.y += self.fall_speed
+
+            # Sofa fällt
+            if self.sofa_rect.y < self.sofa_target_y:
+                self.sofa_rect.y += self.fall_speed
+
+            # Lampe fällt
+            if self.standing_lamp_rect.y < self.lamp_target_y:
+                self.standing_lamp_rect.y += self.fall_speed
+
+            # Überprüfen, ob alle Objekte unten sind
+            if (
+                    self.character.rect.y >= self.character_target_y
+                    and self.window_rect.y >= self.window_target_y
+                    and self.door_rect.y >= self.door_target_y
+                    and self.sofa_rect.y >= self.sofa_target_y
+                    and self.standing_lamp_rect.y >= self.lamp_target_y
+            ):
+                self.falling = False  # Fallmodus deaktivieren
 
         if self.walk_to_window:
             self.character.disable_movement = True
@@ -245,35 +290,34 @@ class MainScene:
             self.update_weather()
             self.last_weather_update = pygame.time.get_ticks()
 
-
     def render(self, screen):
-        # Background render
-        #screen.blit(self.background, (0, 0))
-
+        # Hintergrund rendern
         screen.blit(self.bg, self.bg_rect)
         screen.blit(self.window, self.window_rect)
         screen.blit(self.door, self.door_rect)
 
-
-        # Determine layering: character behind or in front of sofa
+        # Charakter und Sofa-Logik
         character_rect = self.character.rect
-        if character_rect.bottom <= self.sofa_rect.centery:  # Compare with the sofa's vertical midpoint
-            # Render character first (behind sofa)
+        if character_rect.bottom <= self.sofa_rect.centery:
             self.character.render(screen)
             screen.blit(self.sofa_image, self.sofa_rect)
         else:
-            # Render sofa first (in front of character)
             screen.blit(self.sofa_image, self.sofa_rect)
             self.character.render(screen)
 
-
-        # Standinglamp
+        # Stehlampe
         screen.blit(self.standing_lamp, self.standing_lamp_rect)
 
-        # Render time and weather
+        # Zeit und Wetter rendern
         current_time = datetime.now().strftime("%A %H:%M")
         time_surface = self.message_font_uhrzeit.render(f"{current_time}", False, (255, 255, 255))
         weather_surface = self.message_font.render(self.weather_info, False, (255, 255, 255))
         screen.blit(time_surface, (20, 20))
         screen.blit(weather_surface, (20, 60))
+
+        # Szene auf den Kopf stellen, falls aktiviert
+        if self.falling:
+            flipped_screen = pygame.transform.flip(screen, False, True)  # Vertikales Spiegeln
+            screen.blit(flipped_screen, (0, 0))
+
 

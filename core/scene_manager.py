@@ -13,6 +13,7 @@ class SceneManager:
         if self.current_scene:
             self.current_scene.update(dt)
 
-    def render(self, screen):
+    def render(self, screen, debug_mode=False):
         if self.current_scene:
-            self.current_scene.render(screen)
+            self.current_scene.render(screen, debug_mode)
+

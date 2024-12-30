@@ -8,7 +8,7 @@ class AnimatedCharacter(pygame.sprite.Sprite):
         self.allowed_bottom = 600  # Default bottom bound
 
         # Load sprite sheet
-        self.sprite_sheet = pygame.image.load("assets/characters/Girl-Sheet.png").convert_alpha()
+        self.sprite_sheet = pygame.image.load("assets/characters/character.png").convert_alpha()
         self.frame_width = 24
         self.frame_height = 24
         self.scale_factor = 6
@@ -76,7 +76,9 @@ class AnimatedCharacter(pygame.sprite.Sprite):
             "fall_down": frames[40:44],  # Frames 40-43
             "pushup": frames[40:44],
             "flying": frames[40:44],
-            "hantel": frames[46:45]
+            "hantel": frames[44:47],
+            "handy_modus": frames[47:49],
+            "buch_lesen": frames[49:54]
         }
         return animations
 

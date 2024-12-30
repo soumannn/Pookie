@@ -1,5 +1,6 @@
 from character.animated_character import AnimatedCharacter
 from Items import Item
+from helper.debug_box import draw_debug_info
 
 import pygame
 from scenes.sport_mode import SportModeScene
@@ -12,9 +13,16 @@ class MainScene:
     def __init__(self, scene_manager):
         self.scene_manager = scene_manager
 
+        # debug-font
+        self.debug_font = pygame.font.Font(None, 24)
+
         self.falling = False
         self.fall_speed = 5  # Geschwindigkeit des Fallens
         self.scene_flipped = False  # Tracks whether the scene is flipped
+
+        self.walk_to = False  # New state for TikTok mode
+        self.walk_to_target = None
+        self.walk_to_animation = ""
 
         self.movement_resume_timer = 0
         self.resume_movement_delay = 500  # 500ms delay before resuming random movement
@@ -117,6 +125,31 @@ class MainScene:
             # Default to day if sunrise/sunset not available
             self.current_weather_index = 0
 
+    def handle_walk_to(self):
+        """Handle walking to the TikTok target position."""
+        target_x, target_y = self.walk_to_target
+        character_center = self.character.rect.center
+
+        # Calculate direction
+        direction_x = target_x - character_center[0]
+        direction_y = target_y - character_center[1]
+
+        # Normalize direction
+        distance = max(abs(direction_x), abs(direction_y))
+        if distance > 0:
+            self.character.velocity.x = direction_x / distance
+            self.character.velocity.y = direction_y / distance
+
+        # Move character
+        movement_speed = 2  # Speed for walking to the target
+        self.character.rect.x += self.character.velocity.x * movement_speed
+        self.character.rect.y += self.character.velocity.y * movement_speed
+
+        # Check if the character reached the target position
+        if abs(character_center[0] - target_x) < 5 and abs(character_center[1] - target_y) < 5:
+            self.walk_to = False  # Stop walking
+            self.character.force_animation(self.walk_to_animation)  # Switch to handy_modus
+
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
             # Print the click position
@@ -170,6 +203,25 @@ class MainScene:
 
             elif event.key == pygame.K_o:
                 self.walk_to_window = True
+
+            elif event.key == pygame.K_h:
+                self.character.disable_movement = True
+                self.character.force_animation("hantel")
+
+            elif event.key == pygame.K_t:
+                """TikTok Modus
+                Walk to (426, 453) and switch to 'handy_modus'."""
+                self.character.disable_movement = True
+                self.walk_to_animation = "handy_modus"
+                self.walk_to = True
+                self.walk_to_target = (426, 403)  # Target position for TikTok mode
+
+            elif event.key == pygame.K_b:
+                """Buch lesen Modus"""
+                self.character.disable_movement = True
+                self.walk_to_animation = "buch_lesen"
+                self.walk_to = True
+                self.walk_to_target = (426, 403)
 
 
             elif event.key == pygame.K_DOWN:  # Pfeil nach unten
@@ -335,6 +387,9 @@ class MainScene:
         if self.walk_to_window:
             self.handle_walk_to_window()
 
+        if self.walk_to:
+            self.handle_walk_to()
+
         if not self.walk_to_window and self.movement_resume_timer > 0:
             self.movement_resume_timer -= dt
             if self.movement_resume_timer <= 0:
@@ -355,7 +410,7 @@ class MainScene:
             self.update_weather()
             self.last_weather_update = pygame.time.get_ticks()
 
-    def render(self, screen):
+    def render(self, screen, debug_mode=False):
         # Hintergrund rendern
         screen.blit(self.bg, self.bg_rect)
         screen.blit(self.window, self.window_rect)
@@ -384,5 +439,107 @@ class MainScene:
         if self.falling:
             flipped_screen = pygame.transform.flip(screen, False, True)  # Vertikales Spiegeln
             screen.blit(flipped_screen, (0, 0))
+
+        if debug_mode:
+            # Window debug info
+            draw_debug_info(
+                screen,
+                self.window_rect,
+                f"X: {self.window_rect.x}, Y: {self.window_rect.y}",
+                self.debug_font
+            )
+
+            # door debug info
+            draw_debug_info(
+                screen,
+                self.door_rect,
+                f"X: {self.door_rect.x}, Y: {self.door_rect.y}",
+                self.debug_font
+            )
+
+            # door index info
+            draw_debug_info(
+                screen,
+                self.door_rect,
+                f"Index: {self.door_index}",
+                self.debug_font,
+                text_offset=(0, self.door_rect.height + 5)
+            )
+
+            # lamp debug info
+            draw_debug_info(
+                screen,
+                self.standing_lamp_rect,
+                f"X: {self.standing_lamp_rect.x}, Y: {self.standing_lamp_rect.y}",
+                self.debug_font
+            )
+
+            # lamp index info
+            draw_debug_info(
+                screen,
+                self.standing_lamp_rect,
+                f"Index: {self.current_weather_index}",
+                self.debug_font,
+                text_offset=(0, self.standing_lamp_rect.height + 5)
+            )
+
+            # window current index
+            draw_debug_info(
+                screen,
+                self.window_rect,
+                f"Index: {self.current_weather_index}",
+                self.debug_font,
+                text_offset=(0, self.window_rect.height + 5)
+            )
+
+            # Background debug info (text inside rect)
+            draw_debug_info(
+                screen,
+                self.bg_rect,
+                f"Tag/Nacht: {self.current_weather_index}",
+                self.debug_font,
+                text_offset=(5, 5)  # Inside the rect
+            )
+
+            # draw red box on walking ground
+            pygame.draw.rect(screen, (255, 0, 0), (0, 346, 600, 600), 2)
+
+
+            # Sofa debug info
+            draw_debug_info(
+                screen,
+                self.sofa_rect,
+                f"X: {self.sofa_rect.x}, Y: {self.sofa_rect.y}",
+                self.debug_font
+            )
+
+            # Character debug info
+            draw_debug_info(
+                screen,
+                self.character.rect,
+                f"X: {self.character.rect.x}, Y: {self.character.rect.y}",
+                self.debug_font,
+                text_offset=(0, self.character.rect.height + 5)  # Below the rect
+            )
+
+            # Character status
+            draw_debug_info(
+                screen,
+                self.character.rect,
+                f"{self.character.current_animation}",
+                self.debug_font,
+                text_offset=(0, self.character.rect.height + 25)
+            )
+
+            # Autowalk status
+            draw_debug_info(
+                screen,
+                self.character.rect,
+                f"Autowalk {'off' if self.character.disable_movement else 'on'}",
+                self.debug_font,
+                text_offset=(0, self.character.rect.height + 45)
+            )
+
+
 
 

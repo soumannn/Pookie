@@ -6,7 +6,7 @@ from config import WEATHER_URL
 from datetime import datetime
 
 
-class SportModeScene:
+class JoggenScene:
     def __init__(self, scene_manager):
         self.scene_manager = scene_manager
         self.message_font = pygame.font.Font(None, 40)
@@ -106,9 +106,9 @@ class SportModeScene:
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:  # Return to the main scene
-                from scenes.main_scene import MainScene
-                self.scene_manager.set_scene(MainScene(self.scene_manager))
+            if event.key == pygame.K_ESCAPE:  # Zum Wohnzimmer zurückwechseln
+                from scenes.wohnzimmer_scene import Wohnzimmer
+                self.scene_manager.set_scene(Wohnzimmer(self.scene_manager))
 
     def render(self, screen, debug_mode=False):
         screen.blit(self.bg, self.bg_rect)

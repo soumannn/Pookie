@@ -3,13 +3,13 @@ from Items import Item
 from helper.debug_box import draw_debug_info
 
 import pygame
-from scenes.sport_mode import SportModeScene
+from scenes.joggen_scene import JoggenScene
 import requests
 from datetime import datetime
 from config import WEATHER_URL
 
 
-class MainScene:
+class Wohnzimmer:
     def __init__(self, scene_manager):
         self.scene_manager = scene_manager
 
@@ -403,7 +403,8 @@ class MainScene:
             # Handle door open timer and transition
         if self.transition_to_sport_mode:
             if pygame.time.get_ticks() - self.door_open_timer > 1000:  # 2-second delay
-                self.scene_manager.set_scene(SportModeScene(self.scene_manager))
+                # wechsel zum joggen
+                self.scene_manager.set_scene(JoggenScene(self.scene_manager))
 
         # Update weather every 5 minutes
         if pygame.time.get_ticks() - self.last_weather_update > 300000:  # 5 minutes in milliseconds

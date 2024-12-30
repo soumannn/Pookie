@@ -1,6 +1,6 @@
 import pygame
 from core.scene_manager import SceneManager
-from scenes.main_scene import MainScene
+from scenes.wohnzimmer_scene import Wohnzimmer
 from scenes.dachboden_scene import DachbodenScene
 import locale
 
@@ -14,7 +14,7 @@ def main():
     #locale.setlocale(locale.LC_TIME, 'German_Germany.1252')
 
     scene_manager = SceneManager()
-    scene_manager.set_scene(MainScene(scene_manager))
+    scene_manager.set_scene(Wohnzimmer(scene_manager))
 
     debug_mode = False  # Debug mode toggle
 

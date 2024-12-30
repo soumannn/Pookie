@@ -35,6 +35,34 @@ class AnimatedCharacter(pygame.sprite.Sprite):
         self.is_falling = False
         self.fall_speed = 10  # Gravity effect
 
+
+        # ------ AUTONOMY SETTINGS ------- #
+        self.next_action_time = pygame.time.get_ticks() + random.randint(5000, 15000)  # Next action in 5-15 seconds
+        self.current_behavior = "idle"  # Start in idle state
+        self.behavior_duration = 0  # Time the character will stay in the current behavior
+
+    def schedule_next_action(self):
+        """Schedule the next random action for the character."""
+        self.next_action_time = pygame.time.get_ticks() + random.randint(5000, 15000)
+        self.behavior_duration = random.randint(3000, 8000)  # Action lasts for 3–8 seconds
+
+        # Randomly choose a behavior with weighted probabilities
+        actions = ["walk", "read_book", "use_phone", "look_out_window", "exercise"]
+        weights = [0.5, 0.15, 0.15, 0.1, 0.1]  # Adjust probabilities as needed
+        self.current_behavior = random.choices(actions, weights)[0]
+
+        # Trigger corresponding animation
+        if self.current_behavior == "walk":
+            self.direction = random.choice(["up", "down", "left", "right"])
+        elif self.current_behavior == "read_book":
+            self.force_animation("buch_lesen")
+        elif self.current_behavior == "use_phone":
+            self.force_animation("handy_modus")
+        elif self.current_behavior == "look_out_window":
+            self.force_animation("idle")  # Idle animation for looking out the window
+        elif self.current_behavior == "exercise":
+            self.force_animation("hantel")
+
     def set_position(self, x, y):
         """Set the character's position (used during dragging)."""
         print("Setting position to ({}, {})".format(x, y))
@@ -117,6 +145,64 @@ class AnimatedCharacter(pygame.sprite.Sprite):
             self.allowed_top = 346
             self.allowed_bottom = 600
 
+    def update_behavior(self, dt):
+        """Update the character's behavior based on time."""
+        current_time = pygame.time.get_ticks()
+
+        # Check if it's time to perform a new action
+        if current_time >= self.next_action_time:
+            self.schedule_next_action()
+
+        # Execute the current behavior
+        if self.current_behavior == "walk" or self.current_behavior == "idle":
+            # Default to random walking
+            self.current_behavior = "walk"
+            movement_speed = 1.5
+
+            # Randomly decide direction if no movement is set
+            if self.velocity.x == 0 and self.velocity.y == 0:
+                self.direction = random.choice(["up", "down", "left", "right"])
+
+            if self.direction == "up":
+                self.velocity.x = 0
+                self.velocity.y = -1
+                self.force_animation("walk_up")
+            elif self.direction == "down":
+                self.velocity.x = 0
+                self.velocity.y = 1
+                self.force_animation("walk_down")
+            elif self.direction == "left":
+                self.velocity.x = -1
+                self.velocity.y = 0
+                self.force_animation("walk_left")
+            elif self.direction == "right":
+                self.velocity.x = 1
+                self.velocity.y = 0
+                self.force_animation("walk_right")
+
+            # Apply movement
+            self.rect.x += self.velocity.x * movement_speed
+            self.rect.y += self.velocity.y * movement_speed
+
+            # Keep within bounds
+            if self.rect.top < self.allowed_top:
+                self.rect.top = self.allowed_top
+                self.direction = "down"
+            if self.rect.bottom > self.allowed_bottom:
+                self.rect.bottom = self.allowed_bottom
+                self.direction = "up"
+            if self.rect.left < 0:
+                self.rect.left = 0
+                self.direction = "right"
+            if self.rect.right > 600:
+                self.rect.right = 600
+                self.direction = "left"
+
+        elif self.current_behavior in ["read_book", "use_phone", "look_out_window", "exercise"]:
+            # Stay in the current animation for the behavior's duration
+            if current_time >= self.next_action_time - self.behavior_duration:
+                self.current_behavior = "walk"  # Revert to walking after the behavior ends
+
     def update(self, dt):
         if self.is_falling:
             # Apply gravity effect
@@ -130,50 +216,7 @@ class AnimatedCharacter(pygame.sprite.Sprite):
                 self.current_animation = "idle"  # Reset to idle animation
 
         elif not self.disable_movement:
-            # Update autonomous movement direction periodically
-            self.move_timer += dt
-            if self.move_timer >= self.move_interval:
-                self.move_timer = 0
-                self.direction = random.choice(["up", "down", "left", "right"])
-
-            # Set velocity based on direction
-            if self.direction == "up":
-                self.velocity.x = 0
-                self.velocity.y = -1
-                self.current_animation = "walk_up"
-            elif self.direction == "down":
-                self.velocity.x = 0
-                self.velocity.y = 1
-                self.current_animation = "walk_down"
-            elif self.direction == "left":
-                self.velocity.x = -1
-                self.velocity.y = 0
-                self.current_animation = "walk_left"
-            elif self.direction == "right":
-                self.velocity.x = 1
-                self.velocity.y = 0
-                self.current_animation = "walk_right"
-
-            # Apply movement
-            movement_speed = 1.5  # Slower speed
-            self.rect.x += self.velocity.x * movement_speed
-            self.rect.y += self.velocity.y * movement_speed
-
-            # Restrict movement to the floor area (Y >= 346)
-            if self.rect.top < 346:
-                self.rect.top = 346
-                self.direction = "down"
-
-            # Keep the character within screen bounds (600x600)
-            if self.rect.left < 0:
-                self.rect.left = 0
-                self.direction = "right"
-            if self.rect.right > 600:
-                self.rect.right = 600
-                self.direction = "left"
-            if self.rect.bottom > 600:
-                self.rect.bottom = 600
-                self.direction = "up"
+            self.update_behavior(dt)
 
         # Update animation frame
         self.animation_timer += dt

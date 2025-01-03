@@ -50,6 +50,8 @@ class Lernzimmer:
         self.character.current_animation = "walk_right"
         self.is_walking = True  # Start walking to chair
 
+        self.is_leaving = False 
+
     def print_click_position(self, event):
         """Print the position of a mouse click to the terminal."""
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -81,11 +83,22 @@ class Lernzimmer:
             self.character.current_animation = "buch_lesen"
 
     def handle_left_learn_room(self):
-        pass
-    
+        self.character.disable_movement = True
+        self.character.force_animation("walk_left")
+
+        movement_speed = 2
+        self.character.rect.x -= movement_speed
+
+        if self.character.rect.right < 0:
+            from scenes.wohnzimmer_scene import Wohnzimmer 
+            self.scene_manager.set_scene(Wohnzimmer(self.scene_manager))
+
     def update(self, dt):
         if self.is_walking:
             self.handle_walk_to_chair()
+        
+        if self.is_leaving:
+            self.handle_left_learn_room()
 
         # Update the character animation
         self.character.update(dt)
@@ -93,8 +106,7 @@ class Lernzimmer:
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:  # Zum Wohnzimmer zurückwechseln
-                from scenes.wohnzimmer_scene import Wohnzimmer
-                self.scene_manager.set_scene(Wohnzimmer(self.scene_manager))
+                self.is_leaving = True  # Start leaving the room
 
     def render(self, screen, debug_mode=False):
         screen.blit(self.bg, self.bg_rect)

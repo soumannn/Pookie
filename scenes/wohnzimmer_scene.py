@@ -75,8 +75,7 @@ class Wohnzimmer:
         self.walk_to_door = False
 
         # State for transitioning to learn mode (Walk to Learnroom)
-        self.transition_to_learn_mode = False
-        self.walk_to_learnroom = False
+        self.is_walking_to_learnroom = False
 
         # Door
         self.door_sprites = Item("assets/spritesheets/doors.png", 30, 51, 1, 3)
@@ -223,12 +222,7 @@ class Wohnzimmer:
 
             elif event.key == pygame.K_b:
                 """Buch lesen Modus"""
-                #self.character.disable_movement = True
-                #self.walk_to_animation = "buch_lesen"
-                #self.walk_to = True
-                #self.walk_to_target = (426, 403)
-                #self.walking_to_learnroom = True    # Start walking to learn room
-                self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
+                self.is_walking_to_learnroom = True
 
             elif event.key == pygame.K_DOWN:  # Pfeil nach unten
                 self.falling = True
@@ -384,6 +378,8 @@ class Wohnzimmer:
             self.door_open_timer = pygame.time.get_ticks()  # Start door open timer
 
     def handle_walk_to_learnroom(self):
+        # self.walk_to_target = (426, 204)
+
         self.character.disable_movement = True
         self.character.force_animation("walk_right")
 
@@ -392,9 +388,8 @@ class Wohnzimmer:
         self.character.rect.x += movement_speed
 
         # Check if character has reached the right edge
-        if self.character.rect.right >= 600:  # Assuming screen width is 600
-            self.walk_to_learnroom = False
-            self.transition_to_learn_mode = True
+        if self.character.rect.right > 750:  # Assuming screen width is 600
+            self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
 
     def update(self, dt):
         if not self.character.dragging:
@@ -415,12 +410,6 @@ class Wohnzimmer:
                 self.movement_resume_timer = 0
                 self.character.disable_movement = False  # Resume movement
 
-        if self.walk_to_learnroom:
-            self.handle_walk_to_learnroom()
-        
-        if self.transition_to_learn_mode:
-            self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
-
         if self.walk_to_door:
             self.handle_walk_to_door()
 
@@ -434,6 +423,9 @@ class Wohnzimmer:
         if pygame.time.get_ticks() - self.last_weather_update > 300000:  # 5 minutes in milliseconds
             self.update_weather()
             self.last_weather_update = pygame.time.get_ticks()
+
+        if self.is_walking_to_learnroom:
+            self.handle_walk_to_learnroom()
 
     def render(self, screen, debug_mode=False):
         # Hintergrund rendern

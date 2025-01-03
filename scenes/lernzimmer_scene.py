@@ -26,8 +26,8 @@ class Lernzimmer:
 
         # Chair
         self.chair_image = pygame.image.load("assets/models/chair.png").convert_alpha()
-        self.chair_image = pygame.transform.scale(self.chair_image, (80, 140))
-        self.chair_rect = self.chair_image.get_rect(topleft=(425, 330))
+        self.chair_image = pygame.transform.scale(self.chair_image, (100, 140))
+        self.chair_rect = self.chair_image.get_rect(topleft=(415, 330))
 
         # Carpet 
         self.carpet_image = pygame.image.load("assets/models/carpet.png").convert_alpha()
@@ -37,7 +37,7 @@ class Lernzimmer:
         # Big Bookshelf 
         self.bookshelf_b_image = pygame.image.load("assets/models/bookshelf_big.png").convert_alpha()
         self.bookshelf_b_image = pygame.transform.scale(self.bookshelf_b_image, (276, 282))
-        self.bookshelf_b_rect = self.bookshelf_b_image.get_rect(topleft=(0, 120))
+        self.bookshelf_b_rect = self.bookshelf_b_image.get_rect(topleft=(5, 120))
 
         # Tablelamp
         self.table_lamp_sprites = Item("assets/spritesheets/tablelamps.png", 15, 23, 1, 2)
@@ -45,16 +45,48 @@ class Lernzimmer:
         self.table_lamp_rect = self.table_lamp.get_rect(topleft=(530, 430))
 
         # Character setup
-        self.character = AnimatedCharacter(452, 360)  
+        self.character = AnimatedCharacter(0, 346)  
         self.character.disable_movement = True
-        self.character.current_animation = "buch_lesen"
+        self.character.current_animation = "walk_right"
+        self.is_walking = True  # Start walking to chair
 
     def print_click_position(self, event):
         """Print the position of a mouse click to the terminal."""
         if event.type == pygame.MOUSEBUTTONDOWN:
             print(f"Mouse clicked at position: {event.pos}")
 
+    def handle_walk_to_chair(self):
+        target_x = self.chair_rect.centerx - 10
+        target_y = self.chair_rect.centery - 35
+        character_center = self.character.rect.center
+
+        # Calculate direction
+        direction_x = target_x - character_center[0]
+        direction_y = target_y - character_center[1]
+
+        # Normalize direction
+        distance = max(abs(direction_x), abs(direction_y))
+        if distance > 0:
+            self.character.velocity.x = direction_x / distance
+            self.character.velocity.y = direction_y / distance
+
+        # Move character
+        movement_speed = 2  # Speed for walking to the target
+        self.character.rect.x += self.character.velocity.x * movement_speed
+        self.character.rect.y += self.character.velocity.y * movement_speed
+
+        # Check if the character reached the target position
+        if abs(character_center[0] - target_x) < 5 and abs(character_center[1] - target_y) < 5:
+            self.is_walking = False  # Stop walking
+            self.character.current_animation = "buch_lesen"
+
+    def handle_left_learn_room(self):
+        pass
+    
     def update(self, dt):
+        if self.is_walking:
+            self.handle_walk_to_chair()
+
         # Update the character animation
         self.character.update(dt)
 
@@ -73,7 +105,6 @@ class Lernzimmer:
         screen.blit(self.table_image, self.table_rect)
         screen.blit(self.table_lamp, self.table_lamp_rect)
         
-
         self.character.render(screen)
 
         if debug_mode: 

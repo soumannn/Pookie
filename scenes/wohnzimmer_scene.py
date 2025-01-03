@@ -229,7 +229,7 @@ class Wohnzimmer:
                 #self.walk_to_target = (426, 403)
                 #self.walking_to_learnroom = True    # Start walking to learn room
                 self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
-                
+
             elif event.key == pygame.K_DOWN:  # Pfeil nach unten
                 self.falling = True
                 self.flip_scene()

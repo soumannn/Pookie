@@ -107,6 +107,14 @@ class Lernzimmer:
             # draw red box on walking ground
             pygame.draw.rect(screen, (255, 0, 0), (0, 346, 600, 600), 2)
 
+            # Table Lamp debug info
+            draw_debug_info(
+                screen,
+                self.table_lamp_rect,
+                f"X: {self.table_lamp_rect.x}, Y: {self.table_lamp_rect.y}",
+                self.debug_font
+            )
+
             # Table debug info
             draw_debug_info(
                 screen,

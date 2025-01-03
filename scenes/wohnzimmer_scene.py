@@ -4,6 +4,7 @@ from helper.debug_box import draw_debug_info
 
 import pygame
 from scenes.joggen_scene import JoggenScene
+from scenes.lernzimmer_scene import Lernzimmer
 import requests
 from datetime import datetime
 from config import WEATHER_URL
@@ -72,6 +73,10 @@ class Wohnzimmer:
         self.transition_to_sport_mode = False
         self.door_open_timer = 0
         self.walk_to_door = False
+
+        # State for transitioning to learn mode (Walk to Learnroom)
+        self.transition_to_learn_mode = False
+        self.walk_to_learnroom = False
 
         # Door
         self.door_sprites = Item("assets/spritesheets/doors.png", 30, 51, 1, 3)
@@ -218,12 +223,13 @@ class Wohnzimmer:
 
             elif event.key == pygame.K_b:
                 """Buch lesen Modus"""
-                self.character.disable_movement = True
-                self.walk_to_animation = "buch_lesen"
-                self.walk_to = True
-                self.walk_to_target = (426, 403)
-
-
+                #self.character.disable_movement = True
+                #self.walk_to_animation = "buch_lesen"
+                #self.walk_to = True
+                #self.walk_to_target = (426, 403)
+                #self.walking_to_learnroom = True    # Start walking to learn room
+                self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
+                
             elif event.key == pygame.K_DOWN:  # Pfeil nach unten
                 self.falling = True
                 self.flip_scene()
@@ -377,6 +383,19 @@ class Wohnzimmer:
             self.door = pygame.transform.scale(self.door_sprites[self.door_index], (130, 200))  # Open door animation
             self.door_open_timer = pygame.time.get_ticks()  # Start door open timer
 
+    def handle_walk_to_learnroom(self):
+        self.character.disable_movement = True
+        self.character.force_animation("walk_right")
+
+        # Move character toward the right edge of the screen
+        movement_speed = 2
+        self.character.rect.x += movement_speed
+
+        # Check if character has reached the right edge
+        if self.character.rect.right >= 600:  # Assuming screen width is 600
+            self.walk_to_learnroom = False
+            self.transition_to_learn_mode = True
+
     def update(self, dt):
         if not self.character.dragging:
             self.character.update(dt)
@@ -396,6 +415,11 @@ class Wohnzimmer:
                 self.movement_resume_timer = 0
                 self.character.disable_movement = False  # Resume movement
 
+        if self.walk_to_learnroom:
+            self.handle_walk_to_learnroom()
+        
+        if self.transition_to_learn_mode:
+            self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
 
         if self.walk_to_door:
             self.handle_walk_to_door()

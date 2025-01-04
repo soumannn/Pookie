@@ -4,6 +4,7 @@ from helper.debug_box import draw_debug_info
 
 import pygame
 from scenes.joggen_scene import JoggenScene
+from scenes.esszimmer_scene import Esszimmer
 import requests
 from datetime import datetime
 from config import WEATHER_URL
@@ -232,6 +233,10 @@ class Wohnzimmer:
                     print("restart")
                     self.falling = False
                     self.reset_positions()
+
+            elif event.key == pygame.K_e:
+                """Essen Modus"""
+                self.scene_manager.set_scene(Esszimmer(self.scene_manager))
 
     def reset_positions(self):
         self.character.rect.y = 549

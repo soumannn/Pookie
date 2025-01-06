@@ -1,6 +1,7 @@
 from character.animated_character import AnimatedCharacter
 from Items import Item
 from helper.debug_box import draw_debug_info
+from scenes.gym_scene import gym
 
 import pygame
 from scenes.joggen_scene import JoggenScene
@@ -232,6 +233,10 @@ class Wohnzimmer:
                     print("restart")
                     self.falling = False
                     self.reset_positions()
+
+            elif event.key == pygame.K_g:
+                """Sport Modus"""
+                self.scene_manager.set_scene(gym(self.scene_manager))
 
     def reset_positions(self):
         self.character.rect.y = 549

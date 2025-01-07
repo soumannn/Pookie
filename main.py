@@ -10,7 +10,7 @@ def main():
     pygame.display.set_caption("Pookie")
     clock = pygame.time.Clock()
 
-    locale.setlocale(locale.LC_TIME, 'de_DE.UTF-8')  # For Linux/Mac
+    #locale.setlocale(locale.LC_TIME, 'de_DE.UTF-8')  # For Linux/Mac
     # locale.setlocale(locale.LC_TIME, 'German_Germany.1252')
 
     scene_manager = SceneManager()

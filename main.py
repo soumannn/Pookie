@@ -6,17 +6,18 @@ import locale
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((600, 600))
+    screen = pygame.display.set_mode((480, 320))  # Start in windowed mode
     pygame.display.set_caption("Pookie")
     clock = pygame.time.Clock()
 
     locale.setlocale(locale.LC_TIME, 'de_DE.UTF-8')  # For Linux/Mac
-    #locale.setlocale(locale.LC_TIME, 'German_Germany.1252')
+    # locale.setlocale(locale.LC_TIME, 'German_Germany.1252')
 
     scene_manager = SceneManager()
     scene_manager.set_scene(Wohnzimmer(scene_manager))
 
     debug_mode = False  # Debug mode toggle
+    fullscreen = False  # Fullscreen toggle state
 
     running = True
     while running:
@@ -28,6 +29,13 @@ def main():
                 # Toggle debug mode with 'D' key
                 if event.key == pygame.K_d:
                     debug_mode = not debug_mode
+                # Toggle fullscreen with 'F' key
+                elif event.key == pygame.K_f:
+                    fullscreen = not fullscreen
+                    if fullscreen:
+                        screen = pygame.display.set_mode((480, 320), pygame.FULLSCREEN)
+                    else:
+                        screen = pygame.display.set_mode((480, 320))
             scene_manager.handle_event(event)
 
         scene_manager.update(dt)
@@ -35,6 +43,7 @@ def main():
         pygame.display.flip()
 
     pygame.quit()
+
 
 
 if __name__ == "__main__":

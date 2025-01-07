@@ -28,15 +28,15 @@ class Wohnzimmer:
         self.resume_movement_delay = 500  # 500ms delay before resuming random movement
 
         # Zielpositionen für fallende Objekte
-        self.character_target_y = 600
-        self.window_target_y = 600
-        self.door_target_y = 600
-        self.sofa_target_y = 600
-        self.lamp_target_y = 600
+        self.character_target_y = 320
+        self.window_target_y = 320
+        self.door_target_y = 320
+        self.sofa_target_y = 320
+        self.lamp_target_y = 320
 
         # Time and weather setup
-        self.message_font = pygame.font.SysFont('system-ui', 40)
-        self.message_font_uhrzeit = pygame.font.SysFont('system-ui', 40)
+        self.message_font = pygame.font.SysFont('system-ui', 24)
+        self.message_font_uhrzeit = pygame.font.SysFont('system-ui', 24)
         self.weather_info = "Loading weather..."
         self.last_weather_update = pygame.time.get_ticks()
         self.update_weather()
@@ -46,21 +46,21 @@ class Wohnzimmer:
 
         self.bg_sprites = Item("assets/spritesheets/floorwall.png", 64, 112, 1, 5)
         # Scale the first sprite from the list
-        self.bg = pygame.transform.scale(self.bg_sprites[2], (600, 600))
+        self.bg = pygame.transform.scale(self.bg_sprites[2], (480, 320))
         # Create a rect for positioning
         self.bg_rect = self.bg.get_rect(topleft=(0, 0))
 
         # Windows
         self.current_weather_index = 0
         self.window_sprites = Item("assets/spritesheets/windows.png", 32, 28, 1, 4)
-        self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (128, 128))
-        self.window_rect = self.window.get_rect(topleft=(393, 120))
+        self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (84,84))
+        self.window_rect = self.window.get_rect(topleft=(342, 40))
         self.walk_to_window = False
 
         # Sofa
         self.sofa_image = pygame.image.load("assets/models/sofa.png").convert_alpha()
-        self.sofa_image = pygame.transform.scale(self.sofa_image, (268, 170))  # Scale the sofa
-        self.sofa_rect = self.sofa_image.get_rect(topleft=(240, 365))
+        self.sofa_image = pygame.transform.scale(self.sofa_image, (150, 100))  # Scale the sofa
+        self.sofa_rect = self.sofa_image.get_rect(topleft=(244, 190))
 
         # Character
         self.character = AnimatedCharacter(373, 549)
@@ -75,13 +75,13 @@ class Wohnzimmer:
 
         # Door
         self.door_sprites = Item("assets/spritesheets/doors.png", 30, 51, 1, 3)
-        self.door = pygame.transform.scale(self.door_sprites[self.door_index], (130, 200))
-        self.door_rect = self.window.get_rect(topleft=(40, 160))
+        self.door = pygame.transform.scale(self.door_sprites[self.door_index], (80, 132))
+        self.door_rect = self.window.get_rect(topleft=(30, 60))
 
         # Standinglamp
         self.stand_lamp_sprites = Item("assets/spritesheets/standinglamps.png", 15, 46, 1, 2)
-        self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index], (70, 199))
-        self.standing_lamp_rect = self.standing_lamp.get_rect(topleft=(510, 376))
+        self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index], (40, 120))
+        self.standing_lamp_rect = self.standing_lamp.get_rect(topleft=(411, 188))
 
         self.update_weather()
         self.set_day_night()
@@ -118,8 +118,8 @@ class Wohnzimmer:
             else:
                 self.current_weather_index = 1  # Night
 
-            self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (128, 128))
-            self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index], (70, 199))
+            self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (84,84))
+            self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index], (40, 120))
 
         except AttributeError:
             # Default to day if sunrise/sunset not available
@@ -168,7 +168,7 @@ class Wohnzimmer:
                     self.current_weather_index = 1
 
                 # Update the window sprite
-                self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (128, 128))
+                self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (84,84))
 
             # Detect character drag
             if self.character.rect.collidepoint(event.pos):  # Start dragging
@@ -195,9 +195,9 @@ class Wohnzimmer:
             if event.key == pygame.K_w:
                 # Use an index to toggle
                 self.current_weather_index = 1 - self.current_weather_index  # Toggles between 0 and 1
-                self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (128, 128))
+                self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (84,84))
                 self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index],
-                                                            (70, 199))
+                                                            (40, 120))
             elif event.key == pygame.K_s:
                 self.walk_to_door = True  # Start walking to the door
 
@@ -214,14 +214,14 @@ class Wohnzimmer:
                 self.character.disable_movement = True
                 self.walk_to_animation = "handy_modus"
                 self.walk_to = True
-                self.walk_to_target = (426, 403)  # Target position for TikTok mode
+                self.walk_to_target = (334, 210)  # Target position for TikTok mode (244, 190)
 
             elif event.key == pygame.K_b:
                 """Buch lesen Modus"""
                 self.character.disable_movement = True
                 self.walk_to_animation = "buch_lesen"
                 self.walk_to = True
-                self.walk_to_target = (426, 403)
+                self.walk_to_target = (334, 210)
 
 
             elif event.key == pygame.K_DOWN:  # Pfeil nach unten
@@ -235,7 +235,7 @@ class Wohnzimmer:
 
     def reset_positions(self):
         self.character.rect.y = 549
-        self.window_rect.y = 120
+        self.window_rect.y = 32
         self.door_rect.y = 160
         self.sofa_rect.y = 365
         self.standing_lamp_rect.y = 376
@@ -254,10 +254,10 @@ class Wohnzimmer:
             else:
                 self.character.rect.y = 0
         else:
-            if self.character.rect.bottom < 600:
+            if self.character.rect.bottom < 320:
                 self.character.rect.y += self.fall_speed
             else:
-                self.character.rect.y = 600 - self.character.rect.height
+                self.character.rect.y = 320 - self.character.rect.height
 
         # Window falls
         if self.scene_flipped:
@@ -266,10 +266,10 @@ class Wohnzimmer:
             else:
                 self.window_rect.y = 0
         else:
-            if self.window_rect.bottom < 600:
+            if self.window_rect.bottom < 320:
                 self.window_rect.y += self.fall_speed
             else:
-                self.window_rect.y = 600 - self.window_rect.height
+                self.window_rect.y = 320 - self.window_rect.height
 
         # Door falls
         if self.scene_flipped:
@@ -278,10 +278,10 @@ class Wohnzimmer:
             else:
                 self.door_rect.y = 0
         else:
-            if self.door_rect.bottom < 600:
+            if self.door_rect.bottom < 320:
                 self.door_rect.y += self.fall_speed
             else:
-                self.door_rect.y = 600 - self.door_rect.height
+                self.door_rect.y = 320 - self.door_rect.height
 
         # Sofa falls
         if self.scene_flipped:
@@ -290,10 +290,10 @@ class Wohnzimmer:
             else:
                 self.sofa_rect.y = 0
         else:
-            if self.sofa_rect.bottom < 600:
+            if self.sofa_rect.bottom < 320:
                 self.sofa_rect.y += self.fall_speed
             else:
-                self.sofa_rect.y = 600 - self.sofa_rect.height
+                self.sofa_rect.y = 320 - self.sofa_rect.height
 
         # Lamp falls
         if self.scene_flipped:
@@ -302,10 +302,10 @@ class Wohnzimmer:
             else:
                 self.standing_lamp_rect.y = 0
         else:
-            if self.standing_lamp_rect.bottom < 600:
+            if self.standing_lamp_rect.bottom < 320:
                 self.standing_lamp_rect.y += self.fall_speed
             else:
-                self.standing_lamp_rect.y = 600 - self.standing_lamp_rect.height
+                self.standing_lamp_rect.y = 320 - self.standing_lamp_rect.height
 
     def handle_walk_to_window(self):
         if self.walk_to_window:
@@ -342,7 +342,7 @@ class Wohnzimmer:
                     self.current_weather_index = 1
 
                 # Update the window sprite
-                self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (128, 128))
+                self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (84,84))
 
                 # Start movement resume timer
                 self.movement_resume_timer = self.resume_movement_delay
@@ -374,7 +374,7 @@ class Wohnzimmer:
             self.walk_to_door = False  # Stop walking
             self.transition_to_sport_mode = True  # Start transition
             self.door_index = 1  # Open door animation
-            self.door = pygame.transform.scale(self.door_sprites[self.door_index], (130, 200))  # Open door animation
+            self.door = pygame.transform.scale(self.door_sprites[self.door_index], (80, 132))  # Open door animation
             self.door_open_timer = pygame.time.get_ticks()  # Start door open timer
 
     def update(self, dt):
@@ -434,7 +434,7 @@ class Wohnzimmer:
         time_surface = self.message_font_uhrzeit.render(f"{current_time}", False, (255, 255, 255))
         weather_surface = self.message_font.render(self.weather_info, False, (255, 255, 255))
         screen.blit(time_surface, (20, 20))
-        screen.blit(weather_surface, (20, 60))
+        screen.blit(weather_surface, (20, 40))
 
         # Szene auf den Kopf stellen, falls aktiviert
         if self.falling:
@@ -503,7 +503,7 @@ class Wohnzimmer:
             )
 
             # draw red box on walking ground
-            pygame.draw.rect(screen, (255, 0, 0), (0, 346, 600, 600), 2)
+            pygame.draw.rect(screen, (255, 0, 0), (0, 182, 475, 130), 2)
 
 
             # Sofa debug info

@@ -46,7 +46,7 @@ class Wohnzimmer:
 
         self.bg_sprites = Item("assets/spritesheets/floorwall.png", 64, 112, 1, 5)
         # Scale the first sprite from the list
-        self.bg = pygame.transform.scale(self.bg_sprites[2], (480, 320))
+        self.bg = pygame.transform.scale(self.bg_sprites[2], (640, 480))
         # Create a rect for positioning
         self.bg_rect = self.bg.get_rect(topleft=(0, 0))
 
@@ -503,7 +503,7 @@ class Wohnzimmer:
             )
 
             # draw red box on walking ground
-            pygame.draw.rect(screen, (255, 0, 0), (0, 182, 475, 130), 2)
+            pygame.draw.rect(screen, (255, 0, 0), (0, 270, 640, 200), 2)
 
 
             # Sofa debug info

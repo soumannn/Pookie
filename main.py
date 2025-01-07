@@ -6,7 +6,7 @@ import locale
 
 def main():
     pygame.init()
-    screen = pygame.display.set_mode((480, 320))  # Start in windowed mode
+    screen = pygame.display.set_mode((640, 480))  # Start in windowed mode
     pygame.display.set_caption("Pookie")
     clock = pygame.time.Clock()
 

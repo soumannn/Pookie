@@ -53,8 +53,8 @@ class Wohnzimmer:
         # Windows
         self.current_weather_index = 0
         self.window_sprites = Item("assets/spritesheets/windows.png", 32, 28, 1, 4)
-        self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (84,84))
-        self.window_rect = self.window.get_rect(topleft=(342, 40))
+        self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (110, 110))
+        self.window_rect = self.window.get_rect(topleft=(380, 90))
         self.walk_to_window = False
 
         # Sofa
@@ -75,8 +75,8 @@ class Wohnzimmer:
 
         # Door
         self.door_sprites = Item("assets/spritesheets/doors.png", 30, 51, 1, 3)
-        self.door = pygame.transform.scale(self.door_sprites[self.door_index], (80, 132))
-        self.door_rect = self.window.get_rect(topleft=(30, 60))
+        self.door = pygame.transform.scale(self.door_sprites[self.door_index], (120, 200))
+        self.door_rect = self.window.get_rect(topleft=(30, 88))
 
         # Standinglamp
         self.stand_lamp_sprites = Item("assets/spritesheets/standinglamps.png", 15, 46, 1, 2)
@@ -118,7 +118,7 @@ class Wohnzimmer:
             else:
                 self.current_weather_index = 1  # Night
 
-            self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (84,84))
+            self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (110, 110))
             self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index], (40, 120))
 
         except AttributeError:
@@ -168,7 +168,7 @@ class Wohnzimmer:
                     self.current_weather_index = 1
 
                 # Update the window sprite
-                self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (84,84))
+                self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (110, 110))
 
             # Detect character drag
             if self.character.rect.collidepoint(event.pos):  # Start dragging
@@ -195,7 +195,7 @@ class Wohnzimmer:
             if event.key == pygame.K_w:
                 # Use an index to toggle
                 self.current_weather_index = 1 - self.current_weather_index  # Toggles between 0 and 1
-                self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (84,84))
+                self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (110, 110))
                 self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index],
                                                             (40, 120))
             elif event.key == pygame.K_s:
@@ -342,7 +342,7 @@ class Wohnzimmer:
                     self.current_weather_index = 1
 
                 # Update the window sprite
-                self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (84,84))
+                self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (110, 110))
 
                 # Start movement resume timer
                 self.movement_resume_timer = self.resume_movement_delay
@@ -374,7 +374,7 @@ class Wohnzimmer:
             self.walk_to_door = False  # Stop walking
             self.transition_to_sport_mode = True  # Start transition
             self.door_index = 1  # Open door animation
-            self.door = pygame.transform.scale(self.door_sprites[self.door_index], (80, 132))  # Open door animation
+            self.door = pygame.transform.scale(self.door_sprites[self.door_index], (120, 200))  # Open door animation
             self.door_open_timer = pygame.time.get_ticks()  # Start door open timer
 
     def update(self, dt):

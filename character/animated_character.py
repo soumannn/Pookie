@@ -6,7 +6,7 @@ class AnimatedCharacter(pygame.sprite.Sprite):
 
         # Walkable area boundaries (0, 270, 640, 200)
         self.walkable_left = 0
-        self.walkable_top = 270 - 50
+        self.walkable_top = 270 - 100
         self.walkable_right = 640
         self.walkable_bottom = 270 + 200
 
@@ -14,7 +14,7 @@ class AnimatedCharacter(pygame.sprite.Sprite):
         self.sprite_sheet = pygame.image.load("assets/characters/character.png").convert_alpha()
         self.frame_width = 24
         self.frame_height = 24
-        self.scale_factor = 5
+        self.scale_factor = 6
         self.animations = self.load_animations()
 
         # Default animation state

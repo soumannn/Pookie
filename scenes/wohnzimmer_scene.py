@@ -106,13 +106,14 @@ class Wohnzimmer:
     def read_sensor_data(self):
         """Read accelerometer data from the gyrosensor."""
         if not IS_RASPBERRY_PI:
-            return 0, 0  # Default values when running on a PC
+            return 0, 0, 0  # Default values when running on a PC
 
         accel_data = self.sensor.get_accel_data()
         accel_x = accel_data['x']
+        accel_y = accel_data['y']
         accel_z = accel_data['z']
 
-        return accel_x, accel_z
+        return accel_x, accel_y, accel_z
 
     def detect_tilt(self, accel_x, accel_y, accel_z, threshold=0.5, shake_threshold=2.0):
         """Detect tilt based on accelerometer data."""
@@ -138,8 +139,8 @@ class Wohnzimmer:
         if not IS_RASPBERRY_PI:
             return
 
-        accel_x, accel_z = self.read_sensor_data()
-        tilt_direction = self.detect_tilt(accel_x, accel_z)
+        accel_x, accel_y, accel_z = self.read_sensor_data()
+        tilt_direction = self.detect_tilt(accel_x, accel_y, accel_z)
 
         if tilt_direction == "forward":
             print("Transitioning to sport mode due to forward tilt.")

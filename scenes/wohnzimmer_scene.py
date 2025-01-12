@@ -1,3 +1,5 @@
+import time
+
 from character.animated_character import AnimatedCharacter
 from Items import Item
 from helper.debug_box import draw_debug_info
@@ -119,10 +121,15 @@ class Wohnzimmer:
         accel_y = accel_data['y']
         accel_z = accel_data['z']
 
+        time.sleep(.5)
+
         return accel_x, accel_y, accel_z
 
-    def detect_tilt(self, accel_x, accel_y, accel_z, threshold=0.5, shake_threshold=6.0):
+    def detect_tilt(self, accel_x, accel_y, accel_z, threshold=0.5, shake_threshold=2.0):
         """Detect tilt based on accelerometer data."""
+        magnitude = (accel_x ** 2 + accel_y ** 2 + accel_z ** 2) ** 0.5
+
+
         if accel_z < -threshold and accel_x < -threshold:
             print("Raspberry Pi ist nach vorne geneigt!")
             return "forward"  # Forward tilt detected
@@ -135,7 +142,7 @@ class Wohnzimmer:
         elif accel_y < -threshold:
             print("Raspberry Pi ist nach links geneigt!")
             return "left"
-        elif abs(accel_x) > shake_threshold or abs(accel_y) > shake_threshold or abs(accel_z) > shake_threshold:
+        elif magnitude > threshold:
             print("Raspberry Pi wird geschüttelt!")
             return "shake"
         return None  # No significant tilt detected
@@ -145,17 +152,13 @@ class Wohnzimmer:
         if not IS_RASPBERRY_PI:
             return
 
-        sleep(.5)
-
         accel_x, accel_y, accel_z = self.read_sensor_data()
         tilt_direction = self.detect_tilt(accel_x, accel_y, accel_z)
 
         if tilt_direction == "forward":
-            print("Transitioning to sport mode due to forward tilt.")
             self.transition_to_sport_mode = True
         elif tilt_direction == "backward":
             self.walk_to_door = True
-            print("Transitioning to relax mode due to backward tilt.")
         elif tilt_direction == "shake":
             self.character.disable_movement = True
             self.character.force_animation("fall_down")

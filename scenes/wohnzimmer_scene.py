@@ -152,7 +152,7 @@ class Wohnzimmer:
 
         return accel_x, accel_y, accel_z
 
-    def detect_tilt(self, accel_x, accel_y, accel_z, threshold=2.0):
+    def detect_tilt(self, accel_x, accel_y, accel_z, threshold=10.0):
         """
         Detect a strong tilt based on accelerometer data relative to the baseline.
         We'll define:

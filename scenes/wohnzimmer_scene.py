@@ -142,7 +142,7 @@ class Wohnzimmer:
         elif accel_y < -threshold:
             print("Raspberry Pi ist nach links geneigt!")
             return "left"
-        elif magnitude > threshold:
+        elif magnitude > shake_threshold:
             print("Raspberry Pi wird geschüttelt!")
             return "shake"
         return None  # No significant tilt detected

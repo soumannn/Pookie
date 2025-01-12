@@ -2,8 +2,9 @@ from character.animated_character import AnimatedCharacter
 from Items import Item
 from helper.debug_box import draw_debug_info
 from mpu6050 import mpu6050
-
+import smbus
 import pygame
+
 from scenes.joggen_scene import JoggenScene
 import requests
 from datetime import datetime
@@ -18,7 +19,7 @@ class Wohnzimmer:
         self.debug_font = pygame.font.Font(None, 24)
 
         # sensor
-        self.sensor = mpu6050(0x68)
+        self.sensor = mpu6050(0x6, bus=3)
         self.tilt_detected = False
 
         self.falling = False

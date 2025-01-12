@@ -57,6 +57,7 @@ class Wohnzimmer:
 
         # Other objects setup
         self.character = AnimatedCharacter(373, 549)
+        self.dragging_character = False
         self.door_index = 0
         self.transition_to_sport_mode = False
         self.door_open_timer = 0

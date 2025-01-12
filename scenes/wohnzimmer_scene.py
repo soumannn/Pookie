@@ -116,8 +116,11 @@ class Wohnzimmer:
         """Detect tilt based on accelerometer data."""
         if accel_z < -threshold and accel_x < -threshold:
             print("Raspberry Pi ist nach vorne geneigt!")
-            return True
-        return False
+            return "forward"  # Forward tilt detected
+        elif accel_z > threshold and accel_x > threshold:
+            print("Raspberry Pi ist nach hinten geneigt!")
+            return "backward"  # Backward tilt detected
+        return None  # No significant tilt detected
 
     def check_tilt(self):
         """Check for tilt and transition to sport mode if detected."""
@@ -125,11 +128,14 @@ class Wohnzimmer:
             return
 
         accel_x, accel_z = self.read_sensor_data()
-        self.tilt_detected = self.detect_tilt(accel_x, accel_z)
+        tilt_direction = self.detect_tilt(accel_x, accel_z)
 
-        if self.tilt_detected:
-            print("Transitioning to sport mode due to tilt.")
+        if tilt_direction == "forward":
+            print("Transitioning to sport mode due to forward tilt.")
             self.transition_to_sport_mode = True
+        elif tilt_direction == "backward":
+            self.walk_to_door = True
+            print("Transitioning to relax mode due to backward tilt.")
 
 
     def print_click_position(self, event):

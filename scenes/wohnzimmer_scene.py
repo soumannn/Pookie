@@ -1,8 +1,6 @@
 from character.animated_character import AnimatedCharacter
 from Items import Item
 from helper.debug_box import draw_debug_info
-from mpu6050 import mpu6050
-import smbus
 import pygame
 
 from scenes.joggen_scene import JoggenScene
@@ -10,18 +8,30 @@ import requests
 from datetime import datetime
 from config import WEATHER_URL
 
+try:
+    from mpu6050 import mpu6050
+    import smbus
+    IS_RASPBERRY_PI = True
+except ImportError:
+    IS_RASPBERRY_PI = False
+
+
 
 class Wohnzimmer:
     def __init__(self, scene_manager):
         self.scene_manager = scene_manager
 
-        # debug-font
+        # Debug font
         self.debug_font = pygame.font.Font(None, 24)
 
-        # sensor
-        self.sensor = mpu6050(0x6, bus=3)
+        # Gyrosensor setup (only on Raspberry Pi)
+        if IS_RASPBERRY_PI:
+            self.sensor = mpu6050(0x68, bus=3)
+        else:
+            self.sensor = None
         self.tilt_detected = False
 
+        # Other attributes
         self.falling = False
         self.fall_speed = 5  # Geschwindigkeit des Fallens
         self.scene_flipped = False  # Tracks whether the scene is flipped
@@ -33,13 +43,6 @@ class Wohnzimmer:
         self.movement_resume_timer = 0
         self.resume_movement_delay = 500  # 500ms delay before resuming random movement
 
-        # Zielpositionen für fallende Objekte
-        self.character_target_y = 320
-        self.window_target_y = 320
-        self.door_target_y = 320
-        self.sofa_target_y = 320
-        self.lamp_target_y = 320
-
         # Time and weather setup
         self.message_font = pygame.font.SysFont('system-ui', 40)
         self.message_font_uhrzeit = pygame.font.SysFont('system-ui', 40)
@@ -47,70 +50,50 @@ class Wohnzimmer:
         self.last_weather_update = pygame.time.get_ticks()
         self.update_weather()
 
-        # Clock setup
-        self.clock = pygame.time.Clock()
-
+        # Background setup
         self.bg_sprites = Item("assets/spritesheets/floorwall.png", 64, 112, 1, 5)
-        # Scale the first sprite from the list
         self.bg = pygame.transform.scale(self.bg_sprites[2], (640, 480))
-        # Create a rect for positioning
         self.bg_rect = self.bg.get_rect(topleft=(0, 0))
 
-        # Windows
-        self.current_weather_index = 0
-        self.window_sprites = Item("assets/spritesheets/windows.png", 32, 28, 1, 4)
-        self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (130, 130))
-        self.window_rect = self.window.get_rect(topleft=(380, 70))
-        self.walk_to_window = False
-
-        # Sofa
-        self.sofa_image = pygame.image.load("assets/models/sofa.png").convert_alpha()
-        self.sofa_image = pygame.transform.scale(self.sofa_image, (250, 150))  # Scale the sofa
-        self.sofa_rect = self.sofa_image.get_rect(topleft=(300, 270))
-
-        # Character
+        # Other objects setup
         self.character = AnimatedCharacter(373, 549)
-        self.last_click_time = 0
-        self.dragging_character = False
-
-        # State for transitioning to sport mode (Walk to Door)
         self.door_index = 0
         self.transition_to_sport_mode = False
         self.door_open_timer = 0
         self.walk_to_door = False
 
-        # Door
-        self.door_sprites = Item("assets/spritesheets/doors.png", 30, 51, 1, 3)
-        self.door = pygame.transform.scale(self.door_sprites[self.door_index], (120, 200))
-        self.door_rect = self.window.get_rect(topleft=(30, 88))
-
-        # Standinglamp
-        self.stand_lamp_sprites = Item("assets/spritesheets/standinglamps.png", 15, 46, 1, 2)
-        self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index], (60, 180))
-        self.standing_lamp_rect = self.standing_lamp.get_rect(topleft=(560, 290))
-
         self.update_weather()
         self.set_day_night()
 
     def read_sensor_data(self):
-        accel_data = self.sensor.get_accel_data()  # Beschleunigungsdaten (X, Y, Z)
-        gyro_data = self.sensor.get_gyro_data()  # Gyroskopdaten (X, Y, Z)
+        """Read accelerometer data from the gyrosensor."""
+        if not IS_RASPBERRY_PI:
+            return 0, 0  # Default values when running on a PC
 
-        # Extrahiere Z- und X-Koordinaten der Beschleunigung
+        accel_data = self.sensor.get_accel_data()
         accel_x = accel_data['x']
         accel_z = accel_data['z']
 
         return accel_x, accel_z
 
     def detect_tilt(self, accel_x, accel_z, threshold=0.5):
+        """Detect tilt based on accelerometer data."""
         if accel_z < -threshold and accel_x < -threshold:
             print("Raspberry Pi ist nach vorne geneigt!")
             return True
         return False
 
     def check_tilt(self):
+        """Check for tilt and transition to sport mode if detected."""
+        if not IS_RASPBERRY_PI:
+            return
+
         accel_x, accel_z = self.read_sensor_data()
         self.tilt_detected = self.detect_tilt(accel_x, accel_z)
+
+        if self.tilt_detected:
+            print("Transitioning to sport mode due to tilt.")
+            self.transition_to_sport_mode = True
 
 
     def print_click_position(self, event):

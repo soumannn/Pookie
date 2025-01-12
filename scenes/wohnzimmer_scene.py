@@ -98,6 +98,8 @@ class Wohnzimmer:
         self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index], (60, 180))
         self.standing_lamp_rect = self.standing_lamp.get_rect(topleft=(560, 290))
 
+        self.shake_timer = None
+
         self.update_weather()
         self.set_day_night()
 
@@ -112,7 +114,7 @@ class Wohnzimmer:
 
         return accel_x, accel_z
 
-    def detect_tilt(self, accel_x, accel_z, threshold=0.5):
+    def detect_tilt(self, accel_x, accel_y, accel_z, threshold=0.5, shake_threshold=2.0):
         """Detect tilt based on accelerometer data."""
         if accel_z < -threshold and accel_x < -threshold:
             print("Raspberry Pi ist nach vorne geneigt!")
@@ -120,6 +122,15 @@ class Wohnzimmer:
         elif accel_z > threshold and accel_x > threshold:
             print("Raspberry Pi ist nach hinten geneigt!")
             return "backward"  # Backward tilt detected
+        elif accel_y > threshold:
+            print("Raspberry Pi ist nach rechts geneigt!")
+            return "right"
+        elif accel_y < -threshold:
+            print("Raspberry Pi ist nach links geneigt!")
+            return "left"
+        elif abs(accel_x) > shake_threshold or abs(accel_y) > shake_threshold or abs(accel_z) > shake_threshold:
+            print("Raspberry Pi wird geschüttelt!")
+            return "shake"
         return None  # No significant tilt detected
 
     def check_tilt(self):
@@ -136,6 +147,10 @@ class Wohnzimmer:
         elif tilt_direction == "backward":
             self.walk_to_door = True
             print("Transitioning to relax mode due to backward tilt.")
+        elif tilt_direction == "shake":
+            self.character.disable_movement = True
+            self.character.force_animation("fall_down")
+            self.shake_timer = pygame.time.get_ticks()
 
 
     def print_click_position(self, event):
@@ -433,6 +448,12 @@ class Wohnzimmer:
 
         #sensor test
         self.check_tilt()
+
+        # Handle shake timer to re-enable movement
+        if self.shake_timer is not None:
+            if pygame.time.get_ticks() - self.shake_timer >= 3000:  # 3 seconds
+                self.character.disable_movement = False
+                self.shake_timer = None  # Reset the timer
 
         if not self.character.dragging:
             self.character.update(dt)

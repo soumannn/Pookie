@@ -1,6 +1,7 @@
 from character.animated_character import AnimatedCharacter
 from Items import Item
 from helper.debug_box import draw_debug_info
+from mpu6050 import mpu6050
 
 import pygame
 from scenes.joggen_scene import JoggenScene
@@ -15,6 +16,10 @@ class Wohnzimmer:
 
         # debug-font
         self.debug_font = pygame.font.Font(None, 24)
+
+        # sensor
+        self.sensor = mpu6050(0x68)
+        self.tilt_detected = False
 
         self.falling = False
         self.fall_speed = 5  # Geschwindigkeit des Fallens
@@ -85,6 +90,27 @@ class Wohnzimmer:
 
         self.update_weather()
         self.set_day_night()
+
+    def read_sensor_data(self):
+        accel_data = self.sensor.get_accel_data()  # Beschleunigungsdaten (X, Y, Z)
+        gyro_data = self.sensor.get_gyro_data()  # Gyroskopdaten (X, Y, Z)
+
+        # Extrahiere Z- und X-Koordinaten der Beschleunigung
+        accel_x = accel_data['x']
+        accel_z = accel_data['z']
+
+        return accel_x, accel_z
+
+    def detect_tilt(accel_x, accel_z, threshold=0.5):
+        if accel_z < -threshold and accel_x < -threshold:
+            print("Raspberry Pi ist nach vorne geneigt!")
+            return True
+        return False
+
+    def check_tilt(self):
+        accel_x, accel_z = self.read_sensor_data()
+        self.tilt_detected = self.detect_tilt(accel_x, accel_z)
+
 
     def print_click_position(self, event):
         """Print the position of a mouse click to the terminal."""
@@ -378,6 +404,10 @@ class Wohnzimmer:
             self.door_open_timer = pygame.time.get_ticks()  # Start door open timer
 
     def update(self, dt):
+
+        #sensor test
+        self.check_tilt()
+
         if not self.character.dragging:
             self.character.update(dt)
 

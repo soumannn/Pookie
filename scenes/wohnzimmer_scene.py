@@ -1,6 +1,7 @@
 from character.animated_character import AnimatedCharacter
 from Items import Item
 from helper.debug_box import draw_debug_info
+from time import sleep
 import pygame
 
 from scenes.joggen_scene import JoggenScene
@@ -30,6 +31,9 @@ class Wohnzimmer:
         else:
             self.sensor = None
         self.tilt_detected = False
+
+        #sensor temp
+        self.sensor_temp = 0
 
         self.falling = False
         self.fall_speed = 5  # Geschwindigkeit des Fallens
@@ -108,6 +112,8 @@ class Wohnzimmer:
         if not IS_RASPBERRY_PI:
             return 0, 0, 0  # Default values when running on a PC
 
+        self.sensor_temp = self.sensor.get_temp()
+
         accel_data = self.sensor.get_accel_data()
         accel_x = accel_data['x']
         accel_y = accel_data['y']
@@ -138,6 +144,8 @@ class Wohnzimmer:
         """Check for tilt and transition to sport mode if detected."""
         if not IS_RASPBERRY_PI:
             return
+
+        sleep(.5)
 
         accel_x, accel_y, accel_z = self.read_sensor_data()
         tilt_direction = self.detect_tilt(accel_x, accel_y, accel_z)
@@ -513,6 +521,11 @@ class Wohnzimmer:
         weather_surface = self.message_font.render(self.weather_info, False, (255, 255, 255))
         screen.blit(time_surface, (20, 20))
         screen.blit(weather_surface, (20, 55))
+
+        #sensor temp
+        if IS_RASPBERRY_PI:
+            temp_surface = self.message_font.render(f"PI temp: {self.sensor_temp:.1f}°C", False, (255, 255, 255))
+            screen.blit(temp_surface, (20, 90))
 
         # Szene auf den Kopf stellen, falls aktiviert
         if self.falling:

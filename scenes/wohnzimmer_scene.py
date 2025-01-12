@@ -125,11 +125,8 @@ class Wohnzimmer:
 
         return accel_x, accel_y, accel_z
 
-    def detect_tilt(self, accel_x, accel_y, accel_z, threshold=0.5, shake_threshold=2.0):
+    def detect_tilt(self, accel_x, accel_y, accel_z, threshold=0.5):
         """Detect tilt based on accelerometer data."""
-        magnitude = (accel_x ** 2 + accel_y ** 2 + accel_z ** 2) ** 0.5
-
-
         if accel_z < -threshold and accel_x < -threshold:
             print("Raspberry Pi ist nach vorne geneigt!")
             return "forward"  # Forward tilt detected
@@ -142,9 +139,6 @@ class Wohnzimmer:
         elif accel_y < -threshold:
             print("Raspberry Pi ist nach links geneigt!")
             return "left"
-        elif magnitude > shake_threshold:
-            print("Raspberry Pi wird geschüttelt!")
-            return "shake"
         return None  # No significant tilt detected
 
     def check_tilt(self):
@@ -159,11 +153,6 @@ class Wohnzimmer:
             self.transition_to_sport_mode = True
         elif tilt_direction == "backward":
             self.walk_to_door = True
-        elif tilt_direction == "shake":
-            self.character.disable_movement = True
-            self.character.force_animation("fall_down")
-            self.shake_timer = pygame.time.get_ticks()
-
 
     def print_click_position(self, event):
         """Print the position of a mouse click to the terminal."""

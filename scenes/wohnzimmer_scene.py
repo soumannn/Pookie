@@ -21,7 +21,7 @@ class Wohnzimmer:
     def __init__(self, scene_manager):
         self.scene_manager = scene_manager
 
-        # Debug font
+        # debug-font
         self.debug_font = pygame.font.Font(None, 24)
 
         # Gyrosensor setup (only on Raspberry Pi)
@@ -31,7 +31,6 @@ class Wohnzimmer:
             self.sensor = None
         self.tilt_detected = False
 
-        # Other attributes
         self.falling = False
         self.fall_speed = 5  # Geschwindigkeit des Fallens
         self.scene_flipped = False  # Tracks whether the scene is flipped
@@ -43,6 +42,13 @@ class Wohnzimmer:
         self.movement_resume_timer = 0
         self.resume_movement_delay = 500  # 500ms delay before resuming random movement
 
+        # Zielpositionen für fallende Objekte
+        self.character_target_y = 320
+        self.window_target_y = 320
+        self.door_target_y = 320
+        self.sofa_target_y = 320
+        self.lamp_target_y = 320
+
         # Time and weather setup
         self.message_font = pygame.font.SysFont('system-ui', 40)
         self.message_font_uhrzeit = pygame.font.SysFont('system-ui', 40)
@@ -50,18 +56,47 @@ class Wohnzimmer:
         self.last_weather_update = pygame.time.get_ticks()
         self.update_weather()
 
-        # Background setup
+        # Clock setup
+        self.clock = pygame.time.Clock()
+
         self.bg_sprites = Item("assets/spritesheets/floorwall.png", 64, 112, 1, 5)
+        # Scale the first sprite from the list
         self.bg = pygame.transform.scale(self.bg_sprites[2], (640, 480))
+        # Create a rect for positioning
         self.bg_rect = self.bg.get_rect(topleft=(0, 0))
 
-        # Other objects setup
+        # Windows
+        self.current_weather_index = 0
+        self.window_sprites = Item("assets/spritesheets/windows.png", 32, 28, 1, 4)
+        self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (130, 130))
+        self.window_rect = self.window.get_rect(topleft=(380, 70))
+        self.walk_to_window = False
+
+        # Sofa
+        self.sofa_image = pygame.image.load("assets/models/sofa.png").convert_alpha()
+        self.sofa_image = pygame.transform.scale(self.sofa_image, (250, 150))  # Scale the sofa
+        self.sofa_rect = self.sofa_image.get_rect(topleft=(300, 270))
+
+        # Character
         self.character = AnimatedCharacter(373, 549)
+        self.last_click_time = 0
         self.dragging_character = False
+
+        # State for transitioning to sport mode (Walk to Door)
         self.door_index = 0
         self.transition_to_sport_mode = False
         self.door_open_timer = 0
         self.walk_to_door = False
+
+        # Door
+        self.door_sprites = Item("assets/spritesheets/doors.png", 30, 51, 1, 3)
+        self.door = pygame.transform.scale(self.door_sprites[self.door_index], (120, 200))
+        self.door_rect = self.window.get_rect(topleft=(30, 88))
+
+        # Standinglamp
+        self.stand_lamp_sprites = Item("assets/spritesheets/standinglamps.png", 15, 46, 1, 2)
+        self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index], (60, 180))
+        self.standing_lamp_rect = self.standing_lamp.get_rect(topleft=(560, 290))
 
         self.update_weather()
         self.set_day_night()

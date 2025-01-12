@@ -115,7 +115,7 @@ class Wohnzimmer:
 
         return accel_x, accel_y, accel_z
 
-    def detect_tilt(self, accel_x, accel_y, accel_z, threshold=0.5, shake_threshold=2.0):
+    def detect_tilt(self, accel_x, accel_y, accel_z, threshold=0.5, shake_threshold=4.0):
         """Detect tilt based on accelerometer data."""
         if accel_z < -threshold and accel_x < -threshold:
             print("Raspberry Pi ist nach vorne geneigt!")

@@ -3,7 +3,6 @@ import time
 from character.animated_character import AnimatedCharacter
 from Items import Item
 from helper.debug_box import draw_debug_info
-from time import sleep
 import pygame
 
 from scenes.joggen_scene import JoggenScene
@@ -30,6 +29,7 @@ class Wohnzimmer:
         # Gyrosensor setup (only on Raspberry Pi)
         if IS_RASPBERRY_PI:
             self.sensor = mpu6050(0x68, bus=3)
+            self.calibrate_sensor()
         else:
             self.sensor = None
         self.tilt_detected = False
@@ -109,37 +109,74 @@ class Wohnzimmer:
         self.update_weather()
         self.set_day_night()
 
-    def read_sensor_data(self):
-        """Read accelerometer data from the gyrosensor."""
-        if not IS_RASPBERRY_PI:
-            return 0, 0, 0  # Default values when running on a PC
+    def calibrate_sensor(self, samples=50):
+        """Read the sensor multiple times and average out a baseline for x, y, z."""
+        sum_x, sum_y, sum_z = 0.0, 0.0, 0.0
 
+        for _ in range(samples):
+            # Small sleep to avoid saturating the I2C bus
+            time.sleep(0.01)
+
+            # Read raw accelerometer data
+            accel_data = self.sensor.get_accel_data()
+            sum_x += accel_data['x']
+            sum_y += accel_data['y']
+            sum_z += accel_data['z']
+
+        # Calculate the average
+        self.baseline_x = sum_x / samples
+        self.baseline_y = sum_y / samples
+        self.baseline_z = sum_z / samples
+
+        print(
+            f"Calibration done: baseline_x={self.baseline_x:.2f}, baseline_y={self.baseline_y:.2f}, baseline_z={self.baseline_z:.2f}")
+
+    def read_sensor_data(self):
+        """Read accelerometer data from the gyrosensor, adjusted by baseline."""
+        if not IS_RASPBERRY_PI:
+            return 0.0, 0.0, 0.0  # Default values when running on a PC
+
+        # Read the temperature, if needed
         self.sensor_temp = self.sensor.get_temp()
 
+        # Read raw accelerometer data
         accel_data = self.sensor.get_accel_data()
-        accel_x = accel_data['x']
-        accel_y = accel_data['y']
-        accel_z = accel_data['z']
+        raw_x = accel_data['x']
+        raw_y = accel_data['y']
+        raw_z = accel_data['z']
 
-        time.sleep(.5)
+        # Subtract the baseline
+        accel_x = raw_x - self.baseline_x
+        accel_y = raw_y - self.baseline_y
+        accel_z = raw_z - self.baseline_z
 
         return accel_x, accel_y, accel_z
 
-    def detect_tilt(self, accel_x, accel_y, accel_z, threshold=0.5):
-        """Detect tilt based on accelerometer data."""
-        if accel_z < -threshold and accel_x < -threshold:
-            print("Raspberry Pi ist nach vorne geneigt!")
-            return "forward"  # Forward tilt detected
-        elif accel_z > threshold and accel_x > threshold:
-            print("Raspberry Pi ist nach hinten geneigt!")
-            return "backward"  # Backward tilt detected
+    def detect_tilt(self, accel_x, accel_y, accel_z, threshold=2.0):
+        """
+        Detect a strong tilt based on accelerometer data relative to the baseline.
+        We'll define:
+            Forward tilt:   accel_x < -threshold
+            Backward tilt:  accel_x > threshold
+            Right tilt:     accel_y > threshold
+            Left tilt:      accel_y < -threshold
+
+        Adjust these definitions depending on how you hold the Pi.
+        """
+        if accel_x < -threshold:
+            print("Strong forward tilt detected!")
+            return "forward"
+        elif accel_x > threshold:
+            print("Strong backward tilt detected!")
+            return "backward"
         elif accel_y > threshold:
-            print("Raspberry Pi ist nach rechts geneigt!")
+            print("Strong right tilt detected!")
             return "right"
         elif accel_y < -threshold:
-            print("Raspberry Pi ist nach links geneigt!")
+            print("Strong left tilt detected!")
             return "left"
-        return None  # No significant tilt detected
+        else:
+            return None  # No strong tilt
 
     def check_tilt(self):
         """Check for tilt and transition to sport mode if detected."""

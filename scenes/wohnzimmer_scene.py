@@ -3,8 +3,6 @@ import time
 from character.animated_character import AnimatedCharacter
 from Items import Item
 from helper.debug_box import draw_debug_info
-from collections import deque
-
 import pygame
 
 from scenes.joggen_scene import JoggenScene
@@ -38,11 +36,6 @@ class Wohnzimmer:
 
         #sensor temp
         self.sensor_temp = 0
-
-        self.tilt_history = deque(maxlen=10)  # Store the last 10 tilt directions
-        self.last_tilt_time = 0
-        self.shake_threshold = 0.2  # Minimum time (seconds) between tilt changes to consider as shaking
-
 
         self.falling = False
         self.fall_speed = 5  # Geschwindigkeit des Fallens
@@ -165,7 +158,7 @@ class Wohnzimmer:
         We'll define:
             Forward tilt:   accel_x < -threshold
             Backward tilt:  accel_x > threshold
-            Right tilt:     accel_y > 2old
+            Right tilt:     accel_y > threshold
             Left tilt:      accel_y < -threshold
 
         Adjust these definitions depending on how you hold the Pi.
@@ -193,34 +186,10 @@ class Wohnzimmer:
         accel_x, accel_y, accel_z = self.read_sensor_data()
         tilt_direction = self.detect_tilt(accel_x, accel_y, accel_z)
 
-        if tilt_direction:
-            # Detect shaking
-            self.detect_shaking(tilt_direction)
-
         if tilt_direction == "forward":
             self.transition_to_sport_mode = True
         elif tilt_direction == "backward":
             self.walk_to_door = True
-
-    def detect_shaking(self, tilt_direction):
-        """
-        Detect if there are multiple, rapid, and different tilt directions.
-        """
-        current_time = time.time()
-
-        # Add tilt direction to history if it's different from the last and occurs quickly
-        if not self.tilt_history or tilt_direction != self.tilt_history[-1]:
-            time_since_last_tilt = current_time - self.last_tilt_time
-            if time_since_last_tilt < self.shake_threshold:
-                self.tilt_history.append(tilt_direction)
-            self.last_tilt_time = current_time
-
-        # Check if there are enough unique directions in the history
-        unique_tilts = set(self.tilt_history)
-        if len(unique_tilts) >= 4:  # Example: at least 4 unique directions
-            self.character.disable_movement = True
-            self.character.force_animation("fall_down")
-            self.tilt_history.clear()  # Reset the history after detecting a shake
 
     def print_click_position(self, event):
         """Print the position of a mouse click to the terminal."""
@@ -582,17 +551,20 @@ class Wohnzimmer:
         screen.blit(time_surface, (20, 20))
         screen.blit(weather_surface, (20, 55))
 
-        #sensor temp
-        if IS_RASPBERRY_PI:
-            temp_surface = self.message_font.render(f"PI temp: {self.sensor_temp:.1f}°C", False, (255, 255, 255))
-            screen.blit(temp_surface, (20, 90))
-
         # Szene auf den Kopf stellen, falls aktiviert
         if self.falling:
             flipped_screen = pygame.transform.flip(screen, False, True)  # Vertikales Spiegeln
             screen.blit(flipped_screen, (0, 0))
 
         if debug_mode:
+            # sensor temp
+            if IS_RASPBERRY_PI:
+                temp_surface = self.message_font.render(f"PI temp: {self.sensor_temp:.1f}°C", False, (255, 255, 255))
+                screen.blit(temp_surface, (20, 90))
+
+                sensor_data = self.message_font.render(f"Sensor: {self.read_sensor_data()}", False, (255, 255, 255))
+                screen.blit(sensor_data, (20, 120))
+
             # Window debug info
             draw_debug_info(
                 screen,

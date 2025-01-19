@@ -59,6 +59,7 @@ class ObjectDetector:
     def detect_objects(self):
         """Continuously capture frames and detect objects."""
         while self.running:
+            print("detect objects thread is running")
             frame = self.picam2.capture_array()
             frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
 

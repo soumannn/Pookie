@@ -13,11 +13,13 @@ from config import WEATHER_URL
 try:
     from mpu6050 import mpu6050
     import smbus
+    print("mpu und smbus erfolgreich importiert")
     import camera
     from threading import Thread
     IS_RASPBERRY_PI = True
 except ImportError:
     IS_RASPBERRY_PI = False
+    print(ImportError)
 
 
 

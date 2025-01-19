@@ -1,3 +1,5 @@
+import sys
+
 import pygame
 from core.scene_manager import SceneManager
 from scenes.wohnzimmer_scene import Wohnzimmer
@@ -43,6 +45,7 @@ def main():
         pygame.display.flip()
 
     pygame.quit()
+    sys.exit()
 
 
 

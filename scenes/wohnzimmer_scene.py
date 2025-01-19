@@ -13,6 +13,8 @@ from config import WEATHER_URL
 try:
     from mpu6050 import mpu6050
     import smbus
+    import camera
+    from threading import Thread
     IS_RASPBERRY_PI = True
 except ImportError:
     IS_RASPBERRY_PI = False
@@ -30,6 +32,10 @@ class Wohnzimmer:
         if IS_RASPBERRY_PI:
             self.sensor = mpu6050(0x68, bus=3)
             self.calibrate_sensor()
+            self.object_detector = camera.ObjectDetector(self.scene_manager)
+
+            self.detection_thread = Thread(target=self.object_detector.detect_objects)
+            self.detection_thread.start()
         else:
             self.sensor = None
         self.tilt_detected = False

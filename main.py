@@ -3,8 +3,6 @@ import sys
 import pygame
 from core.scene_manager import SceneManager
 from scenes.wohnzimmer_scene import Wohnzimmer
-from scenes.dachboden_scene import DachbodenScene
-import locale
 
 def main():
     pygame.init()
@@ -43,6 +41,7 @@ def main():
         scene_manager.update(dt)
         scene_manager.render(screen, debug_mode)  # Pass debug mode
         pygame.display.flip()
+
 
     pygame.quit()
     sys.exit()

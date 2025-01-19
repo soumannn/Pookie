@@ -80,6 +80,7 @@ class ObjectDetector:
 
                         # Check if object maps to a scene
                         if detected_object in self.object_to_scene:
+                            print(f"Detected {detected_object} with confidence {confidence}")
                             new_scene = self.object_to_scene[detected_object]
                             if new_scene != self.current_scene:
                                 self.current_scene = new_scene

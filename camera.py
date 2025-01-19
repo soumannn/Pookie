@@ -91,11 +91,11 @@ class ObjectDetector:
         print("trying to switch scene?")
         """Switch to the appropriate scene."""
         if scene_name == "KitchenScene":
-            self.scene_manager.set_scene(DachbodenScene(self.scene_manager))
+            self.scene_manager.set_scene(JoggenScene(self.scene_manager))
         elif scene_name == "LivingRoomScene":
-            self.scene_manager.set_scene(DachbodenScene(self.scene_manager))
+            self.scene_manager.set_scene(JoggenScene(self.scene_manager))
         elif scene_name == "TikTokMode":
-            self.scene_manager.set_scene(DachbodenScene(self.scene_manager))
+            self.scene_manager.set_scene(JoggenScene(self.scene_manager))
         elif scene_name == "SportMode":
             self.scene_manager.set_scene(JoggenScene(self.scene_manager))
 

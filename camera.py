@@ -1,37 +1,34 @@
 import cv2
-import mediapipe as mp
 
-# Initialize MediaPipe Pose
-mp_pose = mp.solutions.pose
-pose = mp_pose.Pose()
-mp_drawing = mp.solutions.drawing_utils
+# Load a pre-trained model for person detection
+net = cv2.dnn.readNet('yolov4.weights', 'yolov4.cfg')
+layer_names = net.getUnconnectedOutLayersNames()
 
 # Initialize the camera
 cap = cv2.VideoCapture(0)
 
-while cap.isOpened():
+while True:
     ret, frame = cap.read()
     if not ret:
         break
 
-    # Convert frame to RGB
-    rgb_frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-    results = pose.process(rgb_frame)
+    # Convert frame to blob
+    blob = cv2.dnn.blobFromImage(frame, 1/255, (416, 416), (0, 0, 0), swapRB=True, crop=False)
+    net.setInput(blob)
+    detections = net.forward(layer_names)
 
-    # Check if pose is detected
-    if results.pose_landmarks:
-        # Draw landmarks
-        mp_drawing.draw_landmarks(frame, results.pose_landmarks, mp_pose.POSE_CONNECTIONS)
-
-        # Extract keypoints
-        landmarks = results.pose_landmarks.landmark
-        # Example: Use landmarks to detect posture or action
-        left_wrist = landmarks[mp_pose.PoseLandmark.LEFT_WRIST]
-        right_wrist = landmarks[mp_pose.PoseLandmark.RIGHT_WRIST]
-        print(f"Left Wrist: {left_wrist}, Right Wrist: {right_wrist}")
+    # Process detections
+    for output in detections:
+        for detection in output:
+            scores = detection[5:]
+            class_id = scores.argmax()
+            confidence = scores[class_id]
+            if class_id == 0 and confidence > 0.5:  # Class ID 0 is 'person' in YOLO
+                print("Person detected!")
+                # Add additional actions (e.g., alert)
 
     # Display the frame
-    cv2.imshow("Pose Detection", frame)
+    cv2.imshow("Frame", frame)
     if cv2.waitKey(1) & 0xFF == ord('q'):
         break
 

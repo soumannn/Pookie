@@ -88,6 +88,7 @@ class ObjectDetector:
                                 self.switch_scene(new_scene)
 
     def switch_scene(self, scene_name):
+        print("trying to switch scene?")
         """Switch to the appropriate scene."""
         if scene_name == "KitchenScene":
             self.scene_manager.set_scene(DachbodenScene(self.scene_manager))

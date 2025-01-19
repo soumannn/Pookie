@@ -19,6 +19,9 @@ while True:
     # Capture frame
     frame = picam2.capture_array()
 
+    # Convert the frame from 4 channels (BGRA) to 3 channels (BGR)
+    frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+
     # Prepare frame for YOLO
     height, width, _ = frame.shape
     blob = cv2.dnn.blobFromImage(frame, 1/255, (416, 416), (0, 0, 0), swapRB=True, crop=False)

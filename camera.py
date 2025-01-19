@@ -21,7 +21,7 @@ class ObjectDetector:
 
         # State
         self.running = True
-        self.current_scene = None
+        self.current_scene = scene_manager.current_scene
 
         # Object-to-scene mapping
         self.object_to_scene = {

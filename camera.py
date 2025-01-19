@@ -3,7 +3,7 @@ import cv2
 import numpy as np
 
 # Load YOLO model
-net = cv2.dnn.readNet("yolov4-tiny.weights", "yolov4-tiny.cfg")
+net = cv2.dnn.readNet("yolov4.weights", "yolov4.cfg")
 with open("coco.names", "r") as f:
     class_names = [line.strip() for line in f.readlines()]
 

@@ -5,12 +5,12 @@ import numpy as np
 from scenes.joggen_scene import JoggenScene
 from scenes.dachboden_scene import DachbodenScene
 from scenes.lernzimmer_scene import Lernzimmer
+from scenes.wohnzimmer_scene import Wohnzimmer
 from core.scene_manager import SceneManager
 
 class ObjectDetector:
     def __init__(self):
-        self.scene_manager = SceneManager
-        self.living_room = scene_manager.current_scene
+        self.scene_manager = SceneManager()
         self.picam2 = Picamera2()
         self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (640, 480)}))
         self.picam2.start()
@@ -24,7 +24,7 @@ class ObjectDetector:
 
         # State
         self.running = True
-        self.current_scene = scene_manager.current_scene
+        self.current_scene = self.scene_manager.get_scene()
 
         # Object-to-scene mapping
         self.object_to_scene = {
@@ -105,18 +105,17 @@ class ObjectDetector:
 
     def activate_tiktok_mode(self):
         """Activate TikTok Mode."""
-        #self.living_room.character.disable_movement = True
-        print(self.scene_manager.get_scene())
-        #self.living_room
-        #self.living_room.walk_to_animation = "handy_modus"
-        #self.living_room.walk_to = True
-        #self.living_room.walk_to_target = (448, 303)  # Target position for TikTok mode
+        if isinstance(self.current_scene, Wohnzimmer):
+            self.current_scene.character.disable_movement = True
+            self.current_scene.walk_to_animation = "handy_modus"
+            self.current_scene.walk_to = True
+            self.current_scene.walk_to_target = (448, 303)
 
     def reset_to_normal(self):
         """Reset to normal behavior."""
-        self.living_room.character.disable_movement = False
-        self.living_room.walk_to = False
-
+        if isinstance(self.current_scene, Wohnzimmer):
+            self.current_scene.character.disable_movement = False
+            self.current_scene.walk_to = False
 
     def switch_scene(self, scene_name):
         print("trying to switch scene?")

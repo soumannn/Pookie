@@ -18,9 +18,9 @@ try:
     import camera
     from threading import Thread
     IS_RASPBERRY_PI = True
-except ImportError:
+except ImportError as e:
     IS_RASPBERRY_PI = False
-    print(ImportError)
+    print(f"ImportError occurred: {e}")
 
 
 

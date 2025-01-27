@@ -105,20 +105,16 @@ class ObjectDetector:
 
     def activate_tiktok_mode(self):
         """Activate TikTok Mode."""
-        print(f"current scene: {self.current_scene}")
+        print(f"Activating TikTok mode. Current scene: {self.scene_manager.current_scene}")
         try:
             from scenes.wohnzimmer_scene import Wohnzimmer
         except ImportError as e:
             print(f"ImportError occurred: {e}")
             return
-        print(self.current_scene)
-        print(Wohnzimmer)
-        if isinstance(self.current_scene, Wohnzimmer):
-            print("Correct Wohnzimmer instance detected. !activate tiktok mode now")
-            self.current_scene.character.disable_movement = True
-            self.current_scene.walk_to_animation = "handy_modus"
-            self.current_scene.walk_to = True
-            self.current_scene.walk_to_target = (448, 303)
+
+        if isinstance(self.scene_manager.current_scene, Wohnzimmer):
+            print("Correct Wohnzimmer instance detected. Activating TikTok mode.")
+            self.scene_manager.current_scene.perform_animation("handy_modus", (448, 303))
 
     def reset_to_normal(self):
         """Reset to normal behavior."""

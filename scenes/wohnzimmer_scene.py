@@ -5,7 +5,6 @@ from Items import Item
 from helper.debug_box import draw_debug_info
 import pygame
 
-from core.scene_manager import SceneManager
 from scenes.joggen_scene import JoggenScene
 from scenes.lernzimmer_scene import Lernzimmer
 import requests
@@ -26,9 +25,9 @@ except ImportError as e:
 
 
 class Wohnzimmer:
-    def __init__(self):
-        self.scene_manager = SceneManager()
-        self.scene_manager.current_scene = Wohnzimmer
+    def __init__(self, scene_manager):
+        self.scene_manager = scene_manager
+        #self.scene_manager.current_scene = Wohnzimmer
 
         # Character
         self.character = AnimatedCharacter(373, 549)
@@ -512,6 +511,18 @@ class Wohnzimmer:
         # Check if character has reached the right edge
         if self.character.rect.right > 750:  # Assuming screen width is 600
             self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
+
+    def perform_animation(self, animation_name: str, target: tuple):
+        """
+        Perform an animation for the character.
+        :param animation_name: The name of the animation to perform.
+        :param target: The target position (x, y) for the character to walk to.
+        """
+        print(f"Performing animation '{animation_name}' to target {target}")
+        self.walk_to_animation = animation_name
+        self.walk_to_target = target
+        self.walk_to = True
+        self.character.disable_movement = True
 
     def update(self, dt):
 

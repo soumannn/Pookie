@@ -27,7 +27,6 @@ except ImportError as e:
 class Wohnzimmer:
     def __init__(self, scene_manager):
         self.scene_manager = scene_manager
-        #self.scene_manager.current_scene = Wohnzimmer
 
         # Character
         self.character = AnimatedCharacter(373, 549)
@@ -146,6 +145,37 @@ class Wohnzimmer:
 
     def setWalking(self, set:bool):
         self.character.disable_movement = set
+
+    def letPookieSay(self, message: str):
+        """Display a white box with the provided message and the character image on the left side."""
+        # Create the white box
+        box_width = 640
+        box_height = 130
+        box_x = (640 - box_width) // 2  # Center the box horizontally
+        box_y = 480 - box_height   # Position the box 10px above the bottom of the screen
+
+        white_box = pygame.Surface((box_width, box_height))
+        white_box.fill((255, 255, 255))  # Fill the box with white color
+
+        # Render the message text
+        text_surface = self.message_font.render(message, True, (0, 0, 0))  # Black text
+        text_rect = text_surface.get_rect(
+            midleft=(box_x + 140, box_y + box_height // 2))  # Position to the right of the image
+
+        # Load and scale the character image
+        character_image = pygame.image.load("assets/characters/Head.png").convert_alpha()
+        character_image = pygame.transform.scale(character_image, (150, 200))  # Scale the character image
+        character_rect = character_image.get_rect(
+            topleft=(box_x - 40, box_y - 60))  # Position in the left side of the box
+
+        # Save the elements for rendering
+        self.pookie_message_box = (white_box, (box_x, box_y))
+        self.pookie_message_text = (text_surface, text_rect)
+        self.pookie_character_image = (character_image, character_rect)
+
+        # Set a timer to hide the message after a few seconds
+        self.message_display_time = pygame.time.get_ticks()
+        self.message_duration = 5000  # Show message for 5 seconds
 
     def read_sensor_data(self):
         """Read accelerometer data from the gyrosensor, adjusted by baseline."""
@@ -336,6 +366,7 @@ class Wohnzimmer:
                 self.walk_to_animation = "handy_modus"
                 self.walk_to = True
                 self.walk_to_target = (448, 303)  # Target position for TikTok mode (244, 190)
+                self.letPookieSay("skibidi toilet")
 
             elif event.key == pygame.K_b:
                 """Buch lesen Modus"""
@@ -606,6 +637,22 @@ class Wohnzimmer:
         if self.falling:
             flipped_screen = pygame.transform.flip(screen, False, True)  # Vertikales Spiegeln
             screen.blit(flipped_screen, (0, 0))
+
+        if hasattr(self, "pookie_message_box"):
+            if pygame.time.get_ticks() - self.message_display_time < self.message_duration:
+                # Draw the white box
+                screen.blit(self.pookie_message_box[0], self.pookie_message_box[1])
+
+                # Draw the character image
+                screen.blit(self.pookie_character_image[0], self.pookie_character_image[1])
+
+                # Draw the text
+                screen.blit(self.pookie_message_text[0], self.pookie_message_text[1])
+            else:
+                # Remove the message after the duration
+                del self.pookie_message_box
+                del self.pookie_message_text
+                del self.pookie_character_image
 
         if debug_mode:
             # sensor temp

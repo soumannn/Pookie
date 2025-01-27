@@ -5,7 +5,7 @@ import numpy as np
 from scenes.joggen_scene import JoggenScene
 from scenes.dachboden_scene import DachbodenScene
 from scenes.lernzimmer_scene import Lernzimmer
-from scenes.wohnzimmer_scene import Wohnzimmer
+#from scenes.wohnzimmer_scene import Wohnzimmer
 from core.scene_manager import SceneManager
 
 class ObjectDetector:
@@ -105,6 +105,11 @@ class ObjectDetector:
 
     def activate_tiktok_mode(self):
         """Activate TikTok Mode."""
+        try:
+            from scenes.wohnzimmer_scene import Wohnzimmer
+        except ImportError as e:
+            print(f"ImportError occurred: {e}")
+            return
         if isinstance(self.current_scene, Wohnzimmer):
             self.current_scene.character.disable_movement = True
             self.current_scene.walk_to_animation = "handy_modus"

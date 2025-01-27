@@ -91,6 +91,9 @@ class ObjectDetector:
                     class_id = np.argmax(scores)
                     confidence = scores[class_id]
 
+                    if class_id == 0:  # Assuming "person" is the first class in the COCO dataset (coco.names)
+                        continue
+
                     if confidence > 0.3:  # Lower confidence threshold
                         center_x, center_y, width, height = (
                                     object_detection[0:4] * np.array([640, 480, 640, 480])).astype(int)

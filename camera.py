@@ -5,12 +5,11 @@ import numpy as np
 from scenes.joggen_scene import JoggenScene
 from scenes.dachboden_scene import DachbodenScene
 from scenes.lernzimmer_scene import Lernzimmer
-from scenes.wohnzimmer_scene import Wohnzimmer
 
 class ObjectDetector:
     def __init__(self, scene_manager):
         self.scene_manager = scene_manager
-        self.living_room = Wohnzimmer
+        self.living_room = scene_manager.current_scene
         self.picam2 = Picamera2()
         self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (640, 480)}))
         self.picam2.start()
@@ -132,35 +131,3 @@ class ObjectDetector:
         """Stop the detection."""
         self.running = False
         self.picam2.stop()
-
-
-"""
-    def detect_objects(self):
-        while self.running:
-            print("detect objects thread is running")
-            frame = self.picam2.capture_array()
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
-
-            # Prepare frame for YOLO
-            blob = cv2.dnn.blobFromImage(frame, 1 / 255, (416, 416), (0, 0, 0), swapRB=True, crop=False)
-            self.net.setInput(blob)
-            detections = self.net.forward(self.output_layers)
-
-            # Process detections
-            for detection in detections:
-                for object_detection in detection:
-                    scores = object_detection[5:]
-                    class_id = np.argmax(scores)
-                    confidence = scores[class_id]
-
-                    if confidence > 0.5:  # Confidence threshold
-                        detected_object = self.class_names[class_id]
-                        print(f"Detected {detected_object} with confidence {confidence}")
-
-                        # Check if object maps to a scene
-                        if detected_object in self.object_to_scene:
-                            new_scene = self.object_to_scene[detected_object]
-                            if new_scene != self.current_scene:
-                                self.current_scene = new_scene
-                                print(f"Switching to {new_scene} due to detection of {detected_object}")
-                                self.switch_scene(new_scene) """

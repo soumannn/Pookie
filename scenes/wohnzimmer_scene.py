@@ -6,6 +6,7 @@ from helper.debug_box import draw_debug_info
 import pygame
 
 from scenes.joggen_scene import JoggenScene
+from scenes.lernzimmer_scene import Lernzimmer
 import requests
 from datetime import datetime
 from config import WEATHER_URL
@@ -101,6 +102,9 @@ class Wohnzimmer:
         self.transition_to_sport_mode = False
         self.door_open_timer = 0
         self.walk_to_door = False
+
+        # State for transitioning to learn mode (Walk to Learnroom)
+        self.is_walking_to_learnroom = False
 
         # Door
         self.door_sprites = Item("assets/spritesheets/doors.png", 30, 51, 1, 3)
@@ -490,6 +494,20 @@ class Wohnzimmer:
             self.door = pygame.transform.scale(self.door_sprites[self.door_index], (120, 200))  # Open door animation
             self.door_open_timer = pygame.time.get_ticks()  # Start door open timer
 
+    def handle_walk_to_learnroom(self):
+        # self.walk_to_target = (426, 204)
+
+        self.character.disable_movement = True
+        self.character.force_animation("walk_right")
+
+        # Move character toward the right edge of the screen
+        movement_speed = 2
+        self.character.rect.x += movement_speed
+
+        # Check if character has reached the right edge
+        if self.character.rect.right > 750:  # Assuming screen width is 600
+            self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
+
     def update(self, dt):
 
         #sensor test
@@ -533,6 +551,9 @@ class Wohnzimmer:
         if pygame.time.get_ticks() - self.last_weather_update > 300000:  # 5 minutes in milliseconds
             self.update_weather()
             self.last_weather_update = pygame.time.get_ticks()
+
+        if self.is_walking_to_learnroom:
+            self.handle_walk_to_learnroom()
 
     def render(self, screen, debug_mode=False):
         # Hintergrund rendern

@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 from scenes.joggen_scene import JoggenScene
 from scenes.dachboden_scene import DachbodenScene
+from scenes.lernzimmer_scene import Lernzimmer
 
 class ObjectDetector:
     def __init__(self, scene_manager):
@@ -100,6 +101,8 @@ class ObjectDetector:
             self.scene_manager.set_scene(JoggenScene(self.scene_manager))
         elif scene_name == "SportMode":
             self.scene_manager.set_scene(JoggenScene(self.scene_manager))
+        elif scene_name == "LearnScene":
+            self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
 
     def stop(self):
         """Stop the detection."""

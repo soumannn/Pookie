@@ -105,6 +105,7 @@ class ObjectDetector:
 
     def activate_tiktok_mode(self):
         """Activate TikTok Mode."""
+        print(f"current scene: {self.current_scene}")
         try:
             from scenes.wohnzimmer_scene import Wohnzimmer
         except ImportError as e:

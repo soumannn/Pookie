@@ -111,6 +111,7 @@ class ObjectDetector:
             print(f"ImportError occurred: {e}")
             return
         if isinstance(self.current_scene, Wohnzimmer):
+            print("Correct Wohnzimmer instance detected. !activate tiktok mode now")
             self.current_scene.character.disable_movement = True
             self.current_scene.walk_to_animation = "handy_modus"
             self.current_scene.walk_to = True
@@ -124,6 +125,7 @@ class ObjectDetector:
             print(f"ImportError occurred: {e}")
             return
         if isinstance(self.current_scene, Wohnzimmer):
+            print("Correct Wohnzimmer instance detected.")
             self.current_scene.character.disable_movement = False
             self.current_scene.walk_to = False
 

@@ -28,6 +28,7 @@ except ImportError as e:
 class Wohnzimmer:
     def __init__(self):
         self.scene_manager = SceneManager()
+        self.scene_manager.current_scene = Wohnzimmer
 
         # Character
         self.character = AnimatedCharacter(373, 549)

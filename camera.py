@@ -36,6 +36,8 @@ class ObjectDetector:
             "pizza": "KitchenScene",
             "donut": "KitchenScene",
             "cake": "KitchenScene",
+            # learn room
+            "book": "LearnScene",
             # Living room objects
             "chair": "LivingRoomScene",
             "sofa": "LivingRoomScene",

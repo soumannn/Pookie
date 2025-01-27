@@ -5,10 +5,11 @@ import numpy as np
 from scenes.joggen_scene import JoggenScene
 from scenes.dachboden_scene import DachbodenScene
 from scenes.lernzimmer_scene import Lernzimmer
+from core.scene_manager import SceneManager
 
 class ObjectDetector:
-    def __init__(self, scene_manager):
-        self.scene_manager = scene_manager
+    def __init__(self):
+        self.scene_manager = SceneManager
         self.living_room = scene_manager.current_scene
         self.picam2 = Picamera2()
         self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (640, 480)}))
@@ -104,10 +105,12 @@ class ObjectDetector:
 
     def activate_tiktok_mode(self):
         """Activate TikTok Mode."""
-        self.living_room.character.disable_movement = True
-        self.living_room.walk_to_animation = "handy_modus"
-        self.living_room.walk_to = True
-        self.living_room.walk_to_target = (448, 303)  # Target position for TikTok mode
+        #self.living_room.character.disable_movement = True
+        print(self.scene_manager.get_scene())
+        #self.living_room
+        #self.living_room.walk_to_animation = "handy_modus"
+        #self.living_room.walk_to = True
+        #self.living_room.walk_to_target = (448, 303)  # Target position for TikTok mode
 
     def reset_to_normal(self):
         """Reset to normal behavior."""

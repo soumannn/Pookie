@@ -40,7 +40,7 @@ class Wohnzimmer:
         if IS_RASPBERRY_PI:
             self.sensor = mpu6050(0x68, bus=3)
             self.calibrate_sensor()
-            self.object_detector = camera.ObjectDetector(self.scene_manager)
+            self.object_detector = camera.ObjectDetector()
 
             self.detection_thread = Thread(target=self.object_detector.detect_objects)
             self.detection_thread.start()
@@ -142,6 +142,9 @@ class Wohnzimmer:
 
         print(
             f"Calibration done: baseline_x={self.baseline_x:.2f}, baseline_y={self.baseline_y:.2f}, baseline_z={self.baseline_z:.2f}")
+
+    def setWalking(self, set:bool):
+        self.character.disable_movement = set
 
     def read_sensor_data(self):
         """Read accelerometer data from the gyrosensor, adjusted by baseline."""

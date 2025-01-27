@@ -67,29 +67,57 @@ class ObjectDetector:
     def detect_objects(self):
         """Continuously capture frames and detect objects."""
         while self.running:
-            print("detect objects thread is running")
+            print("Detect objects thread is running")
             frame = self.picam2.capture_array()
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+
+            # Preprocess frame: Equalize histogram
+            frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+            frame_equalized = cv2.equalizeHist(frame_gray)
+            frame = cv2.cvtColor(frame_equalized, cv2.COLOR_GRAY2BGR)
 
             # Prepare frame for YOLO
             blob = cv2.dnn.blobFromImage(frame, 1 / 255, (416, 416), (0, 0, 0), swapRB=True, crop=False)
             self.net.setInput(blob)
             detections = self.net.forward(self.output_layers)
 
-            # Process detections
-            cell_phone_detected = False
+            # Process detections with Non-Max Suppression (NMS)
+            boxes = []
+            confidences = []
+            class_ids = []
+
             for detection in detections:
                 for object_detection in detection:
                     scores = object_detection[5:]
                     class_id = np.argmax(scores)
                     confidence = scores[class_id]
 
-                    if confidence > 0.5:  # Confidence threshold
-                        detected_object = self.class_names[class_id]
-                        print(f"Detected {detected_object} with confidence {confidence}")
+                    if confidence > 0.3:  # Lower confidence threshold
+                        center_x, center_y, width, height = (
+                                    object_detection[0:4] * np.array([640, 480, 640, 480])).astype(int)
+                        x = int(center_x - width / 2)
+                        y = int(center_y - height / 2)
+                        boxes.append([x, y, int(width), int(height)])
+                        confidences.append(float(confidence))
+                        class_ids.append(class_id)
 
-                        if detected_object == "cell phone":
-                            cell_phone_detected = True
+            # Apply NMS
+            indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.3, 0.4)
+
+            cell_phone_detected = False
+            for i in indexes.flatten():
+                x, y, w, h = boxes[i]
+                label = str(self.class_names[class_ids[i]])
+                confidence = confidences[i]
+                print(f"Detected {label} with confidence {confidence:.2f}")
+
+                # Highlight detected objects
+                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                cv2.putText(frame, f"{label} {confidence:.2f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0),
+                            1)
+
+                # Check for cell phone detection
+                if label == "cell phone":
+                    cell_phone_detected = True
 
             # Trigger TikTok mode if cell phone is detected
             if cell_phone_detected and not self.cell_phone_detected:

@@ -104,20 +104,23 @@ class ObjectDetector:
             indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.3, 0.4)
 
             cell_phone_detected = False
-            for i in indexes.flatten():
-                x, y, w, h = boxes[i]
-                label = str(self.class_names[class_ids[i]])
-                confidence = confidences[i]
-                print(f"Detected {label} with confidence {confidence:.2f}")
+            if len(indexes) > 0:
+                for i in indexes.flatten():
+                    x, y, w, h = boxes[i]
+                    label = str(self.class_names[class_ids[i]])
+                    confidence = confidences[i]
+                    print(f"Detected {label} with confidence {confidence:.2f}")
 
-                # Highlight detected objects
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-                cv2.putText(frame, f"{label} {confidence:.2f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0),
-                            1)
+                    # Highlight detected objects
+                    cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+                    cv2.putText(frame, f"{label} {confidence:.2f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0),
+                                1)
 
-                # Check for cell phone detection
-                if label == "cell phone":
-                    cell_phone_detected = True
+                    # Check for cell phone detection
+                    if label == "cell phone":
+                        cell_phone_detected = True
+            else:
+                print("No detections after NMS.")
 
             # Trigger TikTok mode if cell phone is detected
             if cell_phone_detected and not self.cell_phone_detected:

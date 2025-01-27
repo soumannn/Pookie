@@ -28,6 +28,11 @@ class Wohnzimmer:
     def __init__(self, scene_manager):
         self.scene_manager = scene_manager
 
+        # Character
+        self.character = AnimatedCharacter(373, 549)
+        self.last_click_time = 0
+        self.dragging_character = False
+
         # debug-font
         self.debug_font = pygame.font.Font(None, 24)
 
@@ -91,11 +96,6 @@ class Wohnzimmer:
         self.sofa_image = pygame.image.load("assets/models/sofa.png").convert_alpha()
         self.sofa_image = pygame.transform.scale(self.sofa_image, (250, 150))  # Scale the sofa
         self.sofa_rect = self.sofa_image.get_rect(topleft=(300, 270))
-
-        # Character
-        self.character = AnimatedCharacter(373, 549)
-        self.last_click_time = 0
-        self.dragging_character = False
 
         # State for transitioning to sport mode (Walk to Door)
         self.door_index = 0

@@ -124,7 +124,7 @@ class ObjectDetector:
             print(f"ImportError occurred: {e}")
             return
         if isinstance(self.scene_manager.current_scene, Wohnzimmer):
-            self.current_scene.initialize_state() #reset animation
+            self.scene_manager.current_scene.initialize_state() #reset animation
 
     def switch_scene(self, scene_name):
         print("trying to switch scene?")

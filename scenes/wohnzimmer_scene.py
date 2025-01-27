@@ -5,6 +5,7 @@ from Items import Item
 from helper.debug_box import draw_debug_info
 import pygame
 
+from core.scene_manager import SceneManager
 from scenes.joggen_scene import JoggenScene
 from scenes.lernzimmer_scene import Lernzimmer
 import requests
@@ -25,8 +26,8 @@ except ImportError as e:
 
 
 class Wohnzimmer:
-    def __init__(self, scene_manager):
-        self.scene_manager = scene_manager
+    def __init__(self):
+        self.scene_manager = SceneManager()
 
         # Character
         self.character = AnimatedCharacter(373, 549)

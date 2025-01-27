@@ -17,7 +17,3 @@ class SceneManager:
         if self.current_scene:
             self.current_scene.render(screen, debug_mode)
 
-    @property
-    def get_scene(self):
-        return self.current_scene
-

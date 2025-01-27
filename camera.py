@@ -24,7 +24,7 @@ class ObjectDetector:
 
         # State
         self.running = True
-        self.current_scene = self.scene_manager.get_scene()
+        self.current_scene = self.scene_manager.current_scene
 
         # Object-to-scene mapping
         self.object_to_scene = {
@@ -118,6 +118,11 @@ class ObjectDetector:
 
     def reset_to_normal(self):
         """Reset to normal behavior."""
+        try:
+            from scenes.wohnzimmer_scene import Wohnzimmer
+        except ImportError as e:
+            print(f"ImportError occurred: {e}")
+            return
         if isinstance(self.current_scene, Wohnzimmer):
             self.current_scene.character.disable_movement = False
             self.current_scene.walk_to = False

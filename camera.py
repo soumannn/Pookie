@@ -6,11 +6,11 @@ from scenes.joggen_scene import JoggenScene
 from scenes.dachboden_scene import DachbodenScene
 from scenes.lernzimmer_scene import Lernzimmer
 #from scenes.wohnzimmer_scene import Wohnzimmer
-from core.scene_manager import SceneManager
+
 
 class ObjectDetector:
-    def __init__(self):
-        self.scene_manager = SceneManager()
+    def __init__(self, scene_manager):
+        self.scene_manager = scene_manager
         self.picam2 = Picamera2()
         self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (640, 480)}))
         self.picam2.start()
@@ -106,8 +106,6 @@ class ObjectDetector:
     def activate_tiktok_mode(self):
         """Activate TikTok Mode."""
         print(f"current scene: {self.current_scene}")
-        print(f"current scene from the scene manager: {self.scene_manager.current_scene}")
-        print(f"{SceneManager().current_scene}")
         try:
             from scenes.wohnzimmer_scene import Wohnzimmer
         except ImportError as e:

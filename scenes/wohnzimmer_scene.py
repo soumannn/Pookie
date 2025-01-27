@@ -41,7 +41,7 @@ class Wohnzimmer:
         if IS_RASPBERRY_PI:
             self.sensor = mpu6050(0x68, bus=3)
             self.calibrate_sensor()
-            self.object_detector = camera.ObjectDetector()
+            self.object_detector = camera.ObjectDetector(self.scene_manager)
 
             self.detection_thread = Thread(target=self.object_detector.detect_objects)
             self.detection_thread.start()

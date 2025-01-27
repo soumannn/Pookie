@@ -5,11 +5,12 @@ import numpy as np
 from scenes.joggen_scene import JoggenScene
 from scenes.dachboden_scene import DachbodenScene
 from scenes.lernzimmer_scene import Lernzimmer
+from scenes.wohnzimmer_scene import Wohnzimmer
 
 class ObjectDetector:
     def __init__(self, scene_manager):
         self.scene_manager = scene_manager
-        self.living_room = living_room
+        self.living_room = Wohnzimmer
         self.picam2 = Picamera2()
         self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (640, 480)}))
         self.picam2.start()

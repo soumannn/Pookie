@@ -9,6 +9,7 @@ from scenes.lernzimmer_scene import Lernzimmer
 class ObjectDetector:
     def __init__(self, scene_manager):
         self.scene_manager = scene_manager
+        self.living_room = living_room
         self.picam2 = Picamera2()
         self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (640, 480)}))
         self.picam2.start()
@@ -59,8 +60,81 @@ class ObjectDetector:
             "tennis racket": "SportMode",
         }
 
+        # Track detection state
+        self.cell_phone_detected = False
+
     def detect_objects(self):
         """Continuously capture frames and detect objects."""
+        while self.running:
+            print("detect objects thread is running")
+            frame = self.picam2.capture_array()
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+
+            # Prepare frame for YOLO
+            blob = cv2.dnn.blobFromImage(frame, 1 / 255, (416, 416), (0, 0, 0), swapRB=True, crop=False)
+            self.net.setInput(blob)
+            detections = self.net.forward(self.output_layers)
+
+            # Process detections
+            cell_phone_detected = False
+            for detection in detections:
+                for object_detection in detection:
+                    scores = object_detection[5:]
+                    class_id = np.argmax(scores)
+                    confidence = scores[class_id]
+
+                    if confidence > 0.5:  # Confidence threshold
+                        detected_object = self.class_names[class_id]
+                        print(f"Detected {detected_object} with confidence {confidence}")
+
+                        if detected_object == "cell phone":
+                            cell_phone_detected = True
+
+            # Trigger TikTok mode if cell phone is detected
+            if cell_phone_detected and not self.cell_phone_detected:
+                self.cell_phone_detected = True
+                print("Cell phone detected! Activating TikTok mode.")
+                self.activate_tiktok_mode()
+
+            # Reset if cell phone is no longer detected
+            if not cell_phone_detected and self.cell_phone_detected:
+                self.cell_phone_detected = False
+                print("Cell phone no longer detected. Resetting to normal mode.")
+                self.reset_to_normal()
+
+    def activate_tiktok_mode(self):
+        """Activate TikTok Mode."""
+        self.living_room.character.disable_movement = True
+        self.living_room.walk_to_animation = "handy_modus"
+        self.living_room.walk_to = True
+        self.living_room.walk_to_target = (448, 303)  # Target position for TikTok mode
+
+    def reset_to_normal(self):
+        """Reset to normal behavior."""
+        self.living_room.character.disable_movement = False
+        self.living_room.walk_to = False
+
+
+    def switch_scene(self, scene_name):
+        print("trying to switch scene?")
+        """Switch to the appropriate scene."""
+        if scene_name == "KitchenScene":
+            self.scene_manager.set_scene(JoggenScene(self.scene_manager))
+        elif scene_name == "LivingRoomScene":
+            self.scene_manager.set_scene(JoggenScene(self.scene_manager))
+        elif scene_name == "SportMode":
+            self.scene_manager.set_scene(JoggenScene(self.scene_manager))
+        elif scene_name == "LearnScene":
+            self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
+
+    def stop(self):
+        """Stop the detection."""
+        self.running = False
+        self.picam2.stop()
+
+
+"""
+    def detect_objects(self):
         while self.running:
             print("detect objects thread is running")
             frame = self.picam2.capture_array()
@@ -88,23 +162,4 @@ class ObjectDetector:
                             if new_scene != self.current_scene:
                                 self.current_scene = new_scene
                                 print(f"Switching to {new_scene} due to detection of {detected_object}")
-                                self.switch_scene(new_scene)
-
-    def switch_scene(self, scene_name):
-        print("trying to switch scene?")
-        """Switch to the appropriate scene."""
-        if scene_name == "KitchenScene":
-            self.scene_manager.set_scene(JoggenScene(self.scene_manager))
-        elif scene_name == "LivingRoomScene":
-            self.scene_manager.set_scene(JoggenScene(self.scene_manager))
-        elif scene_name == "TikTokMode":
-            self.scene_manager.set_scene(JoggenScene(self.scene_manager))
-        elif scene_name == "SportMode":
-            self.scene_manager.set_scene(JoggenScene(self.scene_manager))
-        elif scene_name == "LearnScene":
-            self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
-
-    def stop(self):
-        """Stop the detection."""
-        self.running = False
-        self.picam2.stop()
+                                self.switch_scene(new_scene) """

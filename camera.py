@@ -134,6 +134,11 @@ class ObjectDetector:
                 print("Cell phone no longer detected. Resetting to normal mode.")
                 self.reset_to_normal()
 
+            # Display frame for debugging purposes
+            cv2.imshow("Detection", frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+
     def activate_tiktok_mode(self):
         """Activate TikTok Mode."""
         print(f"Activating TikTok mode. Current scene: {self.scene_manager.current_scene}")
@@ -173,3 +178,4 @@ class ObjectDetector:
         """Stop the detection."""
         self.running = False
         self.picam2.stop()
+        cv2.destroyAllWindows()

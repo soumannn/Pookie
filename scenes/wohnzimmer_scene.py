@@ -526,10 +526,9 @@ class Wohnzimmer:
 
     def initialize_state(self):
         """Helper function to initialize scene state."""
-        self.walk_to = False
-        self.walk_to_target = None
-        self.walk_to_animation = ""
+        print("trying to reset..")
         self.character.disable_movement = False
+
 
     def update(self, dt):
 

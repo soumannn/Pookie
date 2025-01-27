@@ -524,6 +524,13 @@ class Wohnzimmer:
         self.walk_to = True
         self.character.disable_movement = True
 
+    def initialize_state(self):
+        """Helper function to initialize scene state."""
+        self.walk_to = False
+        self.walk_to_target = None
+        self.walk_to_animation = ""
+        self.character.disable_movement = False
+
     def update(self, dt):
 
         #sensor test

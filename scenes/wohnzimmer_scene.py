@@ -547,7 +547,7 @@ class Wohnzimmer:
             self.door_open_timer = pygame.time.get_ticks()  # Start door open timer
 
     def handle_walk_to_learnroom(self):
-        # self.walk_to_target = (426, 204)
+        print("wallk to learnroom triggered")
 
         self.character.disable_movement = True
         self.character.force_animation("walk_right")
@@ -555,9 +555,11 @@ class Wohnzimmer:
         # Move character toward the right edge of the screen
         movement_speed = 2
         self.character.rect.x += movement_speed
+        self.walk_to_target = (600, 204)
 
         # Check if character has reached the right edge
         if self.character.rect.right > 750:  # Assuming screen width is 600
+            print("trying to switch scene")
             self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
 
     def perform_animation(self, animation_name: str, target: tuple):

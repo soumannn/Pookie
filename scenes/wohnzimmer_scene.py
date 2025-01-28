@@ -559,7 +559,7 @@ class Wohnzimmer:
         self.walk_to_target = (700, 300)
 
         # Check if character has reached the right edge
-        if self.character.rect.right > 750:  # Assuming screen width is 600
+        if self.character.rect.right > 690:  # Assuming screen width is 600
             print("trying to switch scene")
             self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
 

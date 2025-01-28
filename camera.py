@@ -104,6 +104,9 @@ class ObjectDetector:
                 class_id = np.argmax(scores)
                 confidence = scores[class_id]
 
+                if class_id == 0:
+                    continue
+
                 if confidence > 0.3:  # Threshold for detection
                     center_x, center_y, width, height = (
                             object_detection[0:4] * np.array([640, 480, 640, 480])
@@ -124,6 +127,8 @@ class ObjectDetector:
 
     def handle_detected_objects(self, detected_objects, frame):
         """Handle detected objects and trigger actions."""
+        cell_phone_detected = False  # Track whether the cell phone is detected in this frame
+
         for obj in detected_objects:
             label = obj["label"]
             confidence = obj["confidence"]
@@ -135,7 +140,20 @@ class ObjectDetector:
             cv2.putText(frame, f"{label} {confidence:.2f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
             # Handle specific object detections
+            if label == "cell phone":
+                cell_phone_detected = True
+                if not self.cell_phone_detected:
+                    self.cell_phone_detected = True
+                    print("Cell phone detected! Activating TikTok mode.")
+                    self.activate_tiktok_mode()
+
             self.execute_object_action(label)
+
+        # Reset if cell phone is no longer detected
+        if not cell_phone_detected and self.cell_phone_detected:
+            self.cell_phone_detected = False
+            print("Cell phone no longer detected. Resetting to normal mode.")
+            self.reset_to_normal()
 
     def execute_object_action(self, label):
         """Execute action based on the detected object."""

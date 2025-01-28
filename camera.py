@@ -152,7 +152,7 @@ class ObjectDetector:
             if label == "book":
                 self.handle_book_detection()
 
-            self.execute_object_action(label)
+            #self.execute_object_action(label)
 
         # Reset if cell phone is no longer detected
         if not cell_phone_detected and self.tiktok_mode_active:

@@ -1,7 +1,6 @@
 import textwrap
 import time
 
-from character.animated_character import AnimatedCharacter
 from Items import Item
 from helper.debug_box import draw_debug_info
 import pygame
@@ -31,7 +30,7 @@ class Wohnzimmer:
         self.pookie = pookie
 
         # Character
-        self.character = AnimatedCharacter(373, 549)
+        #self.character = AnimatedCharacter(373, 549)
         self.last_click_time = 0
         self.dragging_character = False
 
@@ -59,8 +58,8 @@ class Wohnzimmer:
 
         #self.walk_to = False  # New state for TikTok mode
 
-        self.walk_to_target = None
-        self.walk_to_animation = ""
+        #self.walk_to_target = None
+        #self.walk_to_animation = ""
 
         self.movement_resume_timer = 0
         self.resume_movement_delay = 500  # 500ms delay before resuming random movement
@@ -107,7 +106,7 @@ class Wohnzimmer:
         self.walk_to_door = False
 
         # State for transitioning to learn mode (Walk to Learnroom)
-        self.is_walking_to_learnroom = False
+        #self.is_walking_to_learnroom = False
 
         # Door
         self.door_sprites = Item("assets/spritesheets/doors.png", 30, 51, 1, 3)
@@ -147,10 +146,10 @@ class Wohnzimmer:
             f"Calibration done: baseline_x={self.baseline_x:.2f}, baseline_y={self.baseline_y:.2f}, baseline_z={self.baseline_z:.2f}")
 
     def setWalking(self, set:bool):
-        self.character.disable_movement = set
+        self.pookie.character.disable_movement = set
 
+    """
     def letPookieSay(self, message: str):
-        """Display a white box with the provided message and the character image on the left side."""
         # Create the white box
         box_width = 640
         box_height = 130
@@ -181,6 +180,7 @@ class Wohnzimmer:
         # Set a timer to hide the message after a few seconds
         self.message_display_time = pygame.time.get_ticks()
         self.message_duration = 5000  # Show message for 5 seconds
+    """
 
     def read_sensor_data(self):
         """Read accelerometer data from the gyrosensor, adjusted by baseline."""
@@ -283,8 +283,8 @@ class Wohnzimmer:
 
     def handle_walk_to(self):
         """Handle walking to the TikTok target position."""
-        target_x, target_y = self.walk_to_target
-        character_center = self.character.rect.center
+        target_x, target_y = self.pookie.walk_to_target
+        character_center = self.pookie.character.rect.center
 
         # Calculate direction
         direction_x = target_x - character_center[0]
@@ -293,19 +293,19 @@ class Wohnzimmer:
         # Normalize direction
         distance = max(abs(direction_x), abs(direction_y))
         if distance > 0:
-            self.character.velocity.x = direction_x / distance
-            self.character.velocity.y = direction_y / distance
+            self.pookie.character.velocity.x = direction_x / distance
+            self.pookie.character.velocity.y = direction_y / distance
 
         # Move character
         movement_speed = 2  # Speed for walking to the target
-        self.character.rect.x += self.character.velocity.x * movement_speed
-        self.character.rect.y += self.character.velocity.y * movement_speed
+        self.pookie.character.rect.x += self.pookie.character.velocity.x * movement_speed
+        self.pookie.character.rect.y += self.pookie.character.velocity.y * movement_speed
 
         # Check if the character reached the target position
         if abs(character_center[0] - target_x) < 5 and abs(character_center[1] - target_y) < 5:
             #self.walk_to = False  # Stop walking
             self.pookie.walk_to = False
-            self.character.force_animation(self.walk_to_animation)  # Switch to handy_modus
+            self.pookie.character.force_animation(self.pookie.walk_to_animation)  # Switch to handy_modus
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -328,25 +328,25 @@ class Wohnzimmer:
                 self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (130, 130))
 
             # Detect character drag
-            if self.character.rect.collidepoint(event.pos):  # Start dragging
+            if self.pookie.character.rect.collidepoint(event.pos):  # Start dragging
                 print("picking up....")
-                self.character.disable_movement = True
+                self.pookie.character.disable_movement = True
                 self.dragging_character = True
-                self.character.dragging = True
+                self.pookie.character.dragging = True
 
         elif event.type == pygame.MOUSEBUTTONUP:
             if self.dragging_character:  # Stop dragging
                 print("let go")
-                self.character.disable_movement = False
+                self.pookie.character.disable_movement = False
                 self.dragging_character = False
-                self.character.dragging = False
-                self.character.snap_to_grid()  # Snap back to the allowed grid
+                self.pookie.character.dragging = False
+                self.pookie.character.snap_to_grid()  # Snap back to the allowed grid
 
         elif event.type == pygame.MOUSEMOTION:
             if self.dragging_character:  # Update position while dragging
                 print("dragging..")
-                self.character.set_position(event.pos[0] - self.character.rect.width // 2,
-                                            event.pos[1] - self.character.rect.height // 2)
+                self.pookie.character.set_position(event.pos[0] - self.pookie.character.rect.width // 2,
+                                            event.pos[1] - self.pookie.character.rect.height // 2)
 
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_w:
@@ -362,31 +362,32 @@ class Wohnzimmer:
                 self.walk_to_window = True
 
             elif event.key == pygame.K_h:
-                self.character.disable_movement = True
-                self.character.force_animation("hantel")
+                self.pookie.character.disable_movement = True
+                self.pookie.character.force_animation("hantel")
 
             elif event.key == pygame.K_t:
                 """TikTok Modus
                 Walk to (426, 453) and switch to 'handy_modus'."""
-                self.character.disable_movement = True
-                self.walk_to_animation = "handy_modus"
+                self.pookie.character.disable_movement = True
+                self.pookie.walk_to_animation = "handy_modus"
+
                 #self.walk_to = True
                 self.pookie.walk_to = True
 
-                self.walk_to_target = (448, 303)  # Target position for TikTok mode (244, 190)
+                self.pookie.walk_to_target = (448, 303)  # Target position for TikTok mode (244, 190)
                 self.pookie.handy += 1
-                self.letPookieSay(self.tikTokMessage())
+                self.pookie.letPookieSay(self.pookie.tikTokMessage())
 
 
 
             elif event.key == pygame.K_b:
                 """Buch lesen Modus"""
-                self.character.disable_movement = True
-                self.walk_to_animation = "buch_lesen"
+                self.pookie.character.disable_movement = True
+                self.pookie.walk_to_animation = "buch_lesen"
                 #self.walk_to = True
                 self.pookie.walk_to = True
 
-                self.walk_to_target = (448, 303)
+                self.pookie.walk_to_target = (448, 303)
 
 
             elif event.key == pygame.K_DOWN:  # Pfeil nach unten
@@ -400,7 +401,7 @@ class Wohnzimmer:
 
 
     def reset_positions(self):
-        self.character.rect.y = 0
+        self.pookie.character.rect.y = 0
         self.window_rect.y = 32
         self.door_rect.y = 160
         self.sofa_rect.y = 365
@@ -409,21 +410,21 @@ class Wohnzimmer:
     def flip_scene(self):
         """Flip the entire scene upside down, including bounds."""
         self.scene_flipped = not self.scene_flipped
-        self.character.flip_bounds(self.scene_flipped)
+        self.pookie.character.flip_bounds(self.scene_flipped)
 
     def everything_falls(self):
         """Make all objects in the scene fall (including character)."""
         # Character falls
         if self.scene_flipped:
-            if self.character.rect.top > 0:
-                self.character.rect.y -= self.fall_speed
+            if self.pookie.character.rect.top > 0:
+                self.pookie.character.rect.y -= self.fall_speed
             else:
-                self.character.rect.y = 0
+                self.pookie.character.rect.y = 0
         else:
-            if self.character.rect.bottom < 320:
-                self.character.rect.y += self.fall_speed
+            if self.pookie.character.rect.bottom < 320:
+                self.pookie.character.rect.y += self.fall_speed
             else:
-                self.character.rect.y = 320 - self.character.rect.height
+                self.pookie.character.rect.y = 320 - self.pookie.character.rect.height
 
         # Window falls
         if self.scene_flipped:
@@ -475,10 +476,10 @@ class Wohnzimmer:
 
     def handle_walk_to_window(self):
         if self.walk_to_window:
-            self.character.disable_movement = True
-            self.character.force_animation("walk_up")
+            self.pookie.character.disable_movement = True
+            self.pookie.character.force_animation("walk_up")
             window_center = self.window_rect.center
-            character_center = self.character.rect.center
+            character_center = self.pookie.character.rect.center
 
             direction_x = window_center[0] - character_center[0]
             direction_y = window_center[1] - character_center[1]
@@ -486,15 +487,15 @@ class Wohnzimmer:
             # Normalize direction
             distance = max(abs(direction_x), abs(direction_y))
             if distance > 0:
-                self.character.velocity.x = direction_x / distance
-                self.character.velocity.y = direction_y / distance
+                self.pookie.character.velocity.x = direction_x / distance
+                self.pookie.character.velocity.y = direction_y / distance
 
             # Move character
             movement_speed = 2  # Faster speed for walking to the door
-            self.character.rect.x += self.character.velocity.x * movement_speed
-            self.character.rect.y += self.character.velocity.y * movement_speed
+            self.pookie.character.rect.x += self.pookie.character.velocity.x * movement_speed
+            self.pookie.character.rect.y += self.pookie.character.velocity.y * movement_speed
 
-            if self.character.rect.colliderect(self.window_rect):
+            if self.pookie.character.rect.colliderect(self.window_rect):
                 self.walk_to_window = False
 
                 # Switch weather
@@ -514,11 +515,11 @@ class Wohnzimmer:
                 self.movement_resume_timer = self.resume_movement_delay
 
     def handle_walk_to_door(self):
-        self.character.disable_movement = True
-        self.character.force_animation("walk_left")
+        self.pookie.character.disable_movement = True
+        self.pookie.character.force_animation("walk_left")
         # Move character toward the door
         door_center = self.door_rect.center
-        character_center = self.character.rect.center
+        character_center = self.pookie.character.rect.center
 
         # Calculate direction
         direction_x = door_center[0] - character_center[0]
@@ -527,16 +528,16 @@ class Wohnzimmer:
         # Normalize direction
         distance = max(abs(direction_x), abs(direction_y))
         if distance > 0:
-            self.character.velocity.x = direction_x / distance
-            self.character.velocity.y = direction_y / distance
+            self.pookie.character.velocity.x = direction_x / distance
+            self.pookie.character.velocity.y = direction_y / distance
 
         # Move character
         movement_speed = 2  # Faster speed for walking to the door
-        self.character.rect.x += self.character.velocity.x * movement_speed
-        self.character.rect.y += self.character.velocity.y * movement_speed
+        self.pookie.character.rect.x += self.pookie.character.velocity.x * movement_speed
+        self.pookie.character.rect.y += self.pookie.character.velocity.y * movement_speed
 
         # Check if the character reached the door
-        if self.character.rect.colliderect(self.door_rect):
+        if self.pookie.character.rect.colliderect(self.door_rect):
             self.walk_to_door = False  # Stop walking
             self.transition_to_sport_mode = True  # Start transition
             self.door_index = 1  # Open door animation
@@ -545,14 +546,14 @@ class Wohnzimmer:
 
     def handle_walk_to_learnroom(self):
         print("wallk to learnroom triggered")
-        self.letPookieSay(self.bookMessage())
-        self.character.disable_movement = True
-        self.character.force_animation("walk_right")
+        self.pookie.letPookieSay(self.pookie.bookMessage())
+        self.pookie.character.disable_movement = True
+        self.pookie.character.force_animation("walk_right")
         #self.walk_to = True
         self.pookie.walk_to = True
-        self.walk_to_target = (700, 300)
+        self.pookie.walk_to_target = (700, 300)
 
-        if self.character.rect.right > 670:
+        if self.pookie.character.rect.right > 670:
             print("trying to switch scene")
             self.scene_manager.set_scene(Lernzimmer(self.scene_manager, self.pookie, self.object_detector))
 
@@ -564,53 +565,18 @@ class Wohnzimmer:
         """
         print(f"Performing animation '{animation_name}' to target {target}")
         if len(message) > 0:
-            self.letPookieSay(message)
+            self.pookie.letPookieSay(message)
         self.walk_to_animation = animation_name
-        self.walk_to_target = target
+        self.pookie.walk_to_target = target
         #self.walk_to = True
         self.pookie.walk_to = True
-        self.character.disable_movement = True
+        self.pookie.character.disable_movement = True
 
     def initialize_state(self):
         """Helper function to initialize scene state."""
         print("trying to reset..")
-        self.character.disable_movement = False
+        self.pookie.character.disable_movement = False
 
-    def tikTokMessage(self) -> str:
-        if self.pookie.handy <= 2:
-            return "Let's see what the world is doing today."
-        elif 3 <= self.pookie.handy <= 5:
-            return "Hmm, the world seems a bit weird today..."
-        elif 6 <= self.pookie.handy <= 8:
-            return "Oh no, everything is starting to look cursed..."
-        elif 9 <= self.pookie.handy <= 12:
-            return "Why is everything so chaotic? My brain hurts..."
-        elif self.pookie.handy > 12:
-            return "I can't take it anymore! The brainrot is consuming me!!!"
-
-    def bookMessage(self) -> str:
-        if self.pookie.handy < self.pookie.learn:
-            if self.pookie.learn <= 1:
-                return "Zeit zu lernen ^-^"
-            elif self.pookie.learn <= 2:
-                return "Wusstest du? a² + b² = c², das ist der Satz des Pythagoras!"
-            elif self.pookie.learn <= 3:
-                return "Die Gravitation ist nicht nur, was Äpfel fallen lässt – sie formt das Universum!"
-            elif self.pookie.learn <= 5:
-                return "Wissen ist Macht, aber Weisheit ist die Kunst, es richtig einzusetzen."
-            elif self.pookie.learn > 6:
-                return "ρ(∂v/∂t + v·∇v) = −∇p + μ∇²v + f. Versuch das mal zu lösen!"
-        elif self.pookie.handy > self.pookie.learn:
-            if self.pookie.handy <= 2:
-                return "Boah, Lernen is voll 2000er, Alter. snapchat is life!"
-            elif self.pookie.handy <= 3:
-                return "Ey, wozu brauch ich Mathe, wenn mein Handy alles rechnen kann, lol."
-            elif self.pookie.handy <= 5:
-                return "Digga, Gravi-was? Guck lieber die neuen TikToks, die sind killer!"
-            elif self.pookie.handy <= 6:
-                return "E = mc-was? Ey, Hauptsache mein Insta-Bild ballert, weißt du."
-            else:
-                return "Ey, chill mal. Lernen stresst nur, ich bleib bei Netflix und Snacks, bro!"
 
 
     def update(self, dt):
@@ -621,11 +587,11 @@ class Wohnzimmer:
         # Handle shake timer to re-enable movement
         if self.shake_timer is not None:
             if pygame.time.get_ticks() - self.shake_timer >= 3000:  # 3 seconds
-                self.character.disable_movement = False
+                self.pookie.character.disable_movement = False
                 self.shake_timer = None  # Reset the timer
 
-        if not self.character.dragging:
-            self.character.update(dt)
+        if not self.pookie.character.dragging:
+            self.pookie.character.update(dt)
 
         if self.falling:
             self.everything_falls()
@@ -640,7 +606,7 @@ class Wohnzimmer:
             self.movement_resume_timer -= dt
             if self.movement_resume_timer <= 0:
                 self.movement_resume_timer = 0
-                self.character.disable_movement = False  # Resume movement
+                self.pookie.character.disable_movement = False  # Resume movement
 
 
         if self.walk_to_door:
@@ -657,8 +623,8 @@ class Wohnzimmer:
             self.update_weather()
             self.last_weather_update = pygame.time.get_ticks()
 
-        if self.is_walking_to_learnroom:
-            self.handle_walk_to_learnroom()
+        #if self.is_walking_to_learnroom:
+        #    self.handle_walk_to_learnroom()
 
     def render(self, screen, debug_mode=False):
         # Hintergrund rendern
@@ -667,13 +633,13 @@ class Wohnzimmer:
         screen.blit(self.door, self.door_rect)
 
         # Charakter und Sofa-Logik
-        character_rect = self.character.rect
+        character_rect = self.pookie.character.rect
         if character_rect.bottom <= self.sofa_rect.centery:
-            self.character.render(screen)
+            self.pookie.character.render(screen)
             screen.blit(self.sofa_image, self.sofa_rect)
         else:
             screen.blit(self.sofa_image, self.sofa_rect)
-            self.character.render(screen)
+            self.pookie.character.render(screen)
 
         # Stehlampe
         screen.blit(self.standing_lamp, self.standing_lamp_rect)
@@ -794,28 +760,28 @@ class Wohnzimmer:
             # Character debug info
             draw_debug_info(
                 screen,
-                self.character.rect,
-                f"X: {self.character.rect.x}, Y: {self.character.rect.y}",
+                self.pookie.character.rect,
+                f"X: {self.pookie.character.rect.x}, Y: {self.pookie.character.rect.y}",
                 self.debug_font,
-                text_offset=(0, self.character.rect.height + 5)  # Below the rect
+                text_offset=(0, self.pookie.character.rect.height + 5)  # Below the rect
             )
 
             # Character status
             draw_debug_info(
                 screen,
-                self.character.rect,
-                f"{self.character.current_animation}",
+                self.pookie.character.rect,
+                f"{self.pookie.character.current_animation}",
                 self.debug_font,
-                text_offset=(0, self.character.rect.height + 25)
+                text_offset=(0, self.pookie.character.rect.height + 25)
             )
 
             # Autowalk status
             draw_debug_info(
                 screen,
-                self.character.rect,
-                f"Autowalk {'off' if self.character.disable_movement else 'on'}",
+                self.pookie.character.rect,
+                f"Autowalk {'off' if self.pookie.character.disable_movement else 'on'}",
                 self.debug_font,
-                text_offset=(0, self.character.rect.height + 45)
+                text_offset=(0, self.pookie.character.rect.height + 45)
             )
 
 

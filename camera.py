@@ -147,7 +147,7 @@ class ObjectDetector:
                     self.activate_tiktok_mode()
 
             if label == "book":
-                self.pookie.book += 1
+                self.pookie.learn += 1
                 self.handle_book_detection()
 
             #self.execute_object_action(label)
@@ -177,17 +177,9 @@ class ObjectDetector:
 
 
     def activate_tiktok_mode(self):
-        """Activate TikTok Mode."""
-        print(f"Activating TikTok mode. Current scene: {self.scene_manager.current_scene}")
-        try:
-            from scenes.wohnzimmer_scene import Wohnzimmer
-        except ImportError as e:
-            print(f"ImportError occurred: {e}")
-            return
+        self.pookie.perform_animation("handy_modus", (448, 303), self.scene_manager.current_scene.tikTokMessage())
 
-        if isinstance(self.scene_manager.current_scene, Wohnzimmer):
-            print("Correct Wohnzimmer instance detected. Activating TikTok mode.")
-            self.scene_manager.current_scene.perform_animation("handy_modus", (448, 303), self.scene_manager.current_scene.tikTokMessage())
+
 
     def reset_to_normal(self):
         """Reset to normal behavior."""

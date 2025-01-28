@@ -3,6 +3,7 @@ import sys
 import pygame
 from core.scene_manager import SceneManager
 from scenes.wohnzimmer_scene import Wohnzimmer
+from core.pookie import Pookie
 
 def main():
     pygame.init()
@@ -14,7 +15,7 @@ def main():
     # locale.setlocale(locale.LC_TIME, 'German_Germany.1252')
 
     scene_manager = SceneManager()
-    scene_manager.set_scene(Wohnzimmer(scene_manager))
+    scene_manager.set_scene(Wohnzimmer(scene_manager, Pookie()))
 
     debug_mode = False  # Debug mode toggle
     fullscreen = False  # Fullscreen toggle state

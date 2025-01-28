@@ -1,3 +1,4 @@
+import textwrap
 import time
 
 from character.animated_character import AnimatedCharacter
@@ -25,8 +26,9 @@ except ImportError as e:
 
 
 class Wohnzimmer:
-    def __init__(self, scene_manager):
+    def __init__(self, scene_manager, pookie):
         self.scene_manager = scene_manager
+        self.pookie = pookie
 
         # Character
         self.character = AnimatedCharacter(373, 549)
@@ -40,7 +42,7 @@ class Wohnzimmer:
         if IS_RASPBERRY_PI:
             self.sensor = mpu6050(0x68, bus=3)
             self.calibrate_sensor()
-            self.object_detector = camera.ObjectDetector(self.scene_manager)
+            self.object_detector = camera.ObjectDetector(self.scene_manager, pookie)
 
             self.detection_thread = Thread(target=self.object_detector.detect_objects)
             self.detection_thread.start()
@@ -152,15 +154,17 @@ class Wohnzimmer:
         box_width = 640
         box_height = 130
         box_x = (640 - box_width) // 2  # Center the box horizontally
-        box_y = 480 - box_height   # Position the box 10px above the bottom of the screen
+        box_y = 480 - box_height  # Position the box 10px above the bottom of the screen
 
         white_box = pygame.Surface((box_width, box_height))
         white_box.fill((255, 255, 255))  # Fill the box with white color
 
-        # Render the message text
-        text_surface = self.message_font.render(message, True, (0, 0, 0))  # Black text
-        text_rect = text_surface.get_rect(
-            midleft=(box_x + 140, box_y + box_height // 2))  # Position to the right of the image
+        # Wrap the text to fit within the box width
+        wrapped_text = textwrap.wrap(message, width=30)  # Adjust width as needed
+        text_surfaces = []
+        for line in wrapped_text:
+            text_surface = self.message_font.render(line, True, (0, 0, 0))  # Black text
+            text_surfaces.append(text_surface)
 
         # Load and scale the character image
         character_image = pygame.image.load("assets/characters/Head.png").convert_alpha()
@@ -169,8 +173,8 @@ class Wohnzimmer:
             topleft=(box_x - 40, box_y - 60))  # Position in the left side of the box
 
         # Save the elements for rendering
-        self.pookie_message_box = (white_box, (box_x, box_y))
-        self.pookie_message_text = (text_surface, text_rect)
+        self.pookie_message_box = (white_box, (box_x , box_y))
+        self.pookie_message_text = (text_surfaces, (box_x + 140, box_y + 20))  # Adjusted text position
         self.pookie_character_image = (character_image, character_rect)
 
         # Set a timer to hide the message after a few seconds
@@ -366,7 +370,19 @@ class Wohnzimmer:
                 self.walk_to_animation = "handy_modus"
                 self.walk_to = True
                 self.walk_to_target = (448, 303)  # Target position for TikTok mode (244, 190)
-                self.letPookieSay("skibidi toilet")
+                self.pookie.handy += 1
+                if self.pookie.handy <= 2:
+                    self.letPookieSay("Let's see what the world is doing today.")
+                elif 3 <= self.pookie.handy <= 5:
+                    self.letPookieSay("Hmm, the world seems a bit weird today...")
+                elif 6 <= self.pookie.handy <= 8:
+                    self.letPookieSay("Oh no, everything is starting to look cursed...")
+                elif 9 <= self.pookie.handy <= 12:
+                    self.letPookieSay("Why is everything so chaotic? My brain hurts...")
+                elif self.pookie.handy > 12:
+                    self.letPookieSay("I can't take it anymore! The brainrot is consuming me!!!")
+
+
 
             elif event.key == pygame.K_b:
                 """Buch lesen Modus"""
@@ -381,12 +397,13 @@ class Wohnzimmer:
                 self.flip_scene()
 
             elif event.key == pygame.K_r:  # Zurücksetzen
-                    print("restart")
-                    self.falling = False
-                    self.reset_positions()
+                self.initialize_state()
+                    #self.falling = False
+                    #self.reset_positions()
+
 
     def reset_positions(self):
-        self.character.rect.y = 549
+        self.character.rect.y = 0
         self.window_rect.y = 32
         self.door_rect.y = 160
         self.sofa_rect.y = 365
@@ -646,8 +663,12 @@ class Wohnzimmer:
                 # Draw the character image
                 screen.blit(self.pookie_character_image[0], self.pookie_character_image[1])
 
-                # Draw the text
-                screen.blit(self.pookie_message_text[0], self.pookie_message_text[1])
+                # Draw the text lines
+                text_surfaces, text_start_pos = self.pookie_message_text
+                x, y = text_start_pos
+                for text_surface in text_surfaces:
+                    screen.blit(text_surface, (x, y))
+                    y += text_surface.get_height() + 5
             else:
                 # Remove the message after the duration
                 del self.pookie_message_box

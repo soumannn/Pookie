@@ -557,12 +557,9 @@ class Wohnzimmer:
             print("trying to switch scene")
             self.scene_manager.set_scene(Lernzimmer(self.scene_manager, self.pookie, self.object_detector))
 
+    """
     def perform_animation(self, animation_name: str, target: tuple, message: str=""):
-        """
-        Perform an animation for the character.
-        :param animation_name: The name of the animation to perform.
-        :param target: The target position (x, y) for the character to walk to.
-        """
+
         print(f"Performing animation '{animation_name}' to target {target}")
         if len(message) > 0:
             self.pookie.letPookieSay(message)
@@ -571,6 +568,7 @@ class Wohnzimmer:
         #self.walk_to = True
         self.pookie.walk_to = True
         self.pookie.character.disable_movement = True
+    """
 
     def initialize_state(self):
         """Helper function to initialize scene state."""

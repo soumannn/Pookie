@@ -382,12 +382,12 @@ class Wohnzimmer:
 
             elif event.key == pygame.K_b:
                 """Buch lesen Modus"""
-                self.pookie.character.disable_movement = True
-                self.pookie.walk_to_animation = "buch_lesen"
+                self.scene_manager.set_scene(Lernzimmer(self.scene_manager, self.pookie))
+                #self.pookie.character.disable_movement = True
+                #self.pookie.walk_to_animation = "buch_lesen"
                 #self.walk_to = True
-                self.pookie.walk_to = True
-
-                self.pookie.walk_to_target = (448, 303)
+                #self.pookie.walk_to = True
+                #self.pookie.walk_to_target = (448, 303)
 
 
             elif event.key == pygame.K_DOWN:  # Pfeil nach unten

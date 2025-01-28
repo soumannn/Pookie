@@ -6,7 +6,7 @@ from config import WEATHER_URL
 from datetime import datetime
 
 class Lernzimmer:
-    def __init__(self, scene_manager, pookie, detector):
+    def __init__(self, scene_manager, pookie, detector=None):
         self.scene_manager = scene_manager
         self.pookie = pookie
         self.message_font = pygame.font.Font(None, 40)
@@ -92,7 +92,7 @@ class Lernzimmer:
 
         if self.character.rect.right < 0:
             from scenes.wohnzimmer_scene import Wohnzimmer 
-            self.scene_manager.set_scene(Wohnzimmer(self.scene_manager))
+            self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self.pookie))
 
     def update(self, dt):
         if self.is_walking:

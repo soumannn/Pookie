@@ -187,7 +187,7 @@ class ObjectDetector:
 
         if isinstance(self.scene_manager.current_scene, Wohnzimmer):
             print("Correct Wohnzimmer instance detected. Activating TikTok mode.")
-            self.scene_manager.current_scene.perform_animation("handy_modus", (448, 303))
+            self.scene_manager.current_scene.perform_animation("handy_modus", (448, 303), self.scene_manager.current_scene.tikTokMessage())
 
     def reset_to_normal(self):
         """Reset to normal behavior."""

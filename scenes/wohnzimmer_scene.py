@@ -371,16 +371,7 @@ class Wohnzimmer:
                 self.walk_to = True
                 self.walk_to_target = (448, 303)  # Target position for TikTok mode (244, 190)
                 self.pookie.handy += 1
-                if self.pookie.handy <= 2:
-                    self.letPookieSay("Let's see what the world is doing today.")
-                elif 3 <= self.pookie.handy <= 5:
-                    self.letPookieSay("Hmm, the world seems a bit weird today...")
-                elif 6 <= self.pookie.handy <= 8:
-                    self.letPookieSay("Oh no, everything is starting to look cursed...")
-                elif 9 <= self.pookie.handy <= 12:
-                    self.letPookieSay("Why is everything so chaotic? My brain hurts...")
-                elif self.pookie.handy > 12:
-                    self.letPookieSay("I can't take it anymore! The brainrot is consuming me!!!")
+                self.letPookieSay(self.tikTokMessage())
 
 
 
@@ -548,28 +539,24 @@ class Wohnzimmer:
 
     def handle_walk_to_learnroom(self):
         print("wallk to learnroom triggered")
-
         self.character.disable_movement = True
         self.character.force_animation("walk_right")
-
-        # Move character toward the right edge of the screen
-        #movement_speed = 2
-        #self.character.rect.x += movement_speed
         self.walk_to = True
         self.walk_to_target = (700, 300)
 
-        # Check if character has reached the right edge
-        if self.character.rect.right > 690:  # Assuming screen width is 600
+        if self.character.rect.right > 670:
             print("trying to switch scene")
             self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
 
-    def perform_animation(self, animation_name: str, target: tuple):
+    def perform_animation(self, animation_name: str, target: tuple, message: str=""):
         """
         Perform an animation for the character.
         :param animation_name: The name of the animation to perform.
         :param target: The target position (x, y) for the character to walk to.
         """
         print(f"Performing animation '{animation_name}' to target {target}")
+        if len(message) > 0:
+            self.letPookieSay(message)
         self.walk_to_animation = animation_name
         self.walk_to_target = target
         self.walk_to = True
@@ -579,6 +566,18 @@ class Wohnzimmer:
         """Helper function to initialize scene state."""
         print("trying to reset..")
         self.character.disable_movement = False
+
+    def tikTokMessage(self) -> str:
+        if self.pookie.handy <= 2:
+            return "Let's see what the world is doing today."
+        elif 3 <= self.pookie.handy <= 5:
+            return "Hmm, the world seems a bit weird today..."
+        elif 6 <= self.pookie.handy <= 8:
+            return "Oh no, everything is starting to look cursed..."
+        elif 9 <= self.pookie.handy <= 12:
+            return "Why is everything so chaotic? My brain hurts..."
+        elif self.pookie.handy > 12:
+            return "I can't take it anymore! The brainrot is consuming me!!!"
 
 
     def update(self, dt):

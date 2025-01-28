@@ -550,13 +550,13 @@ class Wohnzimmer:
         print("wallk to learnroom triggered")
 
         self.character.disable_movement = True
-        #self.character.force_animation("walk_right")
+        self.character.force_animation("walk_right")
 
         # Move character toward the right edge of the screen
         #movement_speed = 2
         #self.character.rect.x += movement_speed
         self.walk_to = True
-        self.walk_to_target = (600, 204)
+        self.walk_to_target = (650, 204)
 
         # Check if character has reached the right edge
         if self.character.rect.right > 750:  # Assuming screen width is 600

@@ -158,17 +158,6 @@ class ObjectDetector:
             print("Cell phone no longer detected. Resetting to normal mode.")
             self.reset_to_normal()
 
-    def execute_object_action(self, label):
-        """Execute action based on the detected object."""
-        actions = {
-            "cell phone": self.activate_tiktok_mode,
-            "book": self.handle_book_detection,
-
-        }
-        action = actions.get(label)
-        if action:
-            action()
-
     def handle_book_detection(self):
         """Handle book detection logic."""
         from scenes.wohnzimmer_scene import Wohnzimmer

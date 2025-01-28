@@ -1,9 +1,24 @@
+import time
+
 from character.animated_character import AnimatedCharacter
+from scenes.lernzimmer_scene import Lernzimmer
 import pygame
 import textwrap
 
+try:
+    from mpu6050 import mpu6050
+    import smbus
+    print("mpu und smbus erfolgreich importiert")
+    import camera
+    from threading import Thread
+    IS_RASPBERRY_PI = True
+except ImportError as e:
+    IS_RASPBERRY_PI = False
+    print(f"ImportError occurred: {e}")
+
 class Pookie:
-    def __init__(self):
+    def __init__(self, scene_manager):
+        self.scene_manager = scene_manager
         self.character = AnimatedCharacter(373, 549)
         self.handy = 0
         self.learn = 0
@@ -13,6 +28,19 @@ class Pookie:
         self.walk_to_animation = ""
         self.walk_to_target = None
         self.message_font = pygame.font.SysFont('system-ui', 40)
+        self.walk_to_learnroom = False
+
+        # Gyrosensor setup (only on Raspberry Pi)
+        if IS_RASPBERRY_PI:
+            self.sensor = mpu6050(0x68, bus=3)
+            #self.calibrate_sensor()
+            self.object_detector = camera.ObjectDetector(self.scene_manager, self)
+
+            self.detection_thread = Thread(target=self.object_detector.detect_objects)
+            self.detection_thread.start()
+        else:
+            self.sensor = None
+            self.object_detector = None
 
     def perform_animation(self, animation_name: str, target: tuple, message: str=""):
         """
@@ -28,6 +56,56 @@ class Pookie:
         #self.walk_to = True
         self.walk_to = True
         self.character.disable_movement = True
+
+    def move_character_towards(self, target_x, target_y, movement_speed=2):
+        """
+        Helper function to move the character towards a target position.
+        """
+        character_center = self.character.rect.center
+
+        # Calculate direction
+        direction_x = target_x - character_center[0]
+        direction_y = target_y - character_center[1]
+
+        # Normalize direction
+        distance = max(abs(direction_x), abs(direction_y))
+        if distance > 0:
+            self.character.velocity.x = direction_x / distance
+            self.character.velocity.y = direction_y / distance
+
+        # Move character
+        self.character.rect.x += self.character.velocity.x * movement_speed
+        self.character.rect.y += self.character.velocity.y * movement_speed
+
+        # Check if the character reached the target position
+        reached_x = abs(character_center[0] - target_x) < 5
+        reached_y = abs(character_center[1] - target_y) < 5
+        return reached_x and reached_y
+
+    def handle_walk_to_learnroom(self):
+        """Handle walking to the learn room at a fixed target position."""
+        self.character.disable_movement = True
+        self.character.force_animation("walk_right")
+        self.letPookieSay(self.bookMessage())
+
+        # Hardcoded target position for the learn room
+        target_x, target_y = 640, 300
+
+        # Use helper method to move the character
+        if self.move_character_towards(target_x, target_y):
+            self.walk_to = False  # Stop walking
+            self.scene_manager.set_scene(Lernzimmer(self.scene_manager, self))
+
+    def handle_walk_to(self):
+        """Handle walking to the target position on the scene."""
+        if self.walk_to_target:
+            target_x, target_y = self.walk_to_target
+
+            # Use helper method to move the character
+            if self.move_character_towards(target_x, target_y):
+                self.walk_to = False  # Stop walking
+                self.character.force_animation(self.walk_to_animation)
+
 
     def letPookieSay(self, message: str):
         """Display a white box with the provided message and the character image on the left side."""
@@ -77,16 +155,18 @@ class Pookie:
 
     def bookMessage(self) -> str:
         if self.handy < self.learn:
-            if self.learn <= 1:
+            if self.learn <= 2:
                 return "Zeit zu lernen ^-^"
-            elif self.learn <= 2:
-                return "Wusstest du? a² + b² = c², das ist der Satz des Pythagoras!"
             elif self.learn <= 3:
+                return "Wusstest du? a² + b² = c², das ist der Satz des Pythagoras!"
+            elif self.learn <= 4:
                 return "Die Gravitation ist nicht nur, was Äpfel fallen lässt – sie formt das Universum!"
             elif self.learn <= 5:
                 return "Wissen ist Macht, aber Weisheit ist die Kunst, es richtig einzusetzen."
             elif self.learn > 6:
                 return "ρ(∂v/∂t + v·∇v) = −∇p + μ∇²v + f. Versuch das mal zu lösen!"
+            else:
+                return "Bücher sind die besten Freunde"
         elif self.handy > self.learn:
             if self.handy <= 2:
                 return "Boah, Lernen is voll 2000er, Alter. snapchat is life!"
@@ -98,4 +178,6 @@ class Pookie:
                 return "E = mc-was? Ey, Hauptsache mein Insta-Bild ballert, weißt du."
             else:
                 return "Ey, chill mal. Lernen stresst nur, ich bleib bei Netflix und Snacks, bro!"
+
+        return "Wenn du das siehst, funktioniert dein code nicht"
 

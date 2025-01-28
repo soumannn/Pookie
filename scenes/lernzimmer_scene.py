@@ -9,15 +9,13 @@ class Lernzimmer:
     def __init__(self, scene_manager, pookie, detector=None):
         self.scene_manager = scene_manager
         self.pookie = pookie
-        self.message_font = pygame.font.Font(None, 40)
-        self.message = self.message_font.render("Learn mode!", True, (255, 255, 255))
 
         # Debug font
         self.debug_font = pygame.font.Font(None, 24)
 
         # Background
         self.bg_sprites = Item("assets/spritesheets/floorwall.png", 64, 112, 1, 5)
-        self.bg = pygame.transform.scale(self.bg_sprites[2], (600, 600))
+        self.bg = pygame.transform.scale(self.bg_sprites[2], (640, 600))
         self.bg_rect = self.bg.get_rect(topleft=(0, 0))
 
         # Table
@@ -111,12 +109,31 @@ class Lernzimmer:
 
     def render(self, screen, debug_mode=False):
         screen.blit(self.bg, self.bg_rect)
-        screen.blit(self.message, (200, 100))
         screen.blit(self.bookshelf_b_image, self.bookshelf_b_rect)
         screen.blit(self.carpet_image, self.carpet_rect)
         screen.blit(self.chair_image, self.chair_rect)
         screen.blit(self.table_image, self.table_rect)
         screen.blit(self.table_lamp, self.table_lamp_rect)
+
+        if hasattr(self.pookie, "pookie_message_box"):
+            if pygame.time.get_ticks() - self.pookie.message_display_time < self.pookie.message_duration:
+                # Draw the white box
+                screen.blit(self.pookie.pookie_message_box[0], self.pookie.pookie_message_box[1])
+
+                # Draw the character image
+                screen.blit(self.pookie.pookie_character_image[0], self.pookie.pookie_character_image[1])
+
+                # Draw the text lines
+                text_surfaces, text_start_pos = self.pookie.pookie_message_text
+                x, y = text_start_pos
+                for text_surface in text_surfaces:
+                    screen.blit(text_surface, (x, y))
+                    y += text_surface.get_height() + 5
+            else:
+                # Remove the message after the duration
+                del self.pookie.pookie_message_box
+                del self.pookie.pookie_message_text
+                del self.pookie.pookie_character_image
         
         self.character.render(screen)
 

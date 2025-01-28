@@ -11,16 +11,7 @@ import requests
 from datetime import datetime
 from config import WEATHER_URL
 
-try:
-    from mpu6050 import mpu6050
-    import smbus
-    print("mpu und smbus erfolgreich importiert")
-    import camera
-    from threading import Thread
-    IS_RASPBERRY_PI = True
-except ImportError as e:
-    IS_RASPBERRY_PI = False
-    print(f"ImportError occurred: {e}")
+
 
 
 
@@ -37,16 +28,8 @@ class Wohnzimmer:
         # debug-font
         self.debug_font = pygame.font.Font(None, 24)
 
-        # Gyrosensor setup (only on Raspberry Pi)
-        if IS_RASPBERRY_PI:
-            self.sensor = mpu6050(0x68, bus=3)
-            self.calibrate_sensor()
-            self.object_detector = camera.ObjectDetector(self.scene_manager, pookie)
 
-            self.detection_thread = Thread(target=self.object_detector.detect_objects)
-            self.detection_thread.start()
-        else:
-            self.sensor = None
+
         self.tilt_detected = False
 
         #sensor temp
@@ -123,8 +106,9 @@ class Wohnzimmer:
         self.update_weather()
         self.set_day_night()
 
+
+    """
     def calibrate_sensor(self, samples=50):
-        """Read the sensor multiple times and average out a baseline for x, y, z."""
         sum_x, sum_y, sum_z = 0.0, 0.0, 0.0
 
         for _ in range(samples):
@@ -144,6 +128,7 @@ class Wohnzimmer:
 
         print(
             f"Calibration done: baseline_x={self.baseline_x:.2f}, baseline_y={self.baseline_y:.2f}, baseline_z={self.baseline_z:.2f}")
+    """
 
     def setWalking(self, set:bool):
         self.pookie.character.disable_movement = set
@@ -181,9 +166,8 @@ class Wohnzimmer:
         self.message_display_time = pygame.time.get_ticks()
         self.message_duration = 5000  # Show message for 5 seconds
     """
-
+    """
     def read_sensor_data(self):
-        """Read accelerometer data from the gyrosensor, adjusted by baseline."""
         if not IS_RASPBERRY_PI:
             return 0.0, 0.0, 0.0  # Default values when running on a PC
 
@@ -204,16 +188,7 @@ class Wohnzimmer:
         return accel_x, accel_y, accel_z
 
     def detect_tilt(self, accel_x, accel_y, accel_z, threshold=10.0):
-        """
-        Detect a strong tilt based on accelerometer data relative to the baseline.
-        We'll define:
-            Forward tilt:   accel_x < -threshold
-            Backward tilt:  accel_x > threshold
-            Right tilt:     accel_y > threshold
-            Left tilt:      accel_y < -threshold
 
-        Adjust these definitions depending on how you hold the Pi.
-        """
         if accel_x < -threshold:
             print("Strong forward tilt detected!")
             return "forward"
@@ -230,7 +205,6 @@ class Wohnzimmer:
             return None  # No strong tilt
 
     def check_tilt(self):
-        """Check for tilt and transition to sport mode if detected."""
         if not IS_RASPBERRY_PI:
             return
 
@@ -241,6 +215,8 @@ class Wohnzimmer:
             self.transition_to_sport_mode = True
         elif tilt_direction == "backward":
             self.walk_to_door = True
+            
+            """
 
     def print_click_position(self, event):
         """Print the position of a mouse click to the terminal."""
@@ -280,32 +256,6 @@ class Wohnzimmer:
         except AttributeError:
             # Default to day if sunrise/sunset not available
             self.current_weather_index = 0
-
-    def handle_walk_to(self):
-        """Handle walking to the TikTok target position."""
-        target_x, target_y = self.pookie.walk_to_target
-        character_center = self.pookie.character.rect.center
-
-        # Calculate direction
-        direction_x = target_x - character_center[0]
-        direction_y = target_y - character_center[1]
-
-        # Normalize direction
-        distance = max(abs(direction_x), abs(direction_y))
-        if distance > 0:
-            self.pookie.character.velocity.x = direction_x / distance
-            self.pookie.character.velocity.y = direction_y / distance
-
-        # Move character
-        movement_speed = 2  # Speed for walking to the target
-        self.pookie.character.rect.x += self.pookie.character.velocity.x * movement_speed
-        self.pookie.character.rect.y += self.pookie.character.velocity.y * movement_speed
-
-        # Check if the character reached the target position
-        if abs(character_center[0] - target_x) < 5 and abs(character_center[1] - target_y) < 5:
-            #self.walk_to = False  # Stop walking
-            self.pookie.walk_to = False
-            self.pookie.character.force_animation(self.pookie.walk_to_animation)  # Switch to handy_modus
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -382,7 +332,9 @@ class Wohnzimmer:
 
             elif event.key == pygame.K_b:
                 """Buch lesen Modus"""
-                self.scene_manager.set_scene(Lernzimmer(self.scene_manager, self.pookie))
+                #self.scene_manager.set_scene(Lernzimmer(self.scene_manager, self.pookie))
+                self.pookie.walk_to_learnroom = True
+                #self.pookie.handle_walk_to_learnroom()
                 #self.pookie.character.disable_movement = True
                 #self.pookie.walk_to_animation = "buch_lesen"
                 #self.walk_to = True
@@ -544,18 +496,7 @@ class Wohnzimmer:
             self.door = pygame.transform.scale(self.door_sprites[self.door_index], (120, 200))  # Open door animation
             self.door_open_timer = pygame.time.get_ticks()  # Start door open timer
 
-    def handle_walk_to_learnroom(self):
-        print("wallk to learnroom triggered")
-        self.pookie.letPookieSay(self.pookie.bookMessage())
-        self.pookie.character.disable_movement = True
-        self.pookie.character.force_animation("walk_right")
-        #self.walk_to = True
-        self.pookie.walk_to = True
-        self.pookie.walk_to_target = (700, 300)
 
-        if self.pookie.character.rect.right > 670:
-            print("trying to switch scene")
-            self.scene_manager.set_scene(Lernzimmer(self.scene_manager, self.pookie, self.object_detector))
 
     """
     def perform_animation(self, animation_name: str, target: tuple, message: str=""):
@@ -580,7 +521,7 @@ class Wohnzimmer:
     def update(self, dt):
 
         #sensor test
-        self.check_tilt()
+        #self.check_tilt()
 
         # Handle shake timer to re-enable movement
         if self.shake_timer is not None:
@@ -598,7 +539,10 @@ class Wohnzimmer:
             self.handle_walk_to_window()
 
         if self.pookie.walk_to:
-            self.handle_walk_to()
+            self.pookie.handle_walk_to()
+
+        if self.pookie.walk_to_learnroom:
+            self.pookie.handle_walk_to_learnroom()
 
         if not self.walk_to_window and self.movement_resume_timer > 0:
             self.movement_resume_timer -= dt
@@ -676,12 +620,15 @@ class Wohnzimmer:
 
         if debug_mode:
             # sensor temp
+            """
             if IS_RASPBERRY_PI:
                 temp_surface = self.message_font.render(f"PI temp: {self.sensor_temp:.1f}°C", False, (255, 255, 255))
                 screen.blit(temp_surface, (20, 90))
 
                 sensor_data = self.message_font.render(f"Sensor: {self.read_sensor_data()}", False, (255, 255, 255))
                 screen.blit(sensor_data, (20, 120))
+            """
+
 
             # Window debug info
             draw_debug_info(

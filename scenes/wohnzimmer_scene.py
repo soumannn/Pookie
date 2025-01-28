@@ -655,24 +655,24 @@ class Wohnzimmer:
             screen.blit(flipped_screen, (0, 0))
 
         if hasattr(self.pookie, "pookie_message_box"):
-            if pygame.time.get_ticks() - self.message_display_time < self.message_duration:
+            if pygame.time.get_ticks() - self.pookie.message_display_time < self.pookie.message_duration:
                 # Draw the white box
-                screen.blit(self.pookie_message_box[0], self.pookie_message_box[1])
+                screen.blit(self.pookie.pookie_message_box[0], self.pookie.pookie_message_box[1])
 
                 # Draw the character image
-                screen.blit(self.pookie_character_image[0], self.pookie_character_image[1])
+                screen.blit(self.pookie.pookie_character_image[0], self.pookie.pookie_character_image[1])
 
                 # Draw the text lines
-                text_surfaces, text_start_pos = self.pookie_message_text
+                text_surfaces, text_start_pos = self.pookie.pookie_message_text
                 x, y = text_start_pos
                 for text_surface in text_surfaces:
                     screen.blit(text_surface, (x, y))
                     y += text_surface.get_height() + 5
             else:
                 # Remove the message after the duration
-                del self.pookie_message_box
-                del self.pookie_message_text
-                del self.pookie_character_image
+                del self.pookie.pookie_message_box
+                del self.pookie.pookie_message_text
+                del self.pookie.pookie_character_image
 
         if debug_mode:
             # sensor temp

@@ -11,6 +11,7 @@ from scenes.lernzimmer_scene import Lernzimmer
 class ObjectDetector:
     def __init__(self, scene_manager, pookie):
         self.scene_manager = scene_manager
+        self.pookie = pookie
         self.picam2 = Picamera2()
         self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (640, 480)}))
         self.picam2.start()
@@ -63,6 +64,7 @@ class ObjectDetector:
 
         # Track detection state
         self.cell_phone_detected = False
+        self.tiktok_mode_active = False
 
     def detect_objects(self):
         """Continuously capture frames and detect objects."""
@@ -142,8 +144,8 @@ class ObjectDetector:
             # Handle specific object detections
             if label == "cell phone":
                 cell_phone_detected = True
-                if not self.cell_phone_detected:
-                    self.cell_phone_detected = True
+                if not self.tiktok_mode_active:
+                    self.tiktok_mode_active = True  # Mark TikTok mode as active
                     print("Cell phone detected! Activating TikTok mode.")
                     self.activate_tiktok_mode()
 
@@ -153,8 +155,8 @@ class ObjectDetector:
             self.execute_object_action(label)
 
         # Reset if cell phone is no longer detected
-        if not cell_phone_detected and self.cell_phone_detected:
-            self.cell_phone_detected = False
+        if not cell_phone_detected and self.tiktok_mode_active:
+            self.tiktok_mode_active = False  # Reset TikTok mode flag
             print("Cell phone no longer detected. Resetting to normal mode.")
             self.reset_to_normal()
 
@@ -188,6 +190,7 @@ class ObjectDetector:
         if isinstance(self.scene_manager.current_scene, Wohnzimmer):
             print("Correct Wohnzimmer instance detected. Activating TikTok mode.")
             self.scene_manager.current_scene.perform_animation("handy_modus", (448, 303), self.scene_manager.current_scene.tikTokMessage())
+            self.pookie.handy =+ 1
 
     def reset_to_normal(self):
         """Reset to normal behavior."""

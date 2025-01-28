@@ -556,7 +556,7 @@ class Wohnzimmer:
         #movement_speed = 2
         #self.character.rect.x += movement_speed
         self.walk_to = True
-        self.walk_to_target = (650, 204)
+        self.walk_to_target = (700, 300)
 
         # Check if character has reached the right edge
         if self.character.rect.right > 750:  # Assuming screen width is 600

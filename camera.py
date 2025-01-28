@@ -147,6 +147,9 @@ class ObjectDetector:
                     print("Cell phone detected! Activating TikTok mode.")
                     self.activate_tiktok_mode()
 
+            if label == "book":
+                self.handle_book_detection()
+
             self.execute_object_action(label)
 
         # Reset if cell phone is no longer detected

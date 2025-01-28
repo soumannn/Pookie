@@ -117,8 +117,9 @@ class ObjectDetector:
         indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.3, 0.4)
         detected_objects = [
             {"label": self.class_names[class_ids[i]], "confidence": confidences[i], "box": boxes[i]}
-            for i in indexes.flatten()
+            for i in indexes
         ]
+
         return detected_objects
 
     def handle_detected_objects(self, detected_objects, frame):

@@ -654,7 +654,7 @@ class Wohnzimmer:
             flipped_screen = pygame.transform.flip(screen, False, True)  # Vertikales Spiegeln
             screen.blit(flipped_screen, (0, 0))
 
-        if hasattr(self, "pookie_message_box"):
+        if hasattr(self.pookie, "pookie_message_box"):
             if pygame.time.get_ticks() - self.message_display_time < self.message_duration:
                 # Draw the white box
                 screen.blit(self.pookie_message_box[0], self.pookie_message_box[1])

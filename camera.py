@@ -177,7 +177,7 @@ class ObjectDetector:
 
 
     def activate_tiktok_mode(self):
-        self.pookie.perform_animation("handy_modus", (448, 303), self.scene_manager.current_scene.tikTokMessage())
+        self.pookie.perform_animation("handy_modus", (448, 303), self.pookie.tikTokMessage())
 
 
 

@@ -6,8 +6,9 @@ from config import WEATHER_URL
 from datetime import datetime
 
 class Lernzimmer:
-    def __init__(self, scene_manager):
+    def __init__(self, scene_manager, pookie, detector):
         self.scene_manager = scene_manager
+        self.pookie = pookie
         self.message_font = pygame.font.Font(None, 40)
         self.message = self.message_font.render("Learn mode!", True, (255, 255, 255))
 

@@ -6,4 +6,5 @@ class Pookie:
         self.learn = 0
         self.sport = 0
         self.eat = 0
+        self.walk_to = False
 

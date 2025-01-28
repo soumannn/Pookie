@@ -57,7 +57,8 @@ class Wohnzimmer:
         self.fall_speed = 5  # Geschwindigkeit des Fallens
         self.scene_flipped = False  # Tracks whether the scene is flipped
 
-        self.walk_to = False  # New state for TikTok mode
+        #self.walk_to = False  # New state for TikTok mode
+
         self.walk_to_target = None
         self.walk_to_animation = ""
 
@@ -302,7 +303,8 @@ class Wohnzimmer:
 
         # Check if the character reached the target position
         if abs(character_center[0] - target_x) < 5 and abs(character_center[1] - target_y) < 5:
-            self.walk_to = False  # Stop walking
+            #self.walk_to = False  # Stop walking
+            self.pookie.walk_to = False
             self.character.force_animation(self.walk_to_animation)  # Switch to handy_modus
 
     def handle_event(self, event):
@@ -368,7 +370,9 @@ class Wohnzimmer:
                 Walk to (426, 453) and switch to 'handy_modus'."""
                 self.character.disable_movement = True
                 self.walk_to_animation = "handy_modus"
-                self.walk_to = True
+                #self.walk_to = True
+                self.pookie.walk_to = True
+
                 self.walk_to_target = (448, 303)  # Target position for TikTok mode (244, 190)
                 self.pookie.handy += 1
                 self.letPookieSay(self.tikTokMessage())
@@ -379,7 +383,9 @@ class Wohnzimmer:
                 """Buch lesen Modus"""
                 self.character.disable_movement = True
                 self.walk_to_animation = "buch_lesen"
-                self.walk_to = True
+                #self.walk_to = True
+                self.pookie.walk_to = True
+
                 self.walk_to_target = (448, 303)
 
 
@@ -539,14 +545,16 @@ class Wohnzimmer:
 
     def handle_walk_to_learnroom(self):
         print("wallk to learnroom triggered")
+        self.letPookieSay(self.bookMessage())
         self.character.disable_movement = True
         self.character.force_animation("walk_right")
-        self.walk_to = True
+        #self.walk_to = True
+        self.pookie.walk_to = True
         self.walk_to_target = (700, 300)
 
         if self.character.rect.right > 670:
             print("trying to switch scene")
-            self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
+            self.scene_manager.set_scene(Lernzimmer(self.scene_manager, self.pookie, self.object_detector))
 
     def perform_animation(self, animation_name: str, target: tuple, message: str=""):
         """
@@ -559,7 +567,8 @@ class Wohnzimmer:
             self.letPookieSay(message)
         self.walk_to_animation = animation_name
         self.walk_to_target = target
-        self.walk_to = True
+        #self.walk_to = True
+        self.pookie.walk_to = True
         self.character.disable_movement = True
 
     def initialize_state(self):
@@ -578,6 +587,30 @@ class Wohnzimmer:
             return "Why is everything so chaotic? My brain hurts..."
         elif self.pookie.handy > 12:
             return "I can't take it anymore! The brainrot is consuming me!!!"
+
+    def bookMessage(self) -> str:
+        if self.pookie.handy < self.pookie.learn:
+            if self.pookie.learn <= 1:
+                return "Zeit zu lernen ^-^"
+            elif self.pookie.learn <= 2:
+                return "Wusstest du? a² + b² = c², das ist der Satz des Pythagoras!"
+            elif self.pookie.learn <= 3:
+                return "Die Gravitation ist nicht nur, was Äpfel fallen lässt – sie formt das Universum!"
+            elif self.pookie.learn <= 5:
+                return "Wissen ist Macht, aber Weisheit ist die Kunst, es richtig einzusetzen."
+            elif self.pookie.learn > 6:
+                return "ρ(∂v/∂t + v·∇v) = −∇p + μ∇²v + f. Versuch das mal zu lösen!"
+        elif self.pookie.handy > self.pookie.learn:
+            if self.pookie.handy <= 2:
+                return "Boah, Lernen is voll 2000er, Alter. snapchat is life!"
+            elif self.pookie.handy <= 3:
+                return "Ey, wozu brauch ich Mathe, wenn mein Handy alles rechnen kann, lol."
+            elif self.pookie.handy <= 5:
+                return "Digga, Gravi-was? Guck lieber die neuen TikToks, die sind killer!"
+            elif self.pookie.handy <= 6:
+                return "E = mc-was? Ey, Hauptsache mein Insta-Bild ballert, weißt du."
+            else:
+                return "Ey, chill mal. Lernen stresst nur, ich bleib bei Netflix und Snacks, bro!"
 
 
     def update(self, dt):
@@ -600,7 +633,7 @@ class Wohnzimmer:
         if self.walk_to_window:
             self.handle_walk_to_window()
 
-        if self.walk_to:
+        if self.pookie.walk_to:
             self.handle_walk_to()
 
         if not self.walk_to_window and self.movement_resume_timer > 0:

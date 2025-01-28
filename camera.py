@@ -2,10 +2,6 @@ import threading
 from picamera2 import Picamera2
 import cv2
 import numpy as np
-from scenes.joggen_scene import JoggenScene
-from scenes.dachboden_scene import DachbodenScene
-from scenes.lernzimmer_scene import Lernzimmer
-#from scenes.wohnzimmer_scene import Wohnzimmer
 
 
 class ObjectDetector:
@@ -151,6 +147,7 @@ class ObjectDetector:
                     self.activate_tiktok_mode()
 
             if label == "book":
+                self.pookie.book += 1
                 self.handle_book_detection()
 
             #self.execute_object_action(label)
@@ -201,18 +198,6 @@ class ObjectDetector:
             return
         if isinstance(self.scene_manager.current_scene, Wohnzimmer):
             self.scene_manager.current_scene.initialize_state() #reset animation
-
-    def switch_scene(self, scene_name):
-        print("trying to switch scene?")
-        """Switch to the appropriate scene."""
-        if scene_name == "KitchenScene":
-            self.scene_manager.set_scene(JoggenScene(self.scene_manager))
-        elif scene_name == "LivingRoomScene":
-            self.scene_manager.set_scene(JoggenScene(self.scene_manager))
-        elif scene_name == "SportMode":
-            self.scene_manager.set_scene(JoggenScene(self.scene_manager))
-        elif scene_name == "LearnScene":
-            self.scene_manager.set_scene(Lernzimmer(self.scene_manager))
 
     def stop(self):
         """Stop the detection."""

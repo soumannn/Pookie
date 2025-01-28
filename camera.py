@@ -147,7 +147,7 @@ class ObjectDetector:
                 if not self.tiktok_mode_active:
                     self.tiktok_mode_active = True  # Mark TikTok mode as active
                     print(f"Cell phone detected! Activating TikTok mode. +++ {self.tiktok_mode_active}")
-                    #self.activate_tiktok_mode()
+                    self.activate_tiktok_mode()
 
             if label == "book":
                 self.handle_book_detection()

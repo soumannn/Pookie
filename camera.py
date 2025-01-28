@@ -147,6 +147,7 @@ class ObjectDetector:
                 if not self.tiktok_mode_active:
                     self.tiktok_mode_active = True  # Mark TikTok mode as active
                     print(f"Cell phone detected! Activating TikTok mode. +++ {self.tiktok_mode_active}")
+                    self.pookie.handy += 1
                     self.activate_tiktok_mode()
 
             if label == "book":
@@ -190,7 +191,6 @@ class ObjectDetector:
         if isinstance(self.scene_manager.current_scene, Wohnzimmer):
             print("Correct Wohnzimmer instance detected. Activating TikTok mode.")
             self.scene_manager.current_scene.perform_animation("handy_modus", (448, 303), self.scene_manager.current_scene.tikTokMessage())
-            self.pookie.handy += 1
 
     def reset_to_normal(self):
         """Reset to normal behavior."""

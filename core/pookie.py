@@ -158,42 +158,49 @@ class Pookie:
 
     def apply_cozy_effect(self, surface):
         # Convert Pygame surface to NumPy array
-        img_array = pygame.surfarray.array3d(surface)
-        height, width, _ = img_array.shape
+        scale_factor = 0.5  # Reduce resolution for better performance
+        small_surface = pygame.transform.smoothscale(surface, (
+        int(surface.get_width() * scale_factor), int(surface.get_height() * scale_factor)))
+        img_array = pygame.surfarray.array3d(small_surface)
 
-        # Convert to HSV for better color manipulation
+        # Convert to HSV for color adjustments
         img_hsv = cv2.cvtColor(img_array, cv2.COLOR_RGB2HSV)
-
-        # Adjust Hue towards warmer tones (shift reds/yellows slightly)
         img_hsv[..., 0] = (img_hsv[..., 0] + 5) % 180  # Small hue shift
-        img_hsv[..., 1] = cv2.add(img_hsv[..., 1], -20)  # Reduce saturation for softness
-        img_hsv[..., 2] = cv2.add(img_hsv[..., 2], 5)  # Slight brightness increase
+        img_hsv[..., 1] = cv2.add(img_hsv[..., 1], -15)  # Lower saturation
+        img_hsv[..., 2] = cv2.add(img_hsv[..., 2], 5)  # Brightness boost
 
         # Convert back to RGB
         warm_toned = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2RGB)
 
-        # Apply a soft glow effect (blur + brightening)
-        blurred = cv2.GaussianBlur(warm_toned, (7, 7), 2)
-        soft_glow = cv2.addWeighted(warm_toned, 0.8, blurred, 0.5, 0)
+        # Faster blur
+        blurred = cv2.blur(warm_toned, (3, 3))
+        soft_glow = cv2.addWeighted(warm_toned, 0.8, blurred, 0.3, 0)
 
-        # Create a vignette effect (darken edges)
-        y, x = np.ogrid[:height, :width]
-        center_x, center_y = width / 2, height / 2
-        vignette = ((x - center_x) ** 2 + (y - center_y) ** 2) / (max(width, height) ** 2)
-        vignette = 1 - np.clip(vignette * 2, 0, 1)  # Adjust spread factor
-        vignetted = (soft_glow * vignette[..., np.newaxis]).astype(np.uint8)
+        # Use precomputed vignette mask
+        if not hasattr(self, "vignette_mask"):
+            y, x = np.ogrid[:surface.get_height(), :surface.get_width()]
+            center_x, center_y = surface.get_width() / 2, surface.get_height() / 2
+            vignette = ((x - center_x) ** 2 + (y - center_y) ** 2) / (
+                        max(surface.get_width(), surface.get_height()) ** 2)
+            vignette = 1 - np.clip(vignette * 2, 0, 1)
+            self.vignette_mask = vignette[..., np.newaxis]
 
-        # Add a slight film grain (random noise)
-        noise = np.random.normal(0, 10, (height, width, 3)).astype(np.uint8)
-        grainy = cv2.addWeighted(vignetted, 0.97, noise, 0.03, 0)  # Subtle noise
+        vignetted = (soft_glow * self.vignette_mask).astype(np.uint8)
 
-        # Enhance brightness in highlights for a "bloom" effect
+        # Apply lightweight noise (static grain texture instead of per-frame noise)
+        if not hasattr(self, "grain_texture"):
+            self.grain_texture = np.random.randint(0, 20, (surface.get_height(), surface.get_width(), 3),
+                                                   dtype=np.uint8)
+        grainy = cv2.addWeighted(vignetted, 0.97, self.grain_texture, 0.03, 0)
+
+        # Bloom effect (reduce intensity)
         bright_mask = cv2.inRange(cv2.cvtColor(grainy, cv2.COLOR_RGB2GRAY), 180, 255)
-        bright_areas = cv2.GaussianBlur(cv2.cvtColor(bright_mask, cv2.COLOR_GRAY2RGB), (9, 9), 4)
-        final_image = cv2.addWeighted(grainy, 0.85, bright_areas, 0.15, 0)
+        bright_areas = cv2.GaussianBlur(cv2.cvtColor(bright_mask, cv2.COLOR_GRAY2RGB), (5, 5), 2)
+        final_image = cv2.addWeighted(grainy, 0.9, bright_areas, 0.1, 0)
 
-        # Convert back to Pygame surface
-        return pygame.surfarray.make_surface(final_image)
+        # Convert back to Pygame surface (rescale to original size)
+        return pygame.transform.smoothscale(pygame.surfarray.make_surface(final_image),
+                                            (surface.get_width(), surface.get_height()))
 
 
     def tikTokMessage(self) -> str:

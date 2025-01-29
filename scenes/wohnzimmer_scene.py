@@ -620,8 +620,8 @@ class Wohnzimmer:
                 del self.pookie.pookie_character_image
 
         #xray_surface = self.apply_xray_effect(screen)
-        #filter = self.pookie.apply_cozy_effect(screen)
-        #screen.blit(filter, (0, 0))
+        filter = self.pookie.apply_cozy_effect(screen)
+        screen.blit(filter, (0, 0))
 
         if debug_mode:
             # sensor temp

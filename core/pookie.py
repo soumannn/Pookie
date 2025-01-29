@@ -158,7 +158,7 @@ class Pookie:
 
     def apply_cozy_effect(self, surface):
         # Convert Pygame surface to NumPy array
-        scale_factor = 0.5  # Lower resolution for performance
+        scale_factor = 0.5  # Reduce processing size
         width, height = surface.get_width(), surface.get_height()
         small_size = (int(width * scale_factor), int(height * scale_factor))
 
@@ -178,19 +178,19 @@ class Pookie:
         soft_glow = cv2.addWeighted(warm_toned, 0.8, blurred, 0.3, 0)
 
         # Generate or resize vignette mask
-        if not hasattr(self, "vignette_mask") or self.vignette_mask.shape[:2] != small_size:
-            y, x = np.ogrid[:small_size[1], :small_size[0]]
+        if not hasattr(self, "vignette_mask") or self.vignette_mask.shape[:2] != small_size[::-1]:
+            y, x = np.ogrid[:small_size[1], :small_size[0]]  # Corrected order
             center_x, center_y = small_size[0] / 2, small_size[1] / 2
             vignette = ((x - center_x) ** 2 + (y - center_y) ** 2) / (max(small_size) ** 2)
             vignette = 1 - np.clip(vignette * 2, 0, 1)
             self.vignette_mask = vignette[..., np.newaxis]  # Store resized mask
 
-        # Resize the vignette mask to match `soft_glow`
+        # Ensure vignette mask matches `soft_glow` size
         vignette_resized = cv2.resize(self.vignette_mask, (small_size[0], small_size[1]),
                                       interpolation=cv2.INTER_LINEAR)
 
-        # Apply vignette
-        vignetted = (soft_glow * vignette_resized[..., np.newaxis]).astype(np.uint8)
+        # Apply vignette effect (match shapes correctly)
+        vignetted = (soft_glow * vignette_resized).astype(np.uint8)  # No need for np.newaxis
 
         # Convert back to Pygame surface (rescale to original size)
         final_surface = pygame.transform.smoothscale(pygame.surfarray.make_surface(vignetted), (width, height))

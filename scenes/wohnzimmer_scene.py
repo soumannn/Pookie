@@ -55,11 +55,14 @@ class Wohnzimmer:
         self.lamp_target_y = 320
 
         # Time and weather setup
-        self.message_font = pygame.font.SysFont('system-ui', 40)
-        self.message_font_uhrzeit = pygame.font.SysFont('system-ui', 40)
+        self.font = pygame.font.Font('assets/zh-cn.ttf', 24)
+        #self.message_font = pygame.font.SysFont('system-ui', 40)
+        self.message_font_uhrzeit = pygame.font.Font('assets/zh-cn.ttf', 40)
         self.weather_info = "Loading weather..."
         self.last_weather_update = pygame.time.get_ticks()
         self.update_weather()
+
+        self.start_time = time.time()
 
         # Clock setup
         self.clock = pygame.time.Clock()
@@ -455,9 +458,9 @@ class Wohnzimmer:
                 self.scene_manager.set_scene(JoggenScene(self.scene_manager))
 
         # Update weather every 5 minutes
-        if pygame.time.get_ticks() - self.last_weather_update > 300000:  # 5 minutes in milliseconds
-            self.update_weather()
-            self.last_weather_update = pygame.time.get_ticks()
+        #if pygame.time.get_ticks() - self.last_weather_update > 300000:  # 5 minutes in milliseconds
+        #    self.update_weather()
+        #    self.last_weather_update = pygame.time.get_ticks()
 
         #if self.is_walking_to_learnroom:
         #    self.handle_walk_to_learnroom()
@@ -481,11 +484,26 @@ class Wohnzimmer:
         screen.blit(self.cozy_lamp, self.standing_lamp_rect)
 
         # Zeit und Wetter rendern
+        elapsed_time = time.time() - self.start_time
+        fade_duration = 4  # Seconds before fading starts
+        fade_out_time = 2  # Seconds for fade-out effect
+
         current_time = datetime.now().strftime("%A %H:%M")
-        time_surface = self.message_font_uhrzeit.render(f"{current_time}", False, (255, 255, 255))
-        weather_surface = self.message_font.render(self.weather_info, False, (255, 255, 255))
-        screen.blit(time_surface, (20, 20))
-        screen.blit(weather_surface, (20, 55))
+        if elapsed_time < fade_duration + fade_out_time:
+            alpha = 255  # Fully visible
+            if elapsed_time > fade_duration:
+                alpha = max(255 - int(((elapsed_time - fade_duration) / fade_out_time) * 255), 0)
+
+            # Render text with alpha fading
+            time_surface = self.message_font_uhrzeit.render(f"{current_time}", True, (255, 255, 255))
+            weather_surface = self.font.render(self.weather_info, True, (255, 255, 255))
+
+            # Apply alpha to surfaces
+            time_surface.set_alpha(alpha)
+            weather_surface.set_alpha(alpha)
+
+            screen.blit(time_surface, (30, 360))
+            screen.blit(weather_surface, (30, 410))
 
         # Szene auf den Kopf stellen, falls aktiviert
         if self.falling:

@@ -16,32 +16,38 @@ class Lernzimmer:
         # Background
         self.bg_sprites = Item("assets/spritesheets/floorwall.png", 64, 112, 1, 5)
         self.bg = pygame.transform.scale(self.bg_sprites[2], (640, 600))
-        self.bg_rect = self.bg.get_rect(topleft=(0, 0))
+        self.cozy_bg = self.pookie.apply_cozy_solo(self.bg.copy())
+        self.bg_rect = self.cozy_bg.get_rect(topleft=(0, 0))
 
         # Table
         self.table_image = pygame.image.load("assets/models/table.png").convert_alpha()
         self.table_image = pygame.transform.scale(self.table_image, (268, 170))
-        self.table_rect = self.table_image.get_rect(topleft=(330, 430))
+        self.cozy_table = self.pookie.apply_cozy_solo(self.table_image.copy())
+        self.table_rect = self.cozy_table.get_rect(topleft=(330, 430))
 
         # Chair
         self.chair_image = pygame.image.load("assets/models/chair.png").convert_alpha()
         self.chair_image = pygame.transform.scale(self.chair_image, (100, 140))
-        self.chair_rect = self.chair_image.get_rect(topleft=(415, 330))
+        self.cozy_chair = self.pookie.apply_cozy_solo(self.chair_image.copy())
+        self.chair_rect = self.cozy_chair.get_rect(topleft=(415, 330))
 
         # Carpet 
         self.carpet_image = pygame.image.load("assets/models/carpet.png").convert_alpha()
         self.carpet_image = pygame.transform.scale(self.carpet_image, (312, 208))
-        self.carpet_rect = self.carpet_image.get_rect(topleft=(288, 392))
+        self.cozy_carpet = self.pookie.apply_cozy_solo(self.carpet_image.copy())
+        self.carpet_rect = self.cozy_carpet.get_rect(topleft=(288, 392))
 
         # Big Bookshelf 
         self.bookshelf_b_image = pygame.image.load("assets/models/bookshelf_big.png").convert_alpha()
         self.bookshelf_b_image = pygame.transform.scale(self.bookshelf_b_image, (276, 282))
-        self.bookshelf_b_rect = self.bookshelf_b_image.get_rect(topleft=(5, 120))
+        self.cozy_bookshelf = self.pookie.apply_cozy_solo(self.bookshelf_b_image.copy())
+        self.bookshelf_b_rect = self.cozy_bookshelf.get_rect(topleft=(5, 120))
 
         # Tablelamp
         self.table_lamp_sprites = Item("assets/spritesheets/tablelamps.png", 15, 23, 1, 2)
         self.table_lamp = pygame.transform.scale(self.table_lamp_sprites[1], (60, 92))
-        self.table_lamp_rect = self.table_lamp.get_rect(topleft=(530, 430))
+        self.cozy_tablelamp = self.pookie.apply_cozy_solo(self.table_lamp.copy())
+        self.table_lamp_rect = self.cozy_tablelamp.get_rect(topleft=(530, 430))
 
         # Character setup
         self.character = AnimatedCharacter(0, 346)  
@@ -111,17 +117,14 @@ class Lernzimmer:
                 self.is_leaving = True  # Start leaving the room
 
     def render(self, screen, debug_mode=False):
-        screen.blit(self.bg, self.bg_rect)
-        screen.blit(self.bookshelf_b_image, self.bookshelf_b_rect)
-        screen.blit(self.carpet_image, self.carpet_rect)
-        screen.blit(self.chair_image, self.chair_rect)
-        screen.blit(self.table_image, self.table_rect)
-        screen.blit(self.table_lamp, self.table_lamp_rect)
+        screen.blit(self.cozy_bg, self.bg_rect)
+        screen.blit(self.cozy_bookshelf, self.bookshelf_b_rect)
+        screen.blit(self.cozy_carpet, self.carpet_rect)
+        screen.blit(self.cozy_chair, self.chair_rect)
+        screen.blit(self.cozy_table, self.table_rect)
+        screen.blit(self.cozy_tablelamp, self.table_lamp_rect)
 
         self.character.render(screen)
-
-        filter = self.pookie.apply_cozy_effect(screen)
-        screen.blit(filter, (0, 0))
 
         if hasattr(self.pookie, "pookie_message_box"):
             if pygame.time.get_ticks() - self.pookie.message_display_time < self.pookie.message_duration:

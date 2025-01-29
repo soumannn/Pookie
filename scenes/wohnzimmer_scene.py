@@ -76,12 +76,14 @@ class Wohnzimmer:
         self.window_sprites = Item("assets/spritesheets/windows.png", 32, 28, 1, 4)
         self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (130, 130))
         self.window_rect = self.window.get_rect(topleft=(380, 70))
+        self.cozy_window = self.pookie.apply_cozy_solo(self.window.copy())
         self.walk_to_window = False
 
         # Sofa
         self.sofa_image = pygame.image.load("assets/models/sofa.png").convert_alpha()
         self.sofa_image = pygame.transform.scale(self.sofa_image, (250, 150))  # Scale the sofa
         self.sofa_rect = self.sofa_image.get_rect(topleft=(300, 270))
+        self.cozy_sofa = self.pookie.apply_cozy_solo(self.sofa_image.copy())
 
         # State for transitioning to sport mode (Walk to Door)
         self.door_index = 0
@@ -96,129 +98,19 @@ class Wohnzimmer:
         self.door_sprites = Item("assets/spritesheets/doors.png", 30, 51, 1, 3)
         self.door = pygame.transform.scale(self.door_sprites[self.door_index], (120, 200))
         self.door_rect = self.window.get_rect(topleft=(30, 88))
+        self.cozy_door = self.pookie.apply_cozy_solo(self.door.copy())
 
         # Standinglamp
         self.stand_lamp_sprites = Item("assets/spritesheets/standinglamps.png", 15, 46, 1, 2)
         self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index], (60, 180))
         self.standing_lamp_rect = self.standing_lamp.get_rect(topleft=(560, 290))
+        self.cozy_lamp = self.pookie.apply_cozy_solo(self.standing_lamp.copy())
 
         self.shake_timer = None
 
         self.update_weather()
         self.set_day_night()
 
-
-    """
-    def calibrate_sensor(self, samples=50):
-        sum_x, sum_y, sum_z = 0.0, 0.0, 0.0
-
-        for _ in range(samples):
-            # Small sleep to avoid saturating the I2C bus
-            time.sleep(0.01)
-
-            # Read raw accelerometer data
-            accel_data = self.sensor.get_accel_data()
-            sum_x += accel_data['x']
-            sum_y += accel_data['y']
-            sum_z += accel_data['z']
-
-        # Calculate the average
-        self.baseline_x = sum_x / samples
-        self.baseline_y = sum_y / samples
-        self.baseline_z = sum_z / samples
-
-        print(
-            f"Calibration done: baseline_x={self.baseline_x:.2f}, baseline_y={self.baseline_y:.2f}, baseline_z={self.baseline_z:.2f}")
-    """
-
-    def setWalking(self, set:bool):
-        self.pookie.character.disable_movement = set
-
-
-    """
-    def letPookieSay(self, message: str):
-        # Create the white box
-        box_width = 640
-        box_height = 130
-        box_x = (640 - box_width) // 2  # Center the box horizontally
-        box_y = 480 - box_height  # Position the box 10px above the bottom of the screen
-
-        white_box = pygame.Surface((box_width, box_height))
-        white_box.fill((255, 255, 255))  # Fill the box with white color
-
-        # Wrap the text to fit within the box width
-        wrapped_text = textwrap.wrap(message, width=30)  # Adjust width as needed
-        text_surfaces = []
-        for line in wrapped_text:
-            text_surface = self.message_font.render(line, True, (0, 0, 0))  # Black text
-            text_surfaces.append(text_surface)
-
-        # Load and scale the character image
-        character_image = pygame.image.load("assets/characters/Head.png").convert_alpha()
-        character_image = pygame.transform.scale(character_image, (150, 200))  # Scale the character image
-        character_rect = character_image.get_rect(
-            topleft=(box_x - 40, box_y - 60))  # Position in the left side of the box
-
-        # Save the elements for rendering
-        self.pookie_message_box = (white_box, (box_x , box_y))
-        self.pookie_message_text = (text_surfaces, (box_x + 140, box_y + 20))  # Adjusted text position
-        self.pookie_character_image = (character_image, character_rect)
-
-        # Set a timer to hide the message after a few seconds
-        self.message_display_time = pygame.time.get_ticks()
-        self.message_duration = 5000  # Show message for 5 seconds
-    """
-    """
-    def read_sensor_data(self):
-        if not IS_RASPBERRY_PI:
-            return 0.0, 0.0, 0.0  # Default values when running on a PC
-
-        # Read the temperature, if needed
-        self.sensor_temp = self.sensor.get_temp()
-
-        # Read raw accelerometer data
-        accel_data = self.sensor.get_accel_data()
-        raw_x = accel_data['x']
-        raw_y = accel_data['y']
-        raw_z = accel_data['z']
-
-        # Subtract the baseline
-        accel_x = raw_x - self.baseline_x
-        accel_y = raw_y - self.baseline_y
-        accel_z = raw_z - self.baseline_z
-
-        return accel_x, accel_y, accel_z
-
-    def detect_tilt(self, accel_x, accel_y, accel_z, threshold=10.0):
-
-        if accel_x < -threshold:
-            print("Strong forward tilt detected!")
-            return "forward"
-        elif accel_x > threshold:
-            print("Strong backward tilt detected!")
-            return "backward"
-        elif accel_y > threshold:
-            print("Strong right tilt detected!")
-            return "right"
-        elif accel_y < -threshold:
-            print("Strong left tilt detected!")
-            return "left"
-        else:
-            return None  # No strong tilt
-
-    def check_tilt(self):
-        if not IS_RASPBERRY_PI:
-            return
-
-        accel_x, accel_y, accel_z = self.read_sensor_data()
-        tilt_direction = self.detect_tilt(accel_x, accel_y, accel_z)
-
-        if tilt_direction == "forward":
-            self.transition_to_sport_mode = True
-        elif tilt_direction == "backward":
-            self.walk_to_door = True
-            
-            """
 
     def print_click_position(self, event):
         """Print the position of a mouse click to the terminal."""
@@ -573,20 +465,20 @@ class Wohnzimmer:
     def render(self, screen, debug_mode=False):
         # Hintergrund rendern
         screen.blit(self.cozy_bg, self.bg_rect)
-        screen.blit(self.window, self.window_rect)
-        screen.blit(self.door, self.door_rect)
+        screen.blit(self.cozy_window, self.window_rect)
+        screen.blit(self.cozy_door, self.door_rect)
 
         # Charakter und Sofa-Logik
         character_rect = self.pookie.character.rect
         if character_rect.bottom <= self.sofa_rect.centery:
             self.pookie.character.render(screen)
-            screen.blit(self.sofa_image, self.sofa_rect)
+            screen.blit(self.cozy_sofa, self.sofa_rect)
         else:
-            screen.blit(self.sofa_image, self.sofa_rect)
+            screen.blit(self.cozy_sofa, self.sofa_rect)
             self.pookie.character.render(screen)
 
         # Stehlampe
-        screen.blit(self.standing_lamp, self.standing_lamp_rect)
+        screen.blit(self.cozy_lamp, self.standing_lamp_rect)
 
         # Zeit und Wetter rendern
         current_time = datetime.now().strftime("%A %H:%M")
@@ -619,10 +511,6 @@ class Wohnzimmer:
                 del self.pookie.pookie_message_box
                 del self.pookie.pookie_message_text
                 del self.pookie.pookie_character_image
-
-        #xray_surface = self.apply_xray_effect(screen)
-        #filter = self.pookie.apply_cozy_effect(screen)
-        #screen.blit(filter, (0, 0))
 
         if debug_mode:
             # sensor temp

@@ -156,6 +156,53 @@ class Pookie:
         self.message_display_time = pygame.time.get_ticks()
         self.message_duration = duration  # Show message for 5 seconds
 
+    def apply_cozy_solo(self, surface):
+        # Convert Pygame surface to NumPy array (RGB and Alpha separately)
+        img_rgb = np.transpose(pygame.surfarray.array3d(surface), (1, 0, 2))  # Fix rotation
+        img_alpha = np.transpose(pygame.surfarray.array_alpha(surface))  # Fix alpha rotation
+
+
+        height, width, _ = img_rgb.shape
+
+        # Convert RGB to HSV for color adjustments
+        img_hsv = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2HSV)
+
+        # Apply warm tone adjustments
+        img_hsv[..., 0] = (img_hsv[..., 0] + 5) % 180  # Slight hue shift
+        img_hsv[..., 1] = cv2.add(img_hsv[..., 1], -20)  # Reduce saturation
+        img_hsv[..., 2] = cv2.add(img_hsv[..., 2], 5)  # Slight brightness increase
+
+        # Convert back to RGB
+        warm_toned = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2RGB)
+
+        # Apply a soft glow effect
+        blurred = cv2.blur(warm_toned, (3, 3))
+        soft_glow = cv2.addWeighted(warm_toned, 0.8, blurred, 0.5, 0)
+
+        # Apply vignette effect
+        y, x = np.ogrid[:height, :width]
+        center_x, center_y = width / 2, height / 2
+        vignette = ((x - center_x) ** 2 + (y - center_y) ** 2) / (max(width, height) ** 2)
+        vignette = 1 - np.clip(vignette * 2, 0, 1)
+        vignetted = (soft_glow * vignette[..., np.newaxis]).astype(np.uint8)
+
+        # Add a slight film grain effect
+        noise = np.random.normal(0, 10, (height, width, 3)).astype(np.uint8)
+        grainy = cv2.addWeighted(vignetted, 0.97, noise, 0.03, 0)
+
+        # Enhance highlights for a "bloom" effect
+        bright_mask = cv2.inRange(cv2.cvtColor(grainy, cv2.COLOR_RGB2GRAY), 180, 255)
+        bright_areas = cv2.GaussianBlur(cv2.cvtColor(bright_mask, cv2.COLOR_GRAY2RGB), (9, 9), 4)
+        final_rgb = cv2.addWeighted(grainy, 0.85, bright_areas, 0.15, 0)
+
+        # Merge the preserved alpha channel back
+        final_image = np.dstack((final_rgb, img_alpha))  # Merge RGB with Alpha
+
+        # Convert to bytes for Pygame
+        final_surface = pygame.image.frombuffer(final_image.flatten(), (width, height), "RGBA")
+
+        return final_surface
+
     def apply_cozy_effect(self, surface):
         # Convert Pygame surface to NumPy array
 

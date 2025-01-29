@@ -19,10 +19,10 @@ class JoggenScene:
 
         # Load city skyline images for day and night
         self.city_layers_day = [
-            {"image": pygame.image.load("assets/spritesheets/citybg/city_5/2.png").convert_alpha(), "y": -40, "speed": 0.5, "x": 0},
-            {"image": pygame.image.load("assets/spritesheets/citybg/city_5/3.png").convert_alpha(), "y": -20, "speed": 1.0, "x": 0},
-            {"image": pygame.image.load("assets/spritesheets/citybg/city_5/4.png").convert_alpha(), "y": 20, "speed": 1.5, "x": 0},
-            {"image": pygame.image.load("assets/spritesheets/citybg/city_5/5.png").convert_alpha(), "y": 20, "speed": 2.0, "x": 0}
+            {"image": self.pookie.apply_cozy_solo(pygame.image.load("assets/spritesheets/citybg/city_5/2.png")).convert_alpha(), "y": -20, "speed": 0.5, "x": 0},
+            {"image": self.pookie.apply_cozy_solo(pygame.image.load("assets/spritesheets/citybg/city_5/3.png")).convert_alpha(), "y": -00, "speed": 1.0, "x": 0},
+            {"image": self.pookie.apply_cozy_solo(pygame.image.load("assets/spritesheets/citybg/city_5/4.png")).convert_alpha(), "y": 17, "speed": 1.5, "x": 0},
+            {"image": self.pookie.apply_cozy_solo(pygame.image.load("assets/spritesheets/citybg/city_5/5.png")).convert_alpha(), "y": 17, "speed": 2.0, "x": 0},
         ]
         self.city_layers_night = [
             {"image": pygame.image.load("assets/spritesheets/citybg/city_1/2.png").convert_alpha(), "y": -45, "speed": 0.5, "x": 0},
@@ -31,12 +31,18 @@ class JoggenScene:
             {"image": pygame.image.load("assets/spritesheets/citybg/city_1/5.png").convert_alpha(), "y": 20, "speed": 2.0, "x": 0}
         ]
 
+        # Load and scale the street background
+        self.street_image = pygame.image.load("assets/spritesheets/citybg/city_5/street.png").convert_alpha()
+        self.street_image = pygame.transform.scale(self.street_image, (600, 10))  # Adjust height if needed
+        self.street_x = 0  # Initial x position
+        self.street_speed = 2  # Movement speed
+
         # Set initial city layers to day
         self.city_layers = self.city_layers_day
 
         # Background
         self.bg_sprites = Item("assets/spritesheets/floorwall.png", 64, 112, 1, 5)
-        self.bg = pygame.transform.scale(self.bg_sprites[4], (640, 480))
+        self.bg = pygame.transform.scale(self.bg_sprites[4], (640, 590))
         self.cozy_bg = self.pookie.apply_cozy_solo(self.bg.copy())
         self.bg_rect = self.cozy_bg.get_rect(topleft=(0, 0))
 
@@ -101,6 +107,11 @@ class JoggenScene:
             if layer["x"] <= -600:  # Reset position for seamless scrolling
                 layer["x"] = 0
 
+        # Scroll the street background
+        self.street_x -= self.street_speed
+        if self.street_x <= -600:  # Reset position for seamless scrolling
+            self.street_x = 0
+
         # Update the character animation
         self.character.update(dt)
 
@@ -116,6 +127,10 @@ class JoggenScene:
         for layer in self.city_layers:
             screen.blit(layer["image"], (layer["x"], layer["y"]))  # First part
             screen.blit(layer["image"], (layer["x"] + 600, layer["y"]))
+
+        # Render the scrolling street at the bottom
+        screen.blit(self.street_image, (self.street_x, 420))  # First copy
+        screen.blit(self.street_image, (self.street_x + 600, 420))  # Looping part
 
         self.character.render(screen)
 

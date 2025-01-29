@@ -158,44 +158,53 @@ class Pookie:
 
     def apply_cozy_effect(self, surface):
         # Convert Pygame surface to NumPy array
-        scale_factor = 0.5  # Reduce processing size
-        width, height = surface.get_width(), surface.get_height()
-        small_size = (int(width * scale_factor), int(height * scale_factor))
+        img_array = pygame.surfarray.array3d(surface)
+        height, width, _ = img_array.shape
 
-        # Resize the surface
-        small_surface = pygame.transform.smoothscale(surface, small_size)
-        img_array = pygame.surfarray.array3d(small_surface)
-
-        # Convert to HSV and modify colors
+        # Convert to HSV for better color manipulation
         img_hsv = cv2.cvtColor(img_array, cv2.COLOR_RGB2HSV)
-        img_hsv[..., 0] = (img_hsv[..., 0] + 5) % 180
-        img_hsv[..., 1] = cv2.add(img_hsv[..., 1], -15)
-        img_hsv[..., 2] = cv2.add(img_hsv[..., 2], 5)
+
+        # Adjust Hue towards warmer tones (shift reds/yellows slightly)
+        img_hsv[..., 0] = (img_hsv[..., 0] + 5) % 180  # Small hue shift
+        img_hsv[..., 1] = cv2.add(img_hsv[..., 1], -20)  # Reduce saturation for softness
+        img_hsv[..., 2] = cv2.add(img_hsv[..., 2], 5)  # Slight brightness increase
+
+        # Convert back to RGB
         warm_toned = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2RGB)
 
-        # Apply fast blur
+        # Apply a soft glow effect (blur + brightening)
+        #blurred = cv2.GaussianBlur(warm_toned, (7, 7), 2)
         blurred = cv2.blur(warm_toned, (3, 3))
-        soft_glow = cv2.addWeighted(warm_toned, 0.8, blurred, 0.3, 0)
+        soft_glow = cv2.addWeighted(warm_toned, 0.8, blurred, 0.5, 0)
 
-        # Generate or resize vignette mask
-        if not hasattr(self, "vignette_mask") or self.vignette_mask.shape[:2] != small_size[::-1]:
-            y, x = np.ogrid[:small_size[1], :small_size[0]]  # Corrected order
-            center_x, center_y = small_size[0] / 2, small_size[1] / 2
-            vignette = ((x - center_x) ** 2 + (y - center_y) ** 2) / (max(small_size) ** 2)
+        # Create a vignette effect (darken edges)
+        """
+        y, x = np.ogrid[:height, :width]
+        center_x, center_y = width / 2, height / 2
+        vignette = ((x - center_x) ** 2 + (y - center_y) ** 2) / (max(width, height) ** 2)
+        vignette = 1 - np.clip(vignette * 2, 0, 1)  # Adjust spread factor
+        vignetted = (soft_glow * vignette[..., np.newaxis]).astype(np.uint8) """
+
+        if not hasattr(self, "vignette_mask"):
+            y, x = np.ogrid[:height, :width]
+            center_x, center_y = width / 2, height / 2
+            vignette = ((x - center_x) ** 2 + (y - center_y) ** 2) / (max(width, height) ** 2)
             vignette = 1 - np.clip(vignette * 2, 0, 1)
-            self.vignette_mask = vignette[..., np.newaxis]  # Store resized mask
+            self.vignette_mask = vignette[..., np.newaxis]
 
-        # Ensure vignette mask matches `soft_glow` size
-        vignette_resized = cv2.resize(self.vignette_mask, (small_size[0], small_size[1]),
-                                      interpolation=cv2.INTER_LINEAR)
+        vignetted = (soft_glow * self.vignette_mask).astype(np.uint8)
 
-        # Apply vignette effect (match shapes correctly)
-        vignetted = (soft_glow * vignette_resized).astype(np.uint8)  # No need for np.newaxis
+        # Add a slight film grain (random noise)
+        noise = np.random.normal(0, 10, (height, width, 3)).astype(np.uint8)
+        grainy = cv2.addWeighted(vignetted, 0.97, noise, 0.03, 0)  # Subtle noise
 
-        # Convert back to Pygame surface (rescale to original size)
-        final_surface = pygame.transform.smoothscale(pygame.surfarray.make_surface(vignetted), (width, height))
+        # Enhance brightness in highlights for a "bloom" effect
+        #bright_mask = cv2.inRange(cv2.cvtColor(grainy, cv2.COLOR_RGB2GRAY), 180, 255)
+        #bright_areas = cv2.GaussianBlur(cv2.cvtColor(bright_mask, cv2.COLOR_GRAY2RGB), (9, 9), 4)
+        #final_image = cv2.addWeighted(grainy, 0.85, bright_areas, 0.15, 0)
 
-        return final_surface
+        # Convert back to Pygame surface
+        return pygame.surfarray.make_surface(grainy)
 
 
     def tikTokMessage(self) -> str:

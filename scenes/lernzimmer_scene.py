@@ -120,6 +120,9 @@ class Lernzimmer:
 
         self.character.render(screen)
 
+        filter = self.pookie.apply_cozy_effect(screen)
+        screen.blit(filter, (0, 0))
+
         if hasattr(self.pookie, "pookie_message_box"):
             if pygame.time.get_ticks() - self.pookie.message_display_time < self.pookie.message_duration:
                 # Draw the white box

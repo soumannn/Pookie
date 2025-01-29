@@ -5,6 +5,8 @@ from scenes.lernzimmer_scene import Lernzimmer
 from scenes.wohnzimmer_scene import Wohnzimmer
 import pygame
 import textwrap
+import numpy as np
+import cv2
 
 try:
     from mpu6050 import mpu6050
@@ -153,6 +155,45 @@ class Pookie:
         # Set a timer to hide the message after a few seconds
         self.message_display_time = pygame.time.get_ticks()
         self.message_duration = duration  # Show message for 5 seconds
+
+    def apply_cozy_effect(self, surface):
+        # Convert Pygame surface to NumPy array
+        img_array = pygame.surfarray.array3d(surface)
+        height, width, _ = img_array.shape
+
+        # Convert to HSV for better color manipulation
+        img_hsv = cv2.cvtColor(img_array, cv2.COLOR_RGB2HSV)
+
+        # Adjust Hue towards warmer tones (shift reds/yellows slightly)
+        img_hsv[..., 0] = (img_hsv[..., 0] + 5) % 180  # Small hue shift
+        img_hsv[..., 1] = cv2.add(img_hsv[..., 1], -20)  # Reduce saturation for softness
+        img_hsv[..., 2] = cv2.add(img_hsv[..., 2], 5)  # Slight brightness increase
+
+        # Convert back to RGB
+        warm_toned = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2RGB)
+
+        # Apply a soft glow effect (blur + brightening)
+        blurred = cv2.GaussianBlur(warm_toned, (7, 7), 2)
+        soft_glow = cv2.addWeighted(warm_toned, 0.8, blurred, 0.5, 0)
+
+        # Create a vignette effect (darken edges)
+        y, x = np.ogrid[:height, :width]
+        center_x, center_y = width / 2, height / 2
+        vignette = ((x - center_x) ** 2 + (y - center_y) ** 2) / (max(width, height) ** 2)
+        vignette = 1 - np.clip(vignette * 2, 0, 1)  # Adjust spread factor
+        vignetted = (soft_glow * vignette[..., np.newaxis]).astype(np.uint8)
+
+        # Add a slight film grain (random noise)
+        noise = np.random.normal(0, 10, (height, width, 3)).astype(np.uint8)
+        grainy = cv2.addWeighted(vignetted, 0.97, noise, 0.03, 0)  # Subtle noise
+
+        # Enhance brightness in highlights for a "bloom" effect
+        bright_mask = cv2.inRange(cv2.cvtColor(grainy, cv2.COLOR_RGB2GRAY), 180, 255)
+        bright_areas = cv2.GaussianBlur(cv2.cvtColor(bright_mask, cv2.COLOR_GRAY2RGB), (9, 9), 4)
+        final_image = cv2.addWeighted(grainy, 0.85, bright_areas, 0.15, 0)
+
+        # Convert back to Pygame surface
+        return pygame.surfarray.make_surface(final_image)
 
 
     def tikTokMessage(self) -> str:

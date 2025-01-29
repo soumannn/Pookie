@@ -158,49 +158,44 @@ class Pookie:
 
     def apply_cozy_effect(self, surface):
         # Convert Pygame surface to NumPy array
-        scale_factor = 0.5  # Reduce resolution for better performance
-        small_surface = pygame.transform.smoothscale(surface, (
-        int(surface.get_width() * scale_factor), int(surface.get_height() * scale_factor)))
+        scale_factor = 0.5  # Lower resolution for performance
+        width, height = surface.get_width(), surface.get_height()
+        small_size = (int(width * scale_factor), int(height * scale_factor))
+
+        # Resize the surface
+        small_surface = pygame.transform.smoothscale(surface, small_size)
         img_array = pygame.surfarray.array3d(small_surface)
 
-        # Convert to HSV for color adjustments
+        # Convert to HSV and modify colors
         img_hsv = cv2.cvtColor(img_array, cv2.COLOR_RGB2HSV)
-        img_hsv[..., 0] = (img_hsv[..., 0] + 5) % 180  # Small hue shift
-        img_hsv[..., 1] = cv2.add(img_hsv[..., 1], -15)  # Lower saturation
-        img_hsv[..., 2] = cv2.add(img_hsv[..., 2], 5)  # Brightness boost
-
-        # Convert back to RGB
+        img_hsv[..., 0] = (img_hsv[..., 0] + 5) % 180
+        img_hsv[..., 1] = cv2.add(img_hsv[..., 1], -15)
+        img_hsv[..., 2] = cv2.add(img_hsv[..., 2], 5)
         warm_toned = cv2.cvtColor(img_hsv, cv2.COLOR_HSV2RGB)
 
-        # Faster blur
+        # Apply fast blur
         blurred = cv2.blur(warm_toned, (3, 3))
         soft_glow = cv2.addWeighted(warm_toned, 0.8, blurred, 0.3, 0)
 
-        # Use precomputed vignette mask
-        if not hasattr(self, "vignette_mask"):
-            y, x = np.ogrid[:surface.get_height(), :surface.get_width()]
-            center_x, center_y = surface.get_width() / 2, surface.get_height() / 2
-            vignette = ((x - center_x) ** 2 + (y - center_y) ** 2) / (
-                        max(surface.get_width(), surface.get_height()) ** 2)
+        # Generate or resize vignette mask
+        if not hasattr(self, "vignette_mask") or self.vignette_mask.shape[:2] != small_size:
+            y, x = np.ogrid[:small_size[1], :small_size[0]]
+            center_x, center_y = small_size[0] / 2, small_size[1] / 2
+            vignette = ((x - center_x) ** 2 + (y - center_y) ** 2) / (max(small_size) ** 2)
             vignette = 1 - np.clip(vignette * 2, 0, 1)
-            self.vignette_mask = vignette[..., np.newaxis]
+            self.vignette_mask = vignette[..., np.newaxis]  # Store resized mask
 
-        vignetted = (soft_glow * self.vignette_mask).astype(np.uint8)
+        # Resize the vignette mask to match `soft_glow`
+        vignette_resized = cv2.resize(self.vignette_mask, (small_size[0], small_size[1]),
+                                      interpolation=cv2.INTER_LINEAR)
 
-        # Apply lightweight noise (static grain texture instead of per-frame noise)
-        if not hasattr(self, "grain_texture"):
-            self.grain_texture = np.random.randint(0, 20, (surface.get_height(), surface.get_width(), 3),
-                                                   dtype=np.uint8)
-        grainy = cv2.addWeighted(vignetted, 0.97, self.grain_texture, 0.03, 0)
-
-        # Bloom effect (reduce intensity)
-        bright_mask = cv2.inRange(cv2.cvtColor(grainy, cv2.COLOR_RGB2GRAY), 180, 255)
-        bright_areas = cv2.GaussianBlur(cv2.cvtColor(bright_mask, cv2.COLOR_GRAY2RGB), (5, 5), 2)
-        final_image = cv2.addWeighted(grainy, 0.9, bright_areas, 0.1, 0)
+        # Apply vignette
+        vignetted = (soft_glow * vignette_resized[..., np.newaxis]).astype(np.uint8)
 
         # Convert back to Pygame surface (rescale to original size)
-        return pygame.transform.smoothscale(pygame.surfarray.make_surface(final_image),
-                                            (surface.get_width(), surface.get_height()))
+        final_surface = pygame.transform.smoothscale(pygame.surfarray.make_surface(vignetted), (width, height))
+
+        return final_surface
 
 
     def tikTokMessage(self) -> str:

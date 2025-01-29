@@ -99,6 +99,9 @@ class Lernzimmer:
         if self.is_leaving:
             self.handle_left_learn_room()
 
+        if self.pookie.walk_to_livingroom:
+            self.pookie.handle_walk_to_livingroom(left=True)
+
         # Update the character animation
         self.character.update(dt)
 
@@ -114,6 +117,8 @@ class Lernzimmer:
         screen.blit(self.chair_image, self.chair_rect)
         screen.blit(self.table_image, self.table_rect)
         screen.blit(self.table_lamp, self.table_lamp_rect)
+
+        self.character.render(screen)
 
         if hasattr(self.pookie, "pookie_message_box"):
             if pygame.time.get_ticks() - self.pookie.message_display_time < self.pookie.message_duration:
@@ -134,8 +139,7 @@ class Lernzimmer:
                 del self.pookie.pookie_message_box
                 del self.pookie.pookie_message_text
                 del self.pookie.pookie_character_image
-        
-        self.character.render(screen)
+
 
         if debug_mode: 
             # Character debug info

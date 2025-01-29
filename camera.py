@@ -138,7 +138,7 @@ class ObjectDetector:
             cv2.putText(frame, f"{label} {confidence:.2f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
             # Handle specific object detections
-            if label == "cell phone":
+            if label == "cell phone" or label == "remote":
                 cell_phone_detected = True
                 if not self.tiktok_mode_active:
                     self.tiktok_mode_active = True  # Mark TikTok mode as active
@@ -159,15 +159,12 @@ class ObjectDetector:
             self.reset_to_normal()
 
     def handle_book_detection(self):
-        """Handle book detection logic."""
-        from scenes.wohnzimmer_scene import Wohnzimmer
-        if isinstance(self.scene_manager.current_scene, Wohnzimmer):
-            self.scene_manager.current_scene.handle_walk_to_learnroom()
+        self.pookie.walk_to_learnroom = True
+        self.pookie.handle_walk_to_learnroom()
 
 
     def activate_tiktok_mode(self):
         self.pookie.perform_animation("handy_modus", (448, 303), self.pookie.tikTokMessage())
-
 
 
     def reset_to_normal(self):

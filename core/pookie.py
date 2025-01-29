@@ -2,6 +2,7 @@ import time
 
 from character.animated_character import AnimatedCharacter
 from scenes.lernzimmer_scene import Lernzimmer
+from scenes.wohnzimmer_scene import Wohnzimmer
 import pygame
 import textwrap
 
@@ -29,6 +30,7 @@ class Pookie:
         self.walk_to_target = None
         self.message_font = pygame.font.SysFont('system-ui', 40)
         self.walk_to_learnroom = False
+        self.walk_to_livingroom = False
 
         # Gyrosensor setup (only on Raspberry Pi)
         if IS_RASPBERRY_PI:
@@ -53,7 +55,6 @@ class Pookie:
             self.letPookieSay(message)
         self.walk_to_animation = animation_name
         self.walk_to_target = target
-        #self.walk_to = True
         self.walk_to = True
         self.character.disable_movement = True
 
@@ -86,7 +87,7 @@ class Pookie:
         """Handle walking to the learn room at a fixed target position."""
         self.character.disable_movement = True
         self.character.force_animation("walk_right")
-        self.letPookieSay(self.bookMessage())
+        self.letPookieSay(self.bookMessage(), 2000)
 
         # Hardcoded target position for the learn room
         target_x, target_y = 640, 300
@@ -94,7 +95,20 @@ class Pookie:
         # Use helper method to move the character
         if self.move_character_towards(target_x, target_y):
             self.walk_to = False  # Stop walking
+            self.walk_to_learnroom = False
             self.scene_manager.set_scene(Lernzimmer(self.scene_manager, self))
+
+    def handle_walk_to_livingroom(self, left: bool):
+        if left:
+            self.character.disable_movement = True
+            self.character.force_animation("walk_left")
+            target_x, target_y = 0, 300
+
+            if self.move_character_towards(target_x, target_y):
+                self.walk_to = False
+                self.walk_to_livingroom = False
+                self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self))
+
 
     def handle_walk_to(self):
         """Handle walking to the target position on the scene."""
@@ -107,7 +121,7 @@ class Pookie:
                 self.character.force_animation(self.walk_to_animation)
 
 
-    def letPookieSay(self, message: str):
+    def letPookieSay(self, message: str, duration: int = 5000):
         """Display a white box with the provided message and the character image on the left side."""
         # Create the white box
         box_width = 640
@@ -138,7 +152,7 @@ class Pookie:
 
         # Set a timer to hide the message after a few seconds
         self.message_display_time = pygame.time.get_ticks()
-        self.message_duration = 5000  # Show message for 5 seconds
+        self.message_duration = duration  # Show message for 5 seconds
 
 
     def tikTokMessage(self) -> str:
@@ -169,15 +183,15 @@ class Pookie:
                 return "Bücher sind die besten Freunde"
         elif self.handy > self.learn:
             if self.handy <= 2:
-                return "Boah, Lernen is voll 2000er, Alter. snapchat is life!"
+                return "Lernen? Ich wäre lieber influencer"
             elif self.handy <= 3:
                 return "Ey, wozu brauch ich Mathe, wenn mein Handy alles rechnen kann, lol."
             elif self.handy <= 5:
-                return "Digga, Gravi-was? Guck lieber die neuen TikToks, die sind killer!"
+                return "Was für Schätzer? Guck lieber die neuen TikToks, die sind killer!"
             elif self.handy <= 6:
                 return "E = mc-was? Ey, Hauptsache mein Insta-Bild ballert, weißt du."
             else:
                 return "Ey, chill mal. Lernen stresst nur, ich bleib bei Netflix und Snacks, bro!"
 
-        return "Wenn du das siehst, funktioniert dein code nicht"
+        return "Lernen.... so langweilig"
 

@@ -4,7 +4,8 @@ import time
 from Items import Item
 from helper.debug_box import draw_debug_info
 import pygame
-
+import numpy as np
+import cv2
 from scenes.joggen_scene import JoggenScene
 from scenes.lernzimmer_scene import Lernzimmer
 import requests
@@ -19,6 +20,8 @@ class Wohnzimmer:
     def __init__(self, scene_manager, pookie):
         self.scene_manager = scene_manager
         self.pookie = pookie
+        self.pookie.character.disable_movement = False
+        self.pookie.character.force_animation("walk_down")
 
         # Character
         #self.character = AnimatedCharacter(373, 549)
@@ -27,7 +30,6 @@ class Wohnzimmer:
 
         # debug-font
         self.debug_font = pygame.font.Font(None, 24)
-
 
 
         self.tilt_detected = False
@@ -132,6 +134,35 @@ class Wohnzimmer:
 
     def setWalking(self, set:bool):
         self.pookie.character.disable_movement = set
+
+    def apply_xray_effect(self, surface):
+        # Convert Pygame surface to NumPy array
+        img_array = pygame.surfarray.array3d(surface)
+        height, width, _ = img_array.shape
+
+        # Convert to grayscale
+        img_gray = cv2.cvtColor(img_array, cv2.COLOR_RGB2GRAY)
+
+        # Edge detection
+        edges = cv2.Canny(img_gray, 30, 100)
+        edges_colored = cv2.cvtColor(edges, cv2.COLOR_GRAY2RGB)
+
+        # Create a vignette mask (black to transparent gradient at edges)
+        y, x = np.ogrid[:height, :width]
+        center_x, center_y = width / 2, height / 2
+        vignette = ((x - center_x) ** 2 + (y - center_y) ** 2) / (max(width, height) ** 2)
+        vignette = 1 - np.clip(vignette * 4, 0, 1)  # Adjust spread factor
+
+        # Blend edge effect using vignette mask
+        edges_blended = edges_colored * vignette[..., np.newaxis]
+        blended = cv2.addWeighted(img_array, 0.85, edges_blended.astype(np.uint8), 0.3, 0)
+
+        # Add a slight blue tint
+        blue_tint = np.full_like(blended, (30, 50, 100), dtype=np.uint8)
+        final_image = cv2.addWeighted(blended, 0.9, blue_tint, 0.1, 0)
+
+        # Convert back to Pygame surface
+        return pygame.surfarray.make_surface(final_image)
 
     """
     def letPookieSay(self, message: str):
@@ -617,6 +648,9 @@ class Wohnzimmer:
                 del self.pookie.pookie_message_box
                 del self.pookie.pookie_message_text
                 del self.pookie.pookie_character_image
+
+        xray_surface = self.apply_xray_effect(screen)
+        screen.blit(xray_surface, (0, 0))
 
         if debug_mode:
             # sensor temp

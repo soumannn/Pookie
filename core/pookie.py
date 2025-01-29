@@ -158,6 +158,7 @@ class Pookie:
 
     def apply_cozy_effect(self, surface):
         # Convert Pygame surface to NumPy array
+
         img_array = pygame.surfarray.array3d(surface)
         height, width, _ = img_array.shape
 
@@ -199,12 +200,12 @@ class Pookie:
         grainy = cv2.addWeighted(vignetted, 0.97, noise, 0.03, 0)  # Subtle noise
 
         # Enhance brightness in highlights for a "bloom" effect
-        #bright_mask = cv2.inRange(cv2.cvtColor(grainy, cv2.COLOR_RGB2GRAY), 180, 255)
-        #bright_areas = cv2.GaussianBlur(cv2.cvtColor(bright_mask, cv2.COLOR_GRAY2RGB), (9, 9), 4)
-        #final_image = cv2.addWeighted(grainy, 0.85, bright_areas, 0.15, 0)
+        bright_mask = cv2.inRange(cv2.cvtColor(grainy, cv2.COLOR_RGB2GRAY), 180, 255)
+        bright_areas = cv2.GaussianBlur(cv2.cvtColor(bright_mask, cv2.COLOR_GRAY2RGB), (9, 9), 4)
+        final_image = cv2.addWeighted(grainy, 0.85, bright_areas, 0.15, 0)
 
         # Convert back to Pygame surface
-        return pygame.surfarray.make_surface(grainy)
+        return pygame.surfarray.make_surface(final_image)
 
 
     def tikTokMessage(self) -> str:

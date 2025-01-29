@@ -69,6 +69,7 @@ class Wohnzimmer:
         self.bg = pygame.transform.scale(self.bg_sprites[2], (640, 480))
         # Create a rect for positioning
         self.bg_rect = self.bg.get_rect(topleft=(0, 0))
+        self.cozy_bg = self.pookie.apply_cozy_effect(self.bg.copy())
 
         # Windows
         self.current_weather_index = 0
@@ -571,7 +572,7 @@ class Wohnzimmer:
 
     def render(self, screen, debug_mode=False):
         # Hintergrund rendern
-        screen.blit(self.bg, self.bg_rect)
+        screen.blit(self.cozy_bg, self.bg_rect)
         screen.blit(self.window, self.window_rect)
         screen.blit(self.door, self.door_rect)
 
@@ -620,8 +621,8 @@ class Wohnzimmer:
                 del self.pookie.pookie_character_image
 
         #xray_surface = self.apply_xray_effect(screen)
-        filter = self.pookie.apply_cozy_effect(screen)
-        screen.blit(filter, (0, 0))
+        #filter = self.pookie.apply_cozy_effect(screen)
+        #screen.blit(filter, (0, 0))
 
         if debug_mode:
             # sensor temp

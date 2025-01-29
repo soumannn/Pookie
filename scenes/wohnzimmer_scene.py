@@ -39,10 +39,6 @@ class Wohnzimmer:
         self.fall_speed = 5  # Geschwindigkeit des Fallens
         self.scene_flipped = False  # Tracks whether the scene is flipped
 
-        #self.walk_to = False  # New state for TikTok mode
-
-        #self.walk_to_target = None
-        #self.walk_to_animation = ""
 
         self.movement_resume_timer = 0
         self.resume_movement_delay = 500  # 500ms delay before resuming random movement
@@ -63,9 +59,6 @@ class Wohnzimmer:
         self.update_weather()
 
         self.start_time = time.time()
-
-        # Clock setup
-        self.clock = pygame.time.Clock()
 
         self.bg_sprites = Item("assets/spritesheets/floorwall.png", 64, 112, 1, 5)
         # Scale the first sprite from the list
@@ -111,7 +104,6 @@ class Wohnzimmer:
 
         self.shake_timer = None
 
-        self.update_weather()
         self.set_day_night()
 
 
@@ -229,14 +221,7 @@ class Wohnzimmer:
 
             elif event.key == pygame.K_b:
                 """Buch lesen Modus"""
-                #self.scene_manager.set_scene(Lernzimmer(self.scene_manager, self.pookie))
                 self.pookie.walk_to_learnroom = True
-                #self.pookie.handle_walk_to_learnroom()
-                #self.pookie.character.disable_movement = True
-                #self.pookie.walk_to_animation = "buch_lesen"
-                #self.walk_to = True
-                #self.pookie.walk_to = True
-                #self.pookie.walk_to_target = (448, 303)
 
 
             elif event.key == pygame.K_DOWN:  # Pfeil nach unten
@@ -455,7 +440,7 @@ class Wohnzimmer:
         if self.transition_to_sport_mode:
             if pygame.time.get_ticks() - self.door_open_timer > 1000:  # 2-second delay
                 # wechsel zum joggen
-                self.scene_manager.set_scene(JoggenScene(self.scene_manager))
+                self.scene_manager.set_scene(JoggenScene(self.scene_manager, self.pookie))
 
         # Update weather every 5 minutes
         #if pygame.time.get_ticks() - self.last_weather_update > 300000:  # 5 minutes in milliseconds

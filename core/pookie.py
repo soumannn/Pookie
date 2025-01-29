@@ -34,6 +34,7 @@ class Pookie:
         self.walk_to_learnroom = False
         self.walk_to_livingroom = False
 
+
         # Gyrosensor setup (only on Raspberry Pi)
         if IS_RASPBERRY_PI:
             self.sensor = mpu6050(0x68, bus=3)
@@ -196,7 +197,7 @@ class Pookie:
         final_rgb = cv2.addWeighted(grainy, 0.85, bright_areas, 0.15, 0)
 
         # Merge the preserved alpha channel back
-        final_image = np.dstack((final_rgb, img_alpha))  # Merge RGB with Alpha
+        final_image = np.dstack((grainy, img_alpha))  # Merge RGB with Alpha
 
         # Convert to bytes for Pygame
         final_surface = pygame.image.frombuffer(final_image.flatten(), (width, height), "RGBA")

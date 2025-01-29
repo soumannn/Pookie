@@ -7,10 +7,9 @@ from datetime import datetime
 
 
 class JoggenScene:
-    def __init__(self, scene_manager):
+    def __init__(self, scene_manager, pookie):
         self.scene_manager = scene_manager
-        self.message_font = pygame.font.Font(None, 40)
-        self.message = self.message_font.render("Sport Mode!", True, (255, 255, 255))
+        self.pookie = pookie
 
         # Debug font
         self.debug_font = pygame.font.Font(None, 24)
@@ -37,8 +36,9 @@ class JoggenScene:
 
         # Background
         self.bg_sprites = Item("assets/spritesheets/floorwall.png", 64, 112, 1, 5)
-        self.bg = pygame.transform.scale(self.bg_sprites[4], (600, 600))
-        self.bg_rect = self.bg.get_rect(topleft=(0, 0))
+        self.bg = pygame.transform.scale(self.bg_sprites[4], (640, 480))
+        self.cozy_bg = self.pookie.apply_cozy_solo(self.bg.copy())
+        self.bg_rect = self.cozy_bg.get_rect(topleft=(0, 0))
 
         # Character setup
         self.character = AnimatedCharacter(0, 346)  # Start at the left edge
@@ -108,11 +108,10 @@ class JoggenScene:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:  # Zum Wohnzimmer zurückwechseln
                 from scenes.wohnzimmer_scene import Wohnzimmer
-                self.scene_manager.set_scene(Wohnzimmer(self.scene_manager))
+                self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self.pookie))
 
     def render(self, screen, debug_mode=False):
-        screen.blit(self.bg, self.bg_rect)
-        screen.blit(self.message, (200, 100))
+        screen.blit(self.cozy_bg, self.bg_rect)
 
         for layer in self.city_layers:
             screen.blit(layer["image"], (layer["x"], layer["y"]))  # First part

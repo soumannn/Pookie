@@ -404,7 +404,8 @@ class Wohnzimmer:
     def update(self, dt):
 
         #sensor test
-        #self.check_tilt()
+        if self.pookie.IS_RASPBERRY_PI:
+            self.pookie.check_tilt()
 
         # Handle shake timer to re-enable movement
         if self.shake_timer is not None:

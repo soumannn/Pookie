@@ -23,45 +23,9 @@ class ObjectDetector:
         self.running = True
         self.current_scene = self.scene_manager.current_scene
 
-        # Object-to-scene mapping
-        self.object_to_scene = {
-            # Kitchen objects
-            "banana": "KitchenScene",
-            "apple": "KitchenScene",
-            "sandwich": "KitchenScene",
-            "orange": "KitchenScene",
-            "broccoli": "KitchenScene",
-            "carrot": "KitchenScene",
-            "hot dog": "KitchenScene",
-            "pizza": "KitchenScene",
-            "donut": "KitchenScene",
-            "cake": "KitchenScene",
-            # learn room
-            "book": "LearnScene",
-            "laptop": "LearnScene",
-            # Living room objects
-            "chair": "LivingRoomScene",
-            "sofa": "LivingRoomScene",
-            "potted plant": "LivingRoomScene",
-            "bed": "LivingRoomScene",
-            # TikTok mode
-            "cell phone": "TikTokMode",
-            # Sport objects
-            "frisbee": "SportMode",
-            "skis": "SportMode",
-            "snowboard": "SportMode",
-            "sports ball": "SportMode",
-            "kite": "SportMode",
-            "baseball bat": "SportMode",
-            "baseball glove": "SportMode",
-            "skateboard": "SportMode",
-            "surfboard": "SportMode",
-            "tennis racket": "SportMode",
-        }
-
         # Track detection state
-        self.cell_phone_detected = False
         self.tiktok_mode_active = False
+        self.book_mode_active = False
 
     def detect_objects(self):
         """Continuously capture frames and detect objects."""
@@ -127,6 +91,7 @@ class ObjectDetector:
     def handle_detected_objects(self, detected_objects, frame):
         """Handle detected objects and trigger actions."""
         cell_phone_detected = False  # Track whether the cell phone is detected in this frame
+        book_detected = False
 
         for obj in detected_objects:
             label = obj["label"]
@@ -148,8 +113,12 @@ class ObjectDetector:
                     self.activate_tiktok_mode()
 
             if label == "book" or label == "laptop":
-                self.pookie.learn += 1
-                self.handle_book_detection()
+                book_detected = True
+                if not self.book_mode_active:
+                    self.book_mode_active = True
+                    print(f"Book/Laptop detected! Activate learn mode. +++ {self.book_mode_active}")
+                    self.pookie.learn += 1
+                    self.handle_book_detection()
 
             #self.execute_object_action(label)
 
@@ -158,6 +127,12 @@ class ObjectDetector:
             self.tiktok_mode_active = False  # Reset TikTok mode flag
             print("Cell phone no longer detected. Resetting to normal mode.")
             self.reset_to_normal()
+
+        if not book_detected and self.book_mode_active:
+            self.book_mode_active = False
+            print("Book/Laptop no longer detected. Resetting to normal mode.")
+            self.reset_to_normal()
+
 
     def handle_book_detection(self):
         self.pookie.walk_to_learnroom = True

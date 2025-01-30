@@ -64,6 +64,11 @@ class Lernzimmer:
         if event.type == pygame.MOUSEBUTTONDOWN:
             print(f"Mouse clicked at position: {event.pos}")
 
+    def initialize_state(self):
+        """Helper function to initialize scene state."""
+        print("trying to reset..")
+        self.pookie.character.disable_movement = False
+
     def handle_walk_to_chair(self):
         target_x = self.chair_rect.centerx - 10
         target_y = self.chair_rect.centery - 35

@@ -23,13 +23,13 @@ class Lernzimmer:
         self.table_image = pygame.image.load("assets/models/table.png").convert_alpha()
         self.table_image = pygame.transform.scale(self.table_image, (268, 170))
         self.cozy_table = self.pookie.apply_cozy_solo(self.table_image.copy())
-        self.table_rect = self.cozy_table.get_rect(topleft=(330, 430))
+        self.table_rect = self.cozy_table.get_rect(topleft=(310, 430))
 
         # Chair
         self.chair_image = pygame.image.load("assets/models/chair.png").convert_alpha()
         self.chair_image = pygame.transform.scale(self.chair_image, (100, 140))
         self.cozy_chair = self.pookie.apply_cozy_solo(self.chair_image.copy())
-        self.chair_rect = self.cozy_chair.get_rect(topleft=(415, 330))
+        self.chair_rect = self.cozy_chair.get_rect(topleft=(395, 330))
 
         # Carpet 
         self.carpet_image = pygame.image.load("assets/models/carpet.png").convert_alpha()
@@ -40,14 +40,56 @@ class Lernzimmer:
         # Big Bookshelf 
         self.bookshelf_b_image = pygame.image.load("assets/models/bookshelf_big.png").convert_alpha()
         self.bookshelf_b_image = pygame.transform.scale(self.bookshelf_b_image, (276, 282))
-        self.cozy_bookshelf = self.pookie.apply_cozy_solo(self.bookshelf_b_image.copy())
-        self.bookshelf_b_rect = self.cozy_bookshelf.get_rect(topleft=(5, 120))
+        self.cozy_bookshelf_b = self.pookie.apply_cozy_solo(self.bookshelf_b_image.copy())
+        self.bookshelf_b_rect = self.cozy_bookshelf_b.get_rect(topleft=(5, 120))
 
         # Tablelamp
         self.table_lamp_sprites = Item("assets/spritesheets/tablelamps.png", 15, 23, 1, 2)
         self.table_lamp = pygame.transform.scale(self.table_lamp_sprites[1], (60, 92))
         self.cozy_tablelamp = self.pookie.apply_cozy_solo(self.table_lamp.copy())
-        self.table_lamp_rect = self.cozy_tablelamp.get_rect(topleft=(530, 430))
+        self.table_lamp_rect = self.cozy_tablelamp.get_rect(topleft=(510, 420))
+
+        # Music Player
+        self.music_player_image = pygame.image.load("assets/models/music_player.png").convert_alpha()
+        self.music_player_image = pygame.transform.scale(self.music_player_image, (150, 100))
+        self.cozy_music_player = self.pookie.apply_cozy_solo(self.music_player_image.copy())
+        self.music_player_rect = self.cozy_music_player.get_rect(topleft=(273, 290))
+        
+        # Small Bookshelf
+        self.bookshelf_s_image = pygame.image.load("assets/models/bookshelf_small.png").convert_alpha()
+        self.bookshelf_s_image = pygame.transform.scale(self.bookshelf_s_image, (150, 100))
+        self.cozy_bookshelf_s = self.pookie.apply_cozy_solo(self.bookshelf_s_image.copy())
+        self.bookshelf_s_rect = self.cozy_bookshelf_s.get_rect(topleft=(425, 290))
+
+        # Fish Tank
+        self.fish_tank_image = pygame.image.load("assets/models/fish_tank.png").convert_alpha()
+        self.fish_tank_image = pygame.transform.scale(self.fish_tank_image, (60, 60))
+        self.cozy_fish_tank = self.pookie.apply_cozy_solo(self.fish_tank_image.copy())
+        self.fish_tank_rect = self.cozy_fish_tank.get_rect(topleft=(450, 250))
+
+        # Tree Pot
+        self.tree_pot_image = pygame.image.load("assets/models/tree_pot.png").convert_alpha()
+        self.tree_pot_image = pygame.transform.scale(self.tree_pot_image, (70, 150))
+        self.cozy_tree_pot = self.pookie.apply_cozy_solo(self.tree_pot_image.copy())
+        self.tree_pot_rect = self.cozy_tree_pot.get_rect(topleft=(570, 240))
+
+        # Wall Shelf
+        self.wall_shelf_image = pygame.image.load("assets/models/wall_shelf.png").convert_alpha()
+        self.wall_shelf_image = pygame.transform.scale(self.wall_shelf_image, (150, 50))
+        self.cozy_wall_shelf = self.pookie.apply_cozy_solo(self.wall_shelf_image.copy())
+        self.wall_shelf_rect = self.cozy_wall_shelf.get_rect(topleft=(400, 130))
+
+        # Small Pot 1
+        self.small_pot_1_image = pygame.image.load("assets/models/small_pot_1.png").convert_alpha()
+        self.small_pot_1_image = pygame.transform.scale(self.small_pot_1_image, (50, 50))
+        self.cozy_small_pot_1 = self.pookie.apply_cozy_solo(self.small_pot_1_image.copy())
+        self.small_pot_1_rect = self.cozy_small_pot_1.get_rect(topleft=(430, 120))
+
+        # Small Pot 2
+        self.small_pot_2_image = pygame.image.load("assets/models/small_pot_2.png").convert_alpha()
+        self.small_pot_2_image = pygame.transform.scale(self.small_pot_2_image, (40, 40))
+        self.cozy_small_pot_2 = self.pookie.apply_cozy_solo(self.small_pot_2_image.copy())
+        self.small_pot_2_rect = self.cozy_small_pot_2.get_rect(topleft=(480, 130))
 
         # Character setup
         self.character = AnimatedCharacter(0, 346)  
@@ -139,7 +181,14 @@ class Lernzimmer:
 
     def render(self, screen, debug_mode=False):
         screen.blit(self.cozy_bg, self.bg_rect)
-        screen.blit(self.cozy_bookshelf, self.bookshelf_b_rect)
+        screen.blit(self.cozy_bookshelf_b, self.bookshelf_b_rect)
+        screen.blit(self.cozy_bookshelf_s, self.bookshelf_s_rect)
+        screen.blit(self.cozy_music_player, self.music_player_rect)
+        screen.blit(self.cozy_fish_tank, self.fish_tank_rect)
+        screen.blit(self.cozy_tree_pot, self.tree_pot_rect)
+        screen.blit(self.cozy_wall_shelf, self.wall_shelf_rect)
+        screen.blit(self.cozy_small_pot_1, self.small_pot_1_rect)
+        screen.blit(self.cozy_small_pot_2, self.small_pot_2_rect)
         screen.blit(self.cozy_carpet, self.carpet_rect)
         screen.blit(self.cozy_chair, self.chair_rect)
         screen.blit(self.cozy_table, self.table_rect)

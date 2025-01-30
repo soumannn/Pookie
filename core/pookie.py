@@ -33,19 +33,105 @@ class Pookie:
         self.message_font = pygame.font.SysFont('system-ui', 40)
         self.walk_to_learnroom = False
         self.walk_to_livingroom = False
+        self.has_unlocked_car = True
 
 
         # Gyrosensor setup (only on Raspberry Pi)
         if IS_RASPBERRY_PI:
             self.sensor = mpu6050(0x68, bus=3)
-            #self.calibrate_sensor()
+            self.calibrate_sensor()
             self.object_detector = camera.ObjectDetector(self.scene_manager, self)
 
             self.detection_thread = Thread(target=self.object_detector.detect_objects)
             self.detection_thread.start()
+
+            #accelometer
+            self.tilt_detected = False
         else:
             self.sensor = None
             self.object_detector = None
+
+    def calibrate_sensor(self, samples=50):
+        """Read the sensor multiple times and average out a baseline for x, y, z."""
+        sum_x, sum_y, sum_z = 0.0, 0.0, 0.0
+
+        for _ in range(samples):
+            # Small sleep to avoid saturating the I2C bus
+            time.sleep(0.01)
+
+            # Read raw accelerometer data
+            accel_data = self.sensor.get_accel_data()
+            sum_x += accel_data['x']
+            sum_y += accel_data['y']
+            sum_z += accel_data['z']
+
+        # Calculate the average
+        self.baseline_x = sum_x / samples
+        self.baseline_y = sum_y / samples
+        self.baseline_z = sum_z / samples
+
+        print(
+            f"Calibration done: baseline_x={self.baseline_x:.2f}, baseline_y={self.baseline_y:.2f}, baseline_z={self.baseline_z:.2f}")
+
+    def read_sensor_data(self):
+        """Read accelerometer data from the gyrosensor, adjusted by baseline."""
+        if not IS_RASPBERRY_PI:
+            return 0.0, 0.0, 0.0  # Default values when running on a PC
+
+        # Read the temperature, if needed
+        self.sensor_temp = self.sensor.get_temp()
+
+        # Read raw accelerometer data
+        accel_data = self.sensor.get_accel_data()
+        raw_x = accel_data['x']
+        raw_y = accel_data['y']
+        raw_z = accel_data['z']
+
+        # Subtract the baseline
+        accel_x = raw_x - self.baseline_x
+        accel_y = raw_y - self.baseline_y
+        accel_z = raw_z - self.baseline_z
+
+        return accel_x, accel_y, accel_z
+
+    def detect_tilt(self, accel_x, accel_y, accel_z, threshold=10.0):
+        """
+        Detect a strong tilt based on accelerometer data relative to the baseline.
+        We'll define:
+            Forward tilt:   accel_x < -threshold
+            Backward tilt:  accel_x > threshold
+            Right tilt:     accel_y > threshold
+            Left tilt:      accel_y < -threshold
+
+        Adjust these definitions depending on how you hold the Pi.
+        """
+        if accel_x < -threshold:
+            print("Strong forward tilt detected!")
+            return "forward"
+        elif accel_x > threshold:
+            print("Strong backward tilt detected!")
+            return "backward"
+        elif accel_y > threshold:
+            print("Strong right tilt detected!")
+            return "right"
+        elif accel_y < -threshold:
+            print("Strong left tilt detected!")
+            return "left"
+        else:
+            return None  # No strong tilt
+
+    def check_tilt(self):
+        """Check for tilt and transition to sport mode if detected."""
+        if not IS_RASPBERRY_PI:
+            return
+
+        accel_x, accel_y, accel_z = self.read_sensor_data()
+        tilt_direction = self.detect_tilt(accel_x, accel_y, accel_z)
+
+        if tilt_direction == "forward":
+            self.transition_to_sport_mode = True
+        elif tilt_direction == "backward":
+            self.walk_to_door = True
 
     def perform_animation(self, animation_name: str, target: tuple, message: str=""):
         """

@@ -3,6 +3,7 @@ import time
 from character.animated_character import AnimatedCharacter
 from scenes.lernzimmer_scene import Lernzimmer
 from scenes.wohnzimmer_scene import Wohnzimmer
+from scenes.joggen_scene import JoggenScene
 import pygame
 import textwrap
 import numpy as np
@@ -142,6 +143,9 @@ class Pookie:
 
         accel_x, accel_y, accel_z = self.read_sensor_data()
         tilt_direction = self.detect_tilt(accel_x, accel_y, accel_z)
+
+        if isinstance(self.scene_manager.current_scene, JoggenScene):
+            return tilt_direction
 
         if tilt_direction == "forward":
             self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self))

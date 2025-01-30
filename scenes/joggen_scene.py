@@ -114,6 +114,10 @@ class JoggenScene:
             self.city_layers = self.city_layers_day
 
     def update(self, dt):
+        self.pookie.check_tilt()
+        tilt_direction = self.pookie.check_tilt()
+
+
         # Update weather every 5 minutes
         if pygame.time.get_ticks() - self.last_weather_update > 300000:  # 5 minutes in milliseconds
             self.update_weather()
@@ -143,8 +147,17 @@ class JoggenScene:
             self.character.update(dt)
 
         if self.pookie.has_unlocked_car:
-            # Move the entire car forward
+            # Move the car forward automatically
             self.auto_rect.x += self.car_speed
+
+            # Handle vertical movement based on tilt
+            if tilt_direction == "forward":
+                self.auto_rect.y -= 3  # Move up
+            elif tilt_direction == "backward":
+                self.auto_rect.y += 3  # Move down
+
+            # Prevent the car from going too high or too low
+            self.auto_rect.y = max(280, min(340, self.auto_rect.y))
 
             # Rotate the wheels continuously
             self.wheel_rotation -= 10  # Adjust rotation speed
@@ -152,8 +165,10 @@ class JoggenScene:
             self.auto_right_tire_rotated = pygame.transform.rotate(self.auto_right_tire, self.wheel_rotation)
 
             # Keep the wheels moving with the car
-            self.auto_left_tire_rect = self.auto_left_tire_rotated.get_rect(center=(self.auto_rect.x + 45, 380))
-            self.auto_right_tire_rect = self.auto_right_tire_rotated.get_rect(center=(self.auto_rect.x + 195, 380))
+            self.auto_left_tire_rect = self.auto_left_tire_rotated.get_rect(
+                center=(self.auto_rect.x + 45, self.auto_rect.y + 50))
+            self.auto_right_tire_rect = self.auto_right_tire_rotated.get_rect(
+                center=(self.auto_rect.x + 195, self.auto_rect.y + 50))
 
             # Reset car position if it moves off the screen
             if self.auto_rect.x > 600:

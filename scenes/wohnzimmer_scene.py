@@ -380,7 +380,8 @@ class Wohnzimmer:
             self.pookie.walk_to_door = False  # Stop walking
             self.pookie.transition_to_sport_mode = True  # Start transition
             self.door_index = 1  # Open door animation
-            self.door = pygame.transform.scale(self.door_sprites[self.door_index], (120, 200))  # Open door animation
+            self.cozy_door = pygame.transform.scale(self.pookie.apply_cozy_solo(self.door_sprites[self.door_index]), (120, 200))  # Open door animation
+            self.pookie.stopDetectionThread()
             self.door_open_timer = pygame.time.get_ticks()  # Start door open timer
 
 
@@ -441,7 +442,6 @@ class Wohnzimmer:
 
             # Handle door open timer and transition
         if self.pookie.transition_to_sport_mode:
-            self.pookie.stopDetectionThread()
             if pygame.time.get_ticks() - self.door_open_timer > 1000:  # 2-second delay
                 # wechsel zum joggen
                 self.scene_manager.set_scene(JoggenScene(self.scene_manager, self.pookie))

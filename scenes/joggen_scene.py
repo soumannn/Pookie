@@ -151,14 +151,11 @@ class JoggenScene:
             # Move the car forward automatically
             self.auto_rect.x += self.car_speed
 
-            # Handle vertical movement based on tilt
-            if tilt_direction == "backward":
-                self.auto_rect.y -= 3  # Move up
-            elif tilt_direction == "forward":
-                self.auto_rect.y += 3  # Move down
-
-            # Prevent the car from going too high or too low
-            self.auto_rect.y = max(280, min(340, self.auto_rect.y))
+            # Handle vertical movement with a smooth effect
+            if tilt_direction == "forward":
+                self.auto_rect.y = max(280, self.auto_rect.y - 3)  # Move up but stay in bounds
+            elif tilt_direction == "backward":
+                self.auto_rect.y = min(340, self.auto_rect.y + 3)  # Move down but stay in bounds
 
             # Rotate the wheels continuously
             self.wheel_rotation -= 10  # Adjust rotation speed

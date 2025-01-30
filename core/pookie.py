@@ -136,21 +136,26 @@ class Pookie:
         else:
             return None  # No strong tilt
 
-    def check_tilt(self):
-        """Check for tilt and transition to sport mode if detected."""
+    def check_tilt(self, threshold=5.0, neutral_threshold=2.0):
+        """Check for tilt and return tilt direction, with a neutral zone to avoid locking in one direction."""
         if not IS_RASPBERRY_PI:
-            return
+            return None
 
         accel_x, accel_y, accel_z = self.read_sensor_data()
-        tilt_direction = self.detect_tilt(accel_x, accel_y, accel_z)
 
-        if isinstance(self.scene_manager.current_scene, JoggenScene):
-            return tilt_direction
+        # Forward tilt (moving up)
+        if accel_x < -threshold:
+            return "forward"
 
-        if tilt_direction == "forward":
-            self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self))
-        elif tilt_direction == "backward":
-            self.walk_to_door = True
+        # Backward tilt (moving down)
+        elif accel_x > threshold:
+            return "backward"
+
+        # Neutral position when tilt is within a small range
+        elif -neutral_threshold <= accel_x <= neutral_threshold:
+            return "neutral"
+
+        return None
 
     def perform_animation(self, animation_name: str, target: tuple, message: str=""):
         """

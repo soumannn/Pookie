@@ -65,7 +65,7 @@ class Lernzimmer:
         self.fish_tank_image = pygame.image.load("assets/models/fish_tank.png").convert_alpha()
         self.fish_tank_image = pygame.transform.scale(self.fish_tank_image, (60, 60))
         self.cozy_fish_tank = self.pookie.apply_cozy_solo(self.fish_tank_image.copy())
-        self.fish_tank_rect = self.cozy_fish_tank.get_rect(topleft=(450, 250))
+        self.fish_tank_rect = self.cozy_fish_tank.get_rect(topleft=(465, 250))
 
         # Tree Pot
         self.tree_pot_image = pygame.image.load("assets/models/tree_pot.png").convert_alpha()

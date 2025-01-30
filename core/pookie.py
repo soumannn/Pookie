@@ -33,6 +33,7 @@ class Pookie:
         self.message_font = pygame.font.SysFont('system-ui', 40)
         self.walk_to_learnroom = False
         self.walk_to_livingroom = False
+        self.walk_to_door = False
         self.transition_to_sport_mode = False
         self.has_unlocked_car = True
 

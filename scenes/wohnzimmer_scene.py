@@ -85,7 +85,7 @@ class Wohnzimmer:
         self.door_index = 0
 
         self.door_open_timer = 0
-        self.walk_to_door = False
+
 
         # State for transitioning to learn mode (Walk to Learnroom)
         #self.is_walking_to_learnroom = False
@@ -195,7 +195,7 @@ class Wohnzimmer:
                 self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index],
                                                             (60, 180))
             elif event.key == pygame.K_s:
-                self.walk_to_door = True  # Start walking to the door
+                self.pookie.walk_to_door = True  # Start walking to the door
 
             elif event.key == pygame.K_o:
                 self.walk_to_window = True
@@ -373,7 +373,7 @@ class Wohnzimmer:
 
         # Check if the character reached the door
         if self.pookie.character.rect.colliderect(self.door_rect):
-            self.walk_to_door = False  # Stop walking
+            self.pookie.walk_to_door = False  # Stop walking
             self.pookie.transition_to_sport_mode = True  # Start transition
             self.door_index = 1  # Open door animation
             self.door = pygame.transform.scale(self.door_sprites[self.door_index], (120, 200))  # Open door animation
@@ -434,7 +434,7 @@ class Wohnzimmer:
                 self.pookie.character.disable_movement = False  # Resume movement
 
 
-        if self.walk_to_door:
+        if self.pookie.walk_to_door:
             self.handle_walk_to_door()
 
             # Handle door open timer and transition

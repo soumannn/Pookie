@@ -4,6 +4,8 @@ class SceneManager:
 
     def set_scene(self, scene):
         self.current_scene = scene
+        print(f"Scene switched to: {type(scene).__name__}")
+        print(f"current scene: {self.current_scene}")
 
     def handle_event(self, event):
         if self.current_scene:

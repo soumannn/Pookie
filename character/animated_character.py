@@ -4,8 +4,11 @@ class AnimatedCharacter(pygame.sprite.Sprite):
     def __init__(self, x, y):
         super().__init__()
 
-        self.allowed_top = 346  # Default top bound
-        self.allowed_bottom = 600  # Default bottom bound
+        # Walkable area boundaries (0, 270, 640, 200)
+        self.walkable_left = 0
+        self.walkable_top = 270 - 100
+        self.walkable_right = 640
+        self.walkable_bottom = 270 + 200
 
         # Load sprite sheet
         self.sprite_sheet = pygame.image.load("assets/characters/character.png").convert_alpha()
@@ -84,10 +87,10 @@ class AnimatedCharacter(pygame.sprite.Sprite):
         else:
             if self.rect.left < 0:
                 self.rect.left = 0
-            if self.rect.right > 600:
-                self.rect.right = 600
-            if self.rect.bottom > 600:
-                self.rect.bottom = 600
+            if self.rect.right > self.allowed_bottom:
+                self.rect.right = self.allowed_bottom
+            if self.rect.bottom > self.allowed_bottom:
+                self.rect.bottom = self.allowed_bottom
 
     def load_animations(self):
         """Load all animations from the sprite sheet."""
@@ -155,8 +158,6 @@ class AnimatedCharacter(pygame.sprite.Sprite):
 
         # Execute the current behavior
         if self.current_behavior == "walk" or self.current_behavior == "idle":
-            # Default to random walking
-            self.current_behavior = "walk"
             movement_speed = 1.5
 
             # Randomly decide direction if no movement is set
@@ -184,18 +185,18 @@ class AnimatedCharacter(pygame.sprite.Sprite):
             self.rect.x += self.velocity.x * movement_speed
             self.rect.y += self.velocity.y * movement_speed
 
-            # Keep within bounds
-            if self.rect.top < self.allowed_top:
-                self.rect.top = self.allowed_top
-                self.direction = "down"
-            if self.rect.bottom > self.allowed_bottom:
-                self.rect.bottom = self.allowed_bottom
+            # Constrain feet (bottom of the rectangle) to walkable area
+            if self.rect.bottom > self.walkable_bottom:
+                self.rect.bottom = self.walkable_bottom
                 self.direction = "up"
-            if self.rect.left < 0:
-                self.rect.left = 0
+            if self.rect.bottom - self.frame_height * self.scale_factor < self.walkable_top:
+                self.rect.bottom = self.walkable_top + self.frame_height * self.scale_factor
+                self.direction = "down"
+            if self.rect.left < self.walkable_left:
+                self.rect.left = self.walkable_left
                 self.direction = "right"
-            if self.rect.right > 600:
-                self.rect.right = 600
+            if self.rect.right > self.walkable_right:
+                self.rect.right = self.walkable_right
                 self.direction = "left"
 
         elif self.current_behavior in ["read_book", "use_phone", "look_out_window", "exercise"]:

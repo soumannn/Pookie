@@ -152,9 +152,9 @@ class JoggenScene:
             self.auto_rect.x += self.car_speed
 
             # Handle vertical movement based on tilt
-            if tilt_direction == "forward":
+            if tilt_direction == "backward":
                 self.auto_rect.y -= 3  # Move up
-            elif tilt_direction == "backward":
+            elif tilt_direction == "forward":
                 self.auto_rect.y += 3  # Move down
 
             # Prevent the car from going too high or too low

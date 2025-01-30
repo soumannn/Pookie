@@ -37,14 +37,15 @@ class Pookie:
         self.transition_to_sport_mode = False
         self.has_unlocked_car = True
 
+        self.onRaspi = False
+
 
         # Gyrosensor setup (only on Raspberry Pi)
         if IS_RASPBERRY_PI:
+            self.onRaspi = True
             self.sensor = mpu6050(0x68, bus=3)
             self.calibrate_sensor()
             self.object_detector = camera.ObjectDetector(self.scene_manager, self)
-
-            self.object_detector.start_detection()
 
             #accelometer
             self.tilt_detected = False
@@ -75,7 +76,16 @@ class Pookie:
             f"Calibration done: baseline_x={self.baseline_x:.2f}, baseline_y={self.baseline_y:.2f}, baseline_z={self.baseline_z:.2f}")
 
     def stopDetectionThread(self):
-        self.object_detector.stop_detection()
+        if self.onRaspi:
+            self.object_detector.stop_detection()
+        else:
+            return
+
+    def startDetectionThread(self):
+        if self.onRaspi:
+            self.object_detector.start_detection()
+        else:
+            return
 
 
     def read_sensor_data(self):

@@ -19,9 +19,7 @@ class Wohnzimmer:
         self.scene_manager = scene_manager
         self.pookie = pookie
 
-        if pookiePosX != 0:
-            self.pookie.character.x = pookiePosX
-
+        self.pookie.startDetectionThread()
 
         self.pookie.character.disable_movement = False
         self.pookie.character.force_animation("walk_left")

@@ -10,6 +10,8 @@ class Lernzimmer:
         self.scene_manager = scene_manager
         self.pookie = pookie
 
+        self.pookie.startDetectionThread()
+
         # Debug font
         self.debug_font = pygame.font.Font(None, 24)
 
@@ -92,9 +94,10 @@ class Lernzimmer:
         self.small_pot_2_rect = self.cozy_small_pot_2.get_rect(topleft=(480, 130))
 
         # Character setup
-        self.character = AnimatedCharacter(0, 346)  
-        self.character.disable_movement = True
-        self.character.current_animation = "walk_right"
+        #self.character = AnimatedCharacter(0, 346)
+        self.pookie.character.disable_movement = True
+        self.pookie.character.current_animation = "walk_right"
+        self.pookie.character.rect.x = 0
         self.is_walking = True  # Start walking to chair
 
         self.is_leaving = False 
@@ -106,10 +109,15 @@ class Lernzimmer:
         if event.type == pygame.MOUSEBUTTONDOWN:
             print(f"Mouse clicked at position: {event.pos}")
 
+    def initialize_state(self):
+        """Helper function to initialize scene state."""
+        print("trying to reset..")
+        self.pookie.character.disable_movement = False
+
     def handle_walk_to_chair(self):
         target_x = self.chair_rect.centerx - 10
         target_y = self.chair_rect.centery - 35
-        character_center = self.character.rect.center
+        character_center = self.pookie.character.rect.center
 
         # Calculate direction
         direction_x = target_x - character_center[0]
@@ -118,31 +126,32 @@ class Lernzimmer:
         # Normalize direction
         distance = max(abs(direction_x), abs(direction_y))
         if distance > 0:
-            self.character.velocity.x = direction_x / distance
-            self.character.velocity.y = direction_y / distance
+            self.pookie.character.velocity.x = direction_x / distance
+            self.pookie.character.velocity.y = direction_y / distance
 
         # Move character
         movement_speed = 2  # Speed for walking to the target
-        self.character.rect.x += self.character.velocity.x * movement_speed
-        self.character.rect.y += self.character.velocity.y * movement_speed
+        self.pookie.character.rect.x += self.pookie.character.velocity.x * movement_speed
+        self.pookie.character.rect.y += self.pookie.character.velocity.y * movement_speed
 
         # Check if the character reached the target position
         if abs(character_center[0] - target_x) < 5 and abs(character_center[1] - target_y) < 5:
             self.is_walking = False  # Stop walking
-            self.character.current_animation = "buch_lesen"
+            self.pookie.character.current_animation = "buch_lesen"
 
     def handle_left_learn_room(self):
-        self.character.disable_movement = True
-        self.character.force_animation("walk_left")
+        self.pookie.character.disable_movement = True
+        self.pookie.character.force_animation("walk_left")
 
         movement_speed = 2
-        self.character.rect.x -= movement_speed
+        self.pookie.character.rect.x -= movement_speed
 
-        if self.character.rect.right < 0:
+        if self.pookie.character.rect.right < 0:
             from scenes.wohnzimmer_scene import Wohnzimmer 
             self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self.pookie))
 
     def handle_use_handy(self):
+        self.is_walking = False
         self.pookie.character.disable_movement = True
         self.pookie.walk_to_animation = "handy_modus"
 
@@ -169,7 +178,7 @@ class Lernzimmer:
             self.handle_use_handy()
 
         # Update the character animation
-        self.character.update(dt)
+        self.pookie.character.update(dt)
 
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
@@ -178,6 +187,8 @@ class Lernzimmer:
             elif event.key == pygame.K_t:
                 # self.pookie.handy += 1
                 self.using_handy = True
+            elif event.key == pygame.K_r:
+                self.initialize_state()
 
     def render(self, screen, debug_mode=False):
         screen.blit(self.cozy_bg, self.bg_rect)
@@ -194,7 +205,7 @@ class Lernzimmer:
         screen.blit(self.cozy_table, self.table_rect)
         screen.blit(self.cozy_tablelamp, self.table_lamp_rect)
 
-        self.character.render(screen)
+        self.pookie.character.render(screen)
 
         if hasattr(self.pookie, "pookie_message_box"):
             if pygame.time.get_ticks() - self.pookie.message_display_time < self.pookie.message_duration:
@@ -221,28 +232,28 @@ class Lernzimmer:
             # Character debug info
             draw_debug_info(
                 screen,
-                self.character.rect,
-                f"X: {self.character.rect.x}, Y: {self.character.rect.y}",
+                self.pookie.character.rect,
+                f"X: {self.pookie.character.rect.x}, Y: {self.pookie.character.rect.y}",
                 self.debug_font,
-                text_offset=(0, self.character.rect.height + 5)  # Below the rect
+                text_offset=(0, self.pookie.character.rect.height + 5)  # Below the rect
             )
 
             # Character status
             draw_debug_info(
                 screen,
-                self.character.rect,
-                f"{self.character.current_animation}",
+                self.pookie.character.rect,
+                f"{self.pookie.character.current_animation}",
                 self.debug_font,
-                text_offset=(0, self.character.rect.height + 25)
+                text_offset=(0, self.pookie.character.rect.height + 25)
             )
 
             # Autowalk status
             draw_debug_info(
                 screen,
-                self.character.rect,
-                f"Autowalk {'off' if self.character.disable_movement else 'on'}",
+                self.pookie.character.rect,
+                f"Autowalk {'off' if self.pookie.character.disable_movement else 'on'}",
                 self.debug_font,
-                text_offset=(0, self.character.rect.height + 45)
+                text_offset=(0, self.pookie.character.rect.height + 45)
             )
 
             # draw red box on walking ground

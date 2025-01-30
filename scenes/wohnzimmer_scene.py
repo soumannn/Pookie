@@ -15,11 +15,15 @@ from config import WEATHER_URL
 
 
 class Wohnzimmer:
-    def __init__(self, scene_manager, pookie):
+    def __init__(self, scene_manager, pookie, pookiePosX=0, pookiePosY=0):
         self.scene_manager = scene_manager
         self.pookie = pookie
+
+        self.pookie.startDetectionThread()
+
         self.pookie.character.disable_movement = False
-        self.pookie.character.force_animation("walk_down")
+        self.pookie.character.force_animation("walk_left")
+
 
         # Character
         #self.character = AnimatedCharacter(373, 549)
@@ -83,9 +87,9 @@ class Wohnzimmer:
 
         # State for transitioning to sport mode (Walk to Door)
         self.door_index = 0
-        self.transition_to_sport_mode = False
+
         self.door_open_timer = 0
-        self.walk_to_door = False
+
 
         # State for transitioning to learn mode (Walk to Learnroom)
         #self.is_walking_to_learnroom = False
@@ -139,8 +143,8 @@ class Wohnzimmer:
             else:
                 self.current_weather_index = 1  # Night
 
-            self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (130, 130))
-            self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index], (60, 180))
+            self.cozy_window = pygame.transform.scale(self.pookie.apply_cozy_solo(self.window_sprites[self.current_weather_index]), (130, 130))
+            self.cozy_lamp = pygame.transform.scale(self.pookie.apply_cozy_solo(self.stand_lamp_sprites[self.current_weather_index]), (60, 180))
 
         except AttributeError:
             # Default to day if sunrise/sunset not available
@@ -195,7 +199,7 @@ class Wohnzimmer:
                 self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index],
                                                             (60, 180))
             elif event.key == pygame.K_s:
-                self.walk_to_door = True  # Start walking to the door
+                self.pookie.walk_to_door = True  # Start walking to the door
 
             elif event.key == pygame.K_o:
                 self.walk_to_window = True
@@ -373,10 +377,11 @@ class Wohnzimmer:
 
         # Check if the character reached the door
         if self.pookie.character.rect.colliderect(self.door_rect):
-            self.walk_to_door = False  # Stop walking
-            self.transition_to_sport_mode = True  # Start transition
+            self.pookie.walk_to_door = False  # Stop walking
+            self.pookie.transition_to_sport_mode = True  # Start transition
             self.door_index = 1  # Open door animation
-            self.door = pygame.transform.scale(self.door_sprites[self.door_index], (120, 200))  # Open door animation
+            self.cozy_door = pygame.transform.scale(self.pookie.apply_cozy_solo(self.door_sprites[self.door_index]), (120, 200))  # Open door animation
+            self.pookie.stopDetectionThread()
             self.door_open_timer = pygame.time.get_ticks()  # Start door open timer
 
 
@@ -402,9 +407,7 @@ class Wohnzimmer:
 
 
     def update(self, dt):
-
-        #sensor test
-        #self.check_tilt()
+        self.pookie.check_tilt()
 
         # Handle shake timer to re-enable movement
         if self.shake_timer is not None:
@@ -434,11 +437,11 @@ class Wohnzimmer:
                 self.pookie.character.disable_movement = False  # Resume movement
 
 
-        if self.walk_to_door:
+        if self.pookie.walk_to_door:
             self.handle_walk_to_door()
 
             # Handle door open timer and transition
-        if self.transition_to_sport_mode:
+        if self.pookie.transition_to_sport_mode:
             if pygame.time.get_ticks() - self.door_open_timer > 1000:  # 2-second delay
                 # wechsel zum joggen
                 self.scene_manager.set_scene(JoggenScene(self.scene_manager, self.pookie))

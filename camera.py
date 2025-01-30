@@ -6,6 +6,9 @@ import numpy as np
 
 class ObjectDetector:
     def __init__(self, scene_manager, pookie):
+        self.stop_event = threading.Event()
+        self.detection_thread = threading.Thread(target=self.detect_objects)
+
         self.scene_manager = scene_manager
         self.pookie = pookie
         self.picam2 = Picamera2()
@@ -20,16 +23,26 @@ class ObjectDetector:
         self.output_layers = [self.layer_names[i - 1] for i in self.net.getUnconnectedOutLayers()]
 
         # State
-        self.running = True
+
         self.current_scene = self.scene_manager.current_scene
 
         # Track detection state
         self.tiktok_mode_active = False
         self.book_mode_active = False
 
+    def start_detection(self):
+        if not self.detection_thread.is_alive():
+            self.detection_thread = threading.Thread(target=self.detect_objects)
+            self.detection_thread.start()
+
+    def stop_detection(self):
+        self.stop_event.set()  # Stoppsignal setzen
+        self.detection_thread.join()  # Warten, bis der Thread sauber beendet wurde
+        print("Detection stopped.")
+
     def detect_objects(self):
         """Continuously capture frames and detect objects."""
-        while self.running:
+        while not self.stop_event.is_set():
             print("Detect objects thread is running")
             frame = self.picam2.capture_array()
 
@@ -152,8 +165,3 @@ class ObjectDetector:
             return
         if isinstance(self.scene_manager.current_scene, Wohnzimmer):
             self.scene_manager.current_scene.initialize_state() #reset animation
-
-    def stop(self):
-        """Stop the detection."""
-        self.running = False
-        self.picam2.stop()

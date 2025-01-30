@@ -11,6 +11,8 @@ class JoggenScene:
         self.scene_manager = scene_manager
         self.pookie = pookie
 
+        self.pookie.stopDetectionThread()
+
         # set false so we can go back!
         self.pookie.transition_to_sport_mode = False
 

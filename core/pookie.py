@@ -44,8 +44,7 @@ class Pookie:
             self.calibrate_sensor()
             self.object_detector = camera.ObjectDetector(self.scene_manager, self)
 
-            self.detection_thread = Thread(target=self.object_detector.detect_objects)
-            self.detection_thread.start()
+            self.object_detector.start_detection()
 
             #accelometer
             self.tilt_detected = False
@@ -74,6 +73,10 @@ class Pookie:
 
         print(
             f"Calibration done: baseline_x={self.baseline_x:.2f}, baseline_y={self.baseline_y:.2f}, baseline_z={self.baseline_z:.2f}")
+
+    def stopDetectionThread(self):
+        self.object_detector.stop_detection()
+
 
     def read_sensor_data(self):
         """Read accelerometer data from the gyrosensor, adjusted by baseline."""
@@ -198,7 +201,8 @@ class Pookie:
             if self.move_character_towards(target_x, target_y):
                 self.walk_to = False
                 self.walk_to_livingroom = False
-                self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self))
+                self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self, 620))
+
 
 
     def handle_walk_to(self):

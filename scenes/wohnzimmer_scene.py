@@ -15,11 +15,17 @@ from config import WEATHER_URL
 
 
 class Wohnzimmer:
-    def __init__(self, scene_manager, pookie):
+    def __init__(self, scene_manager, pookie, pookiePosX=0, pookiePosY=0):
         self.scene_manager = scene_manager
         self.pookie = pookie
+
+        if pookiePosX != 0:
+            self.pookie.character.x = pookiePosX
+
+
         self.pookie.character.disable_movement = False
-        self.pookie.character.force_animation("walk_down")
+        self.pookie.character.force_animation("walk_left")
+
 
         # Character
         #self.character = AnimatedCharacter(373, 549)

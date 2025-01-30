@@ -3,7 +3,6 @@ import time
 from character.animated_character import AnimatedCharacter
 from scenes.lernzimmer_scene import Lernzimmer
 from scenes.wohnzimmer_scene import Wohnzimmer
-from scenes.joggen_scene import JoggenScene
 import pygame
 import textwrap
 import numpy as np
@@ -136,26 +135,18 @@ class Pookie:
         else:
             return None  # No strong tilt
 
-    def check_tilt(self, threshold=5.0, neutral_threshold=2.0):
-        """Check for tilt and return tilt direction, with a neutral zone to avoid locking in one direction."""
+    def check_tilt(self):
+        """Check for tilt and transition to sport mode if detected."""
         if not IS_RASPBERRY_PI:
-            return None
+            return
 
         accel_x, accel_y, accel_z = self.read_sensor_data()
+        tilt_direction = self.detect_tilt(accel_x, accel_y, accel_z)
 
-        # Forward tilt (moving up)
-        if accel_x < -threshold:
-            return "forward"
-
-        # Backward tilt (moving down)
-        elif accel_x > threshold:
-            return "backward"
-
-        # Neutral position when tilt is within a small range
-        elif -neutral_threshold <= accel_x <= neutral_threshold:
-            return "neutral"
-
-        return None
+        if tilt_direction == "forward":
+            self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self))
+        elif tilt_direction == "backward":
+            self.walk_to_door = True
 
     def perform_animation(self, animation_name: str, target: tuple, message: str=""):
         """

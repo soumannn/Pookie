@@ -441,6 +441,7 @@ class Wohnzimmer:
 
             # Handle door open timer and transition
         if self.pookie.transition_to_sport_mode:
+            self.pookie.stopDetectionThread()
             if pygame.time.get_ticks() - self.door_open_timer > 1000:  # 2-second delay
                 # wechsel zum joggen
                 self.scene_manager.set_scene(JoggenScene(self.scene_manager, self.pookie))

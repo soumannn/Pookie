@@ -131,7 +131,7 @@ class Pookie:
         tilt_direction = self.detect_tilt(accel_x, accel_y, accel_z)
 
         if tilt_direction == "forward":
-            self.transition_to_sport_mode = True
+            self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self))
         elif tilt_direction == "backward":
             self.walk_to_door = True
 

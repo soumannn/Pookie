@@ -11,6 +11,9 @@ class JoggenScene:
         self.scene_manager = scene_manager
         self.pookie = pookie
 
+        # set false so we can go back!
+        self.pookie.transition_to_sport_mode = False
+
         # Debug font
         self.debug_font = pygame.font.Font(None, 24)
 

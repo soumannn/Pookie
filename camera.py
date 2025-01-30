@@ -38,6 +38,7 @@ class ObjectDetector:
             "cake": "KitchenScene",
             # learn room
             "book": "LearnScene",
+            "laptop": "LearnScene",
             # Living room objects
             "chair": "LivingRoomScene",
             "sofa": "LivingRoomScene",
@@ -146,7 +147,7 @@ class ObjectDetector:
                     self.pookie.handy += 1
                     self.activate_tiktok_mode()
 
-            if label == "book":
+            if label == "book" or label == "laptop":
                 self.pookie.learn += 1
                 self.handle_book_detection()
 

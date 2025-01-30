@@ -56,6 +56,8 @@ class Lernzimmer:
         self.is_walking = True  # Start walking to chair
 
         self.is_leaving = False 
+        self.using_handy = False
+
 
     def print_click_position(self, event):
         """Print the position of a mouse click to the terminal."""
@@ -98,6 +100,18 @@ class Lernzimmer:
             from scenes.wohnzimmer_scene import Wohnzimmer 
             self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self.pookie))
 
+    def handle_use_handy(self):
+        self.pookie.character.disable_movement = True
+        self.pookie.walk_to_animation = "handy_modus"
+
+        #self.walk_to = True
+        self.pookie.walk_to = True
+
+        self.pookie.walk_to_target = (448, 303)  # Target position for TikTok mode (244, 190)
+        # self.pookie.handy += 1
+        # print(f'{self.pookie.learn} {self.pookie.handy}')
+        self.pookie.letPookieSay(self.pookie.tikTokMessage())
+
     def update(self, dt):
         if self.is_walking:
             self.handle_walk_to_chair()
@@ -108,6 +122,10 @@ class Lernzimmer:
         if self.pookie.walk_to_livingroom:
             self.pookie.handle_walk_to_livingroom(left=True)
 
+        if self.using_handy:
+            self.handle_left_learn_room()
+            self.handle_use_handy()
+
         # Update the character animation
         self.character.update(dt)
 
@@ -115,6 +133,9 @@ class Lernzimmer:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:  # Zum Wohnzimmer zurückwechseln
                 self.is_leaving = True  # Start leaving the room
+            elif event.key == pygame.K_t:
+                # self.pookie.handy += 1
+                self.using_handy = True
 
     def render(self, screen, debug_mode=False):
         screen.blit(self.cozy_bg, self.bg_rect)

@@ -217,11 +217,12 @@ class Wohnzimmer:
                 self.pookie.handy += 1
                 self.pookie.letPookieSay(self.pookie.tikTokMessage())
 
-
-
             elif event.key == pygame.K_b:
                 """Buch lesen Modus"""
                 self.pookie.walk_to_learnroom = True
+                self.pookie.learn += 1
+                # print(f'{self.pookie.learn} {self.pookie.handy}')
+                self.pookie.letPookieSay(self.pookie.bookMessage())
 
 
             elif event.key == pygame.K_DOWN:  # Pfeil nach unten

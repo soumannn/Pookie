@@ -1,0 +1,21 @@
+{
+  "categories": [
+    {
+      "id": 0,
+      "name": "book"
+    },
+    {
+      "id": 1,
+      "name": "cell phone"
+    },
+    {
+      "id": 2,
+      "name": "laptop"
+    }
+  ],
+  "info": {
+    "year": 2025,
+    "version": "1.0",
+    "contributor": "Label Studio"
+  }
+}

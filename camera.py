@@ -51,7 +51,8 @@ class ObjectDetector:
             frame = self.picam2.capture_array()
 
             # Preprocess frame
-            frame = self.preprocess_frame(frame)
+            #frame = self.preprocess_frame(frame)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
 
             # Perform object detection
             detections = self.perform_detection(frame)

@@ -34,6 +34,7 @@ class ObjectDetector:
         print("here")
         if not self.detection_thread.is_alive():
             print("made it in here too")
+            self.stop_event = threading.Event()
             self.detection_thread = threading.Thread(target=self.detect_objects)
             self.detection_thread.start()
 
@@ -44,7 +45,7 @@ class ObjectDetector:
 
     def detect_objects(self):
         """Continuously capture frames and detect objects."""
-        while self.detection_thread.is_alive():
+        while not self.stop_event.is_set():
             print("Detect objects thread is running")
             frame = self.picam2.capture_array()
 

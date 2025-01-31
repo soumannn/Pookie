@@ -47,6 +47,8 @@ class Pookie:
             self.calibrate_sensor()
             self.object_detector = camera.ObjectDetector(self.scene_manager, self)
 
+            self.object_detector.start_detection()
+
             #accelometer
             self.tilt_detected = False
         else:

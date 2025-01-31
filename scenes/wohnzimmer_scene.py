@@ -376,7 +376,6 @@ class Wohnzimmer:
             self.pookie.transition_to_sport_mode = True  # Start transition
             self.door_index = 1  # Open door animation
             self.cozy_door = pygame.transform.scale(self.pookie.apply_cozy_solo(self.door_sprites[self.door_index]), (120, 200))  # Open door animation
-            self.pookie.stopDetectionThread()
 
 
 

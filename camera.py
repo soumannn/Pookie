@@ -16,7 +16,7 @@ class ObjectDetector:
         self.picam2.start()
 
         # Load YOLO model
-        self.net = cv2.dnn.readNet("yolov4.weights", "yolov4.cfg")
+        self.net = cv2.dnn.readNet("neural/yolov4-tiny.weights", "neural/yolov4-tiny.cfg")
         with open("coco.names", "r") as f:
             self.class_names = [line.strip() for line in f.readlines()]
         self.layer_names = self.net.getLayerNames()

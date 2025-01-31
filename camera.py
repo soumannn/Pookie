@@ -31,7 +31,9 @@ class ObjectDetector:
         self.book_mode_active = False
 
     def start_detection(self):
+        print("here")
         if not self.detection_thread.is_alive():
+            print("made it in here too")
             self.detection_thread = threading.Thread(target=self.detect_objects)
             self.detection_thread.start()
 

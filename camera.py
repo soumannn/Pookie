@@ -123,11 +123,11 @@ class ObjectDetector:
             print(f"Detected {label} with confidence {confidence:.2f}")
 
             # Draw bounding boxes
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.putText(frame, f"{label} {confidence:.2f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+            #cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            #cv2.putText(frame, f"{label} {confidence:.2f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
             # Handle specific detections
-            if label in ["cell phone", "remote"]:
+            if label == "cell phone" or label == "remote":
                 cell_phone_detected = True
                 if not self.tiktok_mode_active:
                     self.tiktok_mode_active = True
@@ -135,7 +135,7 @@ class ObjectDetector:
                     self.pookie.handy += 1
                     self.activate_tiktok_mode()
 
-            if label in ["book", "laptop"]:
+            if label == "book":
                 book_detected = True
                 if not self.book_mode_active:
                     self.book_mode_active = True

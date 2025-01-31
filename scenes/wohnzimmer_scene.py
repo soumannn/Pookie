@@ -22,7 +22,8 @@ class Wohnzimmer:
         self.pookie.startDetectionThread()
 
         self.pookie.character.disable_movement = False
-        self.pookie.character.force_animation("walk_left")
+        self.pookie.character.rect.x = pookiePosX if pookiePosX is not None else 300
+        self.pookie.character.rect.y = pookiePosY if pookiePosY is not None else 300
 
 
         # Character
@@ -87,12 +88,6 @@ class Wohnzimmer:
 
         # State for transitioning to sport mode (Walk to Door)
         self.door_index = 0
-
-        self.door_open_timer = 0
-
-
-        # State for transitioning to learn mode (Walk to Learnroom)
-        #self.is_walking_to_learnroom = False
 
         # Door
         self.door_sprites = Item("assets/spritesheets/doors.png", 30, 51, 1, 3)
@@ -382,7 +377,6 @@ class Wohnzimmer:
             self.door_index = 1  # Open door animation
             self.cozy_door = pygame.transform.scale(self.pookie.apply_cozy_solo(self.door_sprites[self.door_index]), (120, 200))  # Open door animation
             self.pookie.stopDetectionThread()
-            self.door_open_timer = pygame.time.get_ticks()  # Start door open timer
 
 
 
@@ -442,9 +436,7 @@ class Wohnzimmer:
 
             # Handle door open timer and transition
         if self.pookie.transition_to_sport_mode:
-            if pygame.time.get_ticks() - self.door_open_timer > 1000:  # 2-second delay
-                # wechsel zum joggen
-                self.scene_manager.set_scene(JoggenScene(self.scene_manager, self.pookie))
+            self.scene_manager.set_scene(JoggenScene(self.scene_manager, self.pookie))
 
         # Update weather every 5 minutes
         #if pygame.time.get_ticks() - self.last_weather_update > 300000:  # 5 minutes in milliseconds

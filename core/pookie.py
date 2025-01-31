@@ -83,6 +83,7 @@ class Pookie:
 
     def startDetectionThread(self):
         if self.onRaspi:
+            print("trying to restart detection..")
             self.object_detector.start_detection()
         else:
             return

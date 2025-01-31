@@ -19,7 +19,7 @@ class Wohnzimmer:
         self.scene_manager = scene_manager
         self.pookie = pookie
 
-        self.pookie.startDetectionThread()
+        #self.pookie.startDetectionThread()
 
         self.pookie.character.disable_movement = False
         self.pookie.character.rect.x = pookiePosX if pookiePosX is not None else 300

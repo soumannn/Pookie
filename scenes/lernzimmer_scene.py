@@ -10,7 +10,7 @@ class Lernzimmer:
         self.scene_manager = scene_manager
         self.pookie = pookie
 
-        self.pookie.startDetectionThread()
+        #self.pookie.startDetectionThread()
 
         # Debug font
         self.debug_font = pygame.font.Font(None, 24)

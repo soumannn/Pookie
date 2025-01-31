@@ -64,8 +64,9 @@ class ObjectDetector:
 
     def preprocess_frame(self, frame):
         """Preprocess the frame for YOLO."""
-        frame_resized = cv2.resize(frame, (416, 416))  # Resize only, no grayscale
-        return frame_resized
+        if frame.shape[2] == 4:  # If it has 4 channels (RGBA)
+            frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2RGB)
+        return frame
 
     def perform_detection(self, frame):
         """Run the YOLO model and get detections."""

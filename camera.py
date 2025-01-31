@@ -12,11 +12,15 @@ class ObjectDetector:
         self.scene_manager = scene_manager
         self.pookie = pookie
         self.picam2 = Picamera2()
-        self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (1920, 1080)}))
+        self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (416, 416)}))
         self.picam2.start()
 
         # Load YOLO model
         self.net = cv2.dnn.readNet("neural/yolov4-tiny.weights", "neural/yolov4-tiny.cfg")
+        # Set optimized backend for Raspberry Pi
+        self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
+        self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
+
         with open("coco.names", "r") as f:
             self.class_names = [line.strip() for line in f.readlines()]
         self.layer_names = self.net.getLayerNames()
@@ -60,9 +64,8 @@ class ObjectDetector:
 
     def preprocess_frame(self, frame):
         """Preprocess the frame for YOLO."""
-        frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        frame_equalized = cv2.equalizeHist(frame_gray)
-        return cv2.cvtColor(frame_equalized, cv2.COLOR_GRAY2BGR)
+        frame_resized = cv2.resize(frame, (416, 416))  # Resize only, no grayscale
+        return frame_resized
 
     def perform_detection(self, frame):
         """Run the YOLO model and get detections."""

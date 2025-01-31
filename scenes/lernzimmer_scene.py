@@ -189,6 +189,8 @@ class Lernzimmer:
                 self.using_handy = True
             elif event.key == pygame.K_r:
                 self.initialize_state()
+            elif event.key == pygame.K_a:
+                self.pookie.triggerAutoEvent()
 
     def render(self, screen, debug_mode=False):
         screen.blit(self.cozy_bg, self.bg_rect)

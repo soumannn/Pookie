@@ -135,7 +135,7 @@ class ObjectDetector:
                     self.pookie.handy += 1
                     self.activate_tiktok_mode()
 
-            if label == "book":
+            if label == "book" or label == "laptop":
                 book_detected = True
                 if not self.book_mode_active:
                     self.book_mode_active = True

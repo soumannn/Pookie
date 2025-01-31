@@ -3,6 +3,7 @@ import time
 from character.animated_character import AnimatedCharacter
 from scenes.lernzimmer_scene import Lernzimmer
 from scenes.wohnzimmer_scene import Wohnzimmer
+from scenes.secret.auto import AutoEvent
 import pygame
 import textwrap
 import numpy as np
@@ -35,7 +36,7 @@ class Pookie:
         self.walk_to_livingroom = False
         self.walk_to_door = False
         self.transition_to_sport_mode = False
-        self.has_unlocked_car = True
+        self.has_unlocked_car = False
 
         self.onRaspi = False
 
@@ -401,3 +402,6 @@ class Pookie:
 
         return "Lernen.... so langweilig"
 
+
+    def triggerAutoEvent(self):
+        self.scene_manager.set_scene(AutoEvent(self.scene_manager, self))

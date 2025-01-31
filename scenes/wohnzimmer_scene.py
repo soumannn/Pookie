@@ -1,4 +1,3 @@
-import textwrap
 import time
 
 from Items import Item
@@ -217,6 +216,8 @@ class Wohnzimmer:
                 self.pookie.letPookieSay(self.pookie.tikTokMessage())
             elif event.key == pygame.K_l:
                 self.pookie.character.setPosition(55, 206)
+            elif event.key == pygame.K_a:
+                self.pookie.triggerAutoEvent()
 
             elif event.key == pygame.K_b:
                 """Buch lesen Modus"""

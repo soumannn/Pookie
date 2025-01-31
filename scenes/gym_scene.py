@@ -3,34 +3,39 @@ from Items import Item
 from character.animated_character import AnimatedCharacter
 from helper.debug_box import draw_debug_info
 
-class gym:
-    def __init__(self, scene_manager):
+class Gym:
+    def __init__(self, scene_manager, pookie):
         self.scene_manager = scene_manager
+        self.pookie = pookie
 
-        self.original_width, self.original_height = 736, 598  # Originalgröße des Bildes
-        self.bg_image = pygame.image.load("assets/backgrounds/pixel_art_gym_room.png").convert_alpha()
-        self.bg = pygame.transform.scale(self.bg_image, (600, 600))
+        # Fenstergröße an Wohnzimmer anpassen
+        self.window_width, self.window_height = 640, 480  
+
+        # Hintergrund
+        self.bg_image = pygame.image.load("assets/backgrounds/gymm.jpg").convert_alpha()
+        self.bg = pygame.transform.scale(self.bg_image, (self.window_width, self.window_height))
         self.bg_rect = self.bg.get_rect(topleft=(0, 0))
 
         # Pookie
-        self.character = AnimatedCharacter(0, 500)  # Start at left edge
-        self.character.disable_movement = True
-        self.character.current_animation = "walk_right"  # Walk animation
+        self.pookie.character.set_position(100, 300)  # Startposition
+        self.pookie.character.disable_movement = True
+        self.pookie.character.force_animation("walk_right")  # Startanimation
 
         # Zielposition auf der Matte
-        self.target_x = 210  # Beispiel: x-Position der Matte
-        self.target_y = 450  # Beispiel: y-Position der Matte
+        self.target_x = 390  # Beispiel: x-Position der Matte
+        self.target_y = 340  # Beispiel: y-Position der Matte
 
         # Hantel-Status
         self.lifting_weights = False  # Status: Hantel-Animation aktiv
         self.weights_animation_done = False  # Status: Hantel-Animation abgeschlossen
 
 
+
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:  # Zum Wohnzimmer zurückwechseln
                 from scenes.wohnzimmer_scene import Wohnzimmer
-                self.scene_manager.set_scene(Wohnzimmer(self.scene_manager))
+                self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self.pookie))
 
     def update(self, dt):
          # Bewegung nur ausführen, wenn die Hantel-Animation nicht läuft
@@ -41,61 +46,29 @@ class gym:
         if self.lifting_weights:
             self.lift_weights()
 
-        self.character.update(dt)
+        self.pookie.character.update(dt)
 
     def render(self, screen, debug_mode=False):
-        # Rendern der Esszimmer-Szene
+        # Rendern der Gym-Szene
         screen.blit(self.bg, self.bg_rect)
-        self.character.render(screen)
+        self.pookie.character.render(screen)
 
     def move_character_to_mattress(self):
-        # Zielkoordinaten
-        target_x = self.target_x
-        target_y = self.target_y
+        """ Pookie läuft von links zur Matte """
+        character_center = self.pookie.character.rect.center
 
-        # Charakterposition (Mitte)
-        character_center = self.character.rect.center
-
-        # Berechnung der Richtung
-        direction_x = target_x - character_center[0]
-        direction_y = target_y - character_center[1]
-
-        # Distanz berechnen
-        distance = max(abs(direction_x), abs(direction_y))
-
-        if distance > 0:
-            # Normalisierung der Richtung
-            velocity_x = direction_x / distance
-            velocity_y = direction_y / distance
-
-            # Bewegungsgeschwindigkeit
-            movement_speed = 2
-
-            # Bewegung aktualisieren
-            self.character.rect.x += velocity_x * movement_speed
-            self.character.rect.y += velocity_y * movement_speed
-
-            # Animation entsprechend der Richtung setzen
-            if abs(direction_x) > abs(direction_y):  # Horizontale Bewegung priorisieren
-                if direction_x > 0:
-                    self.character.force_animation("walk_right")
-                else:
-                    self.character.force_animation("walk_left")
-            else:  # Vertikale Bewegung
-                if direction_y > 0:
-                    self.character.force_animation("walk_down")
-                else:
-                    self.character.force_animation("walk_up")
-
-        # Ziel erreicht: Bewegung stoppen
-        if abs(character_center[0] - target_x) < 5 and abs(character_center[1] - target_y) < 5:
-            self.character.disable_movement = True
-            self.character.force_animation("idle")
+        # Pookie soll NUR nach rechts laufen, ohne Y zu verändern
+        if character_center[0] < self.target_x:
+            self.pookie.character.rect.x += 2  # Bewegung nach rechts
+            self.pookie.character.force_animation("walk_right")  # Immer nach rechts laufen
+        else:
+            self.pookie.character.disable_movement = True
+            self.pookie.character.force_animation("idle")
             self.lifting_weights = True  # Starte Hantel-Animation
     
     def lift_weights(self):
         if not self.weights_animation_done:  # Animation starten
-            self.character.animation_speed = 500  # Verlangsame die Animationsgeschwindigkeit
-            self.character.force_animation("hantel")
+            self.pookie.character.animation_speed = 500  # Verlangsame die Animationsgeschwindigkeit
+            self.pookie.character.force_animation("hantel")
             print("Startet Hantel-Animation...")
-            self.weights_animation_done = True  # Markiere als abgeschlossens 
+            self.weights_animation_done = True  # Markiere als abgeschlossen

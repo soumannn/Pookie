@@ -3,6 +3,7 @@ import time
 from character.animated_character import AnimatedCharacter
 from scenes.lernzimmer_scene import Lernzimmer
 from scenes.wohnzimmer_scene import Wohnzimmer
+from scenes.gym_scene import Gym
 import pygame
 import textwrap
 import numpy as np
@@ -33,6 +34,7 @@ class Pookie:
         self.message_font = pygame.font.SysFont('system-ui', 40)
         self.walk_to_learnroom = False
         self.walk_to_livingroom = False
+        self.walk_to_gym = False
 
 
         # Gyrosensor setup (only on Raspberry Pi)
@@ -100,6 +102,21 @@ class Pookie:
             self.walk_to = False  # Stop walking
             self.walk_to_learnroom = False
             self.scene_manager.set_scene(Lernzimmer(self.scene_manager, self))
+    
+    def handle_walk_to_gym(self):
+        """Handle walking to the learn room at a fixed target position."""
+        self.character.disable_movement = True
+        self.character.force_animation("walk_right")
+        #self.letPookieSay(self.bookMessage(), 2000)
+
+        # Hardcoded target position for the learn room
+        target_x, target_y = 640, 300
+
+        # Use helper method to move the character
+        if self.move_character_towards(target_x, target_y):
+            self.walk_to = False  # Stop walking
+            self.walk_to_gym = False
+            self.scene_manager.set_scene(Gym(self.scene_manager, self))
 
     def handle_walk_to_livingroom(self, left: bool):
         if left:

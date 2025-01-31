@@ -3,7 +3,7 @@ import time
 
 from Items import Item
 from helper.debug_box import draw_debug_info
-from scenes.gym_scene import gym
+from scenes.gym_scene import Gym
 
 import pygame
 from scenes.joggen_scene import JoggenScene
@@ -237,8 +237,9 @@ class Wohnzimmer:
 
 
             elif event.key == pygame.K_g:
-                """Sport Modus"""
-                self.scene_manager.set_scene(gym(self.scene_manager))
+                """gym gehen"""
+                print("Taste G wurde gedrückt, aber ohne Gym-Wechsel.")
+                self.pookie.walk_to_gym = True
 
     def reset_positions(self):
         self.pookie.character.rect.y = 0
@@ -431,6 +432,9 @@ class Wohnzimmer:
 
         if self.pookie.walk_to_learnroom:
             self.pookie.handle_walk_to_learnroom()
+        
+        if self.pookie.walk_to_gym:
+            self.pookie.handle_walk_to_gym()
 
         if not self.walk_to_window and self.movement_resume_timer > 0:
             self.movement_resume_timer -= dt

@@ -21,7 +21,7 @@ class ObjectDetector:
         self.picam2.start()
 
         # Load YOLO model
-        self.net = cv2.dnn.readNet("neural/yolov4-tiny.weights", "neural/yolov4-tiny.cfg")
+        self.net = cv2.dnn.readNet("backup/yolov4-tiny_final.weights", "neural/yolov4-tiny.cfg")
         # Set optimized backend for Raspberry Pi
         self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
         self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)

@@ -162,7 +162,7 @@ class JoggenScene:
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:  # Zum Wohnzimmer zurückwechseln
                 from scenes.wohnzimmer_scene import Wohnzimmer
-                self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self.pookie))
+                self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self.pookie, 55, 206))
 
     def render(self, screen, debug_mode=False):
         screen.blit(self.cozy_bg, self.bg_rect)

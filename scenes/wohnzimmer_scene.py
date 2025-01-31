@@ -19,11 +19,10 @@ class Wohnzimmer:
         self.scene_manager = scene_manager
         self.pookie = pookie
 
+
         #self.pookie.startDetectionThread()
 
         self.pookie.character.disable_movement = False
-        self.pookie.character.rect.x = pookiePosX if pookiePosX is not None else 300
-        self.pookie.character.rect.y = pookiePosY if pookiePosY is not None else 300
 
 
         # Character
@@ -92,7 +91,7 @@ class Wohnzimmer:
         # Door
         self.door_sprites = Item("assets/spritesheets/doors.png", 30, 51, 1, 3)
         self.door = pygame.transform.scale(self.door_sprites[self.door_index], (120, 200))
-        self.door_rect = self.window.get_rect(topleft=(30, 88))
+        self.door_rect = self.door.get_rect(topleft=(30, 88))
         self.cozy_door = self.pookie.apply_cozy_solo(self.door.copy())
 
         # Standinglamp
@@ -105,6 +104,7 @@ class Wohnzimmer:
 
         self.set_day_night()
 
+        self.pookie.character.setPosition(pookiePosX, pookiePosY)
 
     def print_click_position(self, event):
         """Print the position of a mouse click to the terminal."""
@@ -215,6 +215,8 @@ class Wohnzimmer:
                 self.pookie.walk_to_target = (448, 303)  # Target position for TikTok mode (244, 190)
                 self.pookie.handy += 1
                 self.pookie.letPookieSay(self.pookie.tikTokMessage())
+            elif event.key == pygame.K_l:
+                self.pookie.character.setPosition(55, 206)
 
             elif event.key == pygame.K_b:
                 """Buch lesen Modus"""
@@ -376,7 +378,6 @@ class Wohnzimmer:
             self.pookie.transition_to_sport_mode = True  # Start transition
             self.door_index = 1  # Open door animation
             self.cozy_door = pygame.transform.scale(self.pookie.apply_cozy_solo(self.door_sprites[self.door_index]), (120, 200))  # Open door animation
-
 
 
     """

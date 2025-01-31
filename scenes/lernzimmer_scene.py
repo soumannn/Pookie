@@ -106,7 +106,7 @@ class Lernzimmer:
 
         if self.pookie.character.rect.right < 0:
             from scenes.wohnzimmer_scene import Wohnzimmer 
-            self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self.pookie))
+            self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self.pookie, 618,278))
 
     def handle_use_handy(self):
         self.is_walking = False

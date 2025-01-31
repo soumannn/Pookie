@@ -144,10 +144,10 @@ class ObjectDetector:
                     self.handle_book_detection()
 
         # Save the image with detection results
-        timestamp = time.strftime("%Y%m%d-%H%M%S")
-        save_path = os.path.join(SAVE_DIR, f"detection_{timestamp}.jpg")
-        cv2.imwrite(save_path, frame)
-        print(f"Saved detection image: {save_path}")
+        #timestamp = time.strftime("%Y%m%d-%H%M%S")
+        #save_path = os.path.join(SAVE_DIR, f"detection_{timestamp}.jpg")
+        #cv2.imwrite(save_path, frame)
+        #print(f"Saved detection image: {save_path}")
 
         # Reset detection states if objects are no longer detected
         if not cell_phone_detected and self.tiktok_mode_active:

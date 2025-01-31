@@ -2,7 +2,12 @@ import threading
 from picamera2 import Picamera2
 import cv2
 import numpy as np
+import os
+import time
 
+SAVE_DIR = "detections"
+if not os.path.exists(SAVE_DIR):
+    os.makedirs(SAVE_DIR)
 
 class ObjectDetector:
     def __init__(self, scene_manager, pookie):
@@ -107,8 +112,8 @@ class ObjectDetector:
         return detected_objects
 
     def handle_detected_objects(self, detected_objects, frame):
-        """Handle detected objects and trigger actions."""
-        cell_phone_detected = False  # Track whether the cell phone is detected in this frame
+        """Handle detected objects and save images with bounding boxes."""
+        cell_phone_detected = False
         book_detected = False
 
         for obj in detected_objects:
@@ -117,32 +122,36 @@ class ObjectDetector:
             x, y, w, h = obj["box"]
             print(f"Detected {label} with confidence {confidence:.2f}")
 
-            # Highlight detected objects
+            # Draw bounding boxes
             cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
             cv2.putText(frame, f"{label} {confidence:.2f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
 
-            # Handle specific object detections
-            if label == "cell phone" or label == "remote":
+            # Handle specific detections
+            if label in ["cell phone", "remote"]:
                 cell_phone_detected = True
                 if not self.tiktok_mode_active:
-                    self.tiktok_mode_active = True  # Mark TikTok mode as active
-                    print(f"Cell phone detected! Activating TikTok mode. +++ {self.tiktok_mode_active}")
+                    self.tiktok_mode_active = True
+                    print(f"Cell phone detected! Activating TikTok mode.")
                     self.pookie.handy += 1
                     self.activate_tiktok_mode()
 
-            if label == "book" or label == "laptop":
+            if label in ["book", "laptop"]:
                 book_detected = True
                 if not self.book_mode_active:
                     self.book_mode_active = True
-                    print(f"Book/Laptop detected! Activate learn mode. +++ {self.book_mode_active}")
+                    print(f"Book/Laptop detected! Activate learn mode.")
                     self.pookie.learn += 1
                     self.handle_book_detection()
 
-            #self.execute_object_action(label)
+        # Save the image with detection results
+        timestamp = time.strftime("%Y%m%d-%H%M%S")
+        save_path = os.path.join(SAVE_DIR, f"detection_{timestamp}.jpg")
+        cv2.imwrite(save_path, frame)
+        print(f"Saved detection image: {save_path}")
 
-        # Reset if cell phone is no longer detected
+        # Reset detection states if objects are no longer detected
         if not cell_phone_detected and self.tiktok_mode_active:
-            self.tiktok_mode_active = False  # Reset TikTok mode flag
+            self.tiktok_mode_active = False
             print("Cell phone no longer detected. Resetting to normal mode.")
             self.reset_to_normal()
 

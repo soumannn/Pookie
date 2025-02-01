@@ -5,24 +5,19 @@ import numpy as np
 import os
 import time
 
-SAVE_DIR = "detections"
-if not os.path.exists(SAVE_DIR):
-    os.makedirs(SAVE_DIR)
-
 class ObjectDetector:
     def __init__(self, scene_manager, pookie):
         self.stop_event = threading.Event()
-        self.detection_thread = threading.Thread(target=self.detect_objects)
+        self.detection_thread = threading.Thread(target=self.detect_objects, daemon=True)
 
         self.scene_manager = scene_manager
         self.pookie = pookie
         self.picam2 = Picamera2()
         self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (640, 480)}))
-        self.picam2.start()
+        self.picam2.start()  # Start continuous video stream
 
         # Load YOLO model
         self.net = cv2.dnn.readNet("neural/yolov7-tiny.weights", "neural/yolov7-tiny.cfg")
-        # Set optimized backend for Raspberry Pi
         self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
         self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
 
@@ -31,57 +26,41 @@ class ObjectDetector:
         self.layer_names = self.net.getLayerNames()
         self.output_layers = [self.layer_names[i - 1] for i in self.net.getUnconnectedOutLayers()]
 
-        # State
-
-        self.current_scene = self.scene_manager.current_scene
-
         # Track detection state
         self.tiktok_mode_active = False
         self.book_mode_active = False
 
     def start_detection(self):
+        """Start the object detection in a separate thread."""
         if not self.detection_thread.is_alive():
-            self.detection_thread = threading.Thread(target=self.detect_objects)
+            self.detection_thread = threading.Thread(target=self.detect_objects, daemon=True)
             self.detection_thread.start()
 
     def stop_detection(self):
-        self.stop_event.set()  # Stoppsignal setzen
-        self.detection_thread.join()  # Warten, bis der Thread sauber beendet wurde
+        """Stop object detection."""
+        self.stop_event.set()
+        self.detection_thread.join()
         print("Detection stopped.")
 
     def detect_objects(self):
-        """Continuously capture frames and detect objects."""
-        while not self.stop_event.is_set():
-            print("Detect objects thread is running")
-            frame = self.picam2.capture_array()
+        """Continuously process frames from the camera."""
+        for frame in self.picam2.capture_continuous():
+            if self.stop_event.is_set():
+                break
 
-            # Preprocess frame
-            #frame = self.preprocess_frame(frame)
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
-
-            # Perform object detection
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)  # Ensure correct color format
             detections = self.perform_detection(frame)
-
-            # Process detections
             detected_objects = self.process_detections(detections)
-
-            # Handle detected objects
-            self.handle_detected_objects(detected_objects, frame)
-
-    def preprocess_frame(self, frame):
-        """Preprocess the frame for YOLO."""
-        if frame.shape[2] == 4:  # If it has 4 channels (RGBA)
-            frame = cv2.cvtColor(frame, cv2.COLOR_RGBA2RGB)
-        return frame
+            self.handle_detected_objects(detected_objects)
 
     def perform_detection(self, frame):
-        """Run the YOLO model and get detections."""
+        """Run the YOLO model on a frame."""
         blob = cv2.dnn.blobFromImage(frame, 1 / 255, (416, 416), (0, 0, 0), swapRB=True, crop=False)
         self.net.setInput(blob)
         return self.net.forward(self.output_layers)
 
     def process_detections(self, detections):
-        """Process detections and apply Non-Max Suppression (NMS)."""
+        """Extract detected objects with confidence scores."""
         boxes, confidences, class_ids = [], [], []
 
         for detection in detections:
@@ -89,9 +68,6 @@ class ObjectDetector:
                 scores = object_detection[5:]
                 class_id = np.argmax(scores)
                 confidence = scores[class_id]
-
-                if class_id == 0:
-                    continue
 
                 if confidence > 0.3:  # Threshold for detection
                     center_x, center_y, width, height = (
@@ -111,27 +87,23 @@ class ObjectDetector:
 
         return detected_objects
 
-    def handle_detected_objects(self, detected_objects, frame):
-        """Handle detected objects and save images with bounding boxes."""
+    def handle_detected_objects(self, detected_objects):
+        """Handle detected objects without displaying video."""
         cell_phone_detected = False
         book_detected = False
 
         for obj in detected_objects:
             label = obj["label"]
             confidence = obj["confidence"]
-            x, y, w, h = obj["box"]
-            print(f"Detected {label} with confidence {confidence:.2f}")
 
-            # Draw bounding boxes
-            #cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            #cv2.putText(frame, f"{label} {confidence:.2f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
+            print(f"Detected {label} with confidence {confidence:.2f}")
 
             # Handle specific detections
             if label == "cell phone" or label == "remote":
                 cell_phone_detected = True
                 if not self.tiktok_mode_active:
                     self.tiktok_mode_active = True
-                    print(f"Cell phone detected! Activating TikTok mode.")
+                    print("Cell phone detected! Activating TikTok mode.")
                     self.pookie.handy += 1
                     if isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[0]):
                         self.activate_tiktok_mode()
@@ -142,23 +114,16 @@ class ObjectDetector:
                 book_detected = True
                 if not self.book_mode_active:
                     self.book_mode_active = True
-                    print(f"Book/Laptop detected! Activate learn mode.")
+                    print("Book/Laptop detected! Activating learn mode.")
                     self.pookie.learn += 1
                     self.pookie.isLearning = True
                     self.handle_book_detection()
 
-        # Save the image with detection results
-        #timestamp = time.strftime("%Y%m%d-%H%M%S")
-        #save_path = os.path.join(SAVE_DIR, f"detection_{timestamp}.jpg")
-        #cv2.imwrite(save_path, frame)
-        #print(f"Saved detection image: {save_path}")
-
-        # Reset detection states if objects are no longer detected
+        # Reset states if objects are no longer detected
         if not cell_phone_detected and self.tiktok_mode_active:
             self.tiktok_mode_active = False
             print("Cell phone no longer detected. Resetting to normal mode.")
             self.reset_to_normal()
-
             if isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[1]):
                 self.scene_manager.current_scene.setUsingHandy(False)
 
@@ -169,16 +134,13 @@ class ObjectDetector:
             self.pookie.isLearning = False
             self.reset_to_normal()
 
-
     def handle_book_detection(self):
         self.pookie.walk_to_learnroom = True
         self.pookie.handle_walk_to_learnroom()
 
-
     def activate_tiktok_mode(self):
         self.pookie.perform_animation("handy_modus", (448, 303), self.pookie.tikTokMessage())
 
-
     def reset_to_normal(self):
         """Reset to normal behavior."""
-        self.scene_manager.current_scene.initialize_state() #reset animation
+        self.scene_manager.current_scene.initialize_state()

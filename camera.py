@@ -20,14 +20,14 @@ class ObjectDetector:
         self.picam2.start()
 
         # Load COCO class names
-        class_file = "coco.names"
+        class_file = "neural/frozen/coco.names"
         with open(class_file, "r") as f:
             self.class_names = [line.strip() for line in f.readlines()]
 
         # Load SSD MobileNet model
         self.net = cv2.dnn_DetectionModel(
-            "neural/frozen_inference_graph.pb",
-            "neural/ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt"
+            "neural/frozen/frozen_inference_graph.pb",
+            "neural/frozen/ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt"
         )
         self.net.setInputSize(320, 320)
         self.net.setInputScale(1.0 / 127.5)

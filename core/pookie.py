@@ -116,6 +116,7 @@ class Pookie:
         return accel_x, accel_y, accel_z
 
     def detect_tilt(self, accel_x, accel_y, accel_z, threshold=10.0):
+        print(f"X: {accel_x} Y: {accel_y} Z: {accel_z} + threshold {threshold}")
         """
         Detect a strong tilt based on accelerometer data relative to the baseline.
         We'll define:

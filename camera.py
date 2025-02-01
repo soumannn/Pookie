@@ -160,6 +160,7 @@ class ObjectDetector:
             self.reset_to_normal()
 
         if not book_detected and self.book_mode_active:
+            self.pookie.walk_to_learnroom = False
             self.book_mode_active = False
             print("Book/Laptop no longer detected. Resetting to normal mode.")
             self.pookie.isLearning = False

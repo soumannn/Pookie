@@ -2,11 +2,13 @@ import pygame
 from Items import Item
 from character.animated_character import AnimatedCharacter
 from helper.debug_box import draw_debug_info
+import time
 
 class Gym:
     def __init__(self, scene_manager, pookie):
         self.scene_manager = scene_manager
         self.pookie = pookie
+        self.pookie.character.disable_movement = False
 
         # Fenstergröße an Wohnzimmer anpassen
         self.window_width, self.window_height = 640, 480  
@@ -21,54 +23,66 @@ class Gym:
         self.pookie.character.disable_movement = True
         self.pookie.character.force_animation("walk_right")  # Startanimation
 
-        # Zielposition auf der Matte
-        self.target_x = 390  # Beispiel: x-Position der Matte
-        self.target_y = 340  # Beispiel: y-Position der Matte
-
-        # Hantel-Status
-        self.lifting_weights = False  # Status: Hantel-Animation aktiv
-        self.weights_animation_done = False  # Status: Hantel-Animation abgeschlossen
-
-
-
+       
+        # Zustand
+        self.walking = True
+        self.using_weights = False
+        self.using_phone = False
+        
+        self.movement_resume_timer = 0
+        self.resume_movement_delay = 500  # 500ms Verzögerung
+        
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
-            if event.key == pygame.K_ESCAPE:  # Zum Wohnzimmer zurückwechseln
+            if event.key == pygame.K_ESCAPE:  # Zurück ins Wohnzimmer
                 from scenes.wohnzimmer_scene import Wohnzimmer
                 self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self.pookie))
+            elif event.key == pygame.K_h:
+                self.start_lifting_weights()
+            elif event.key == pygame.K_t:
+                self.start_tiktok_mode()
 
     def update(self, dt):
-         # Bewegung nur ausführen, wenn die Hantel-Animation nicht läuft
-        if not self.lifting_weights:
-            self.move_character_to_mattress()
-
-        # Hantel-Animation ausführen
-        if self.lifting_weights:
-            self.lift_weights()
+        if self.walking:
+             self.walk_around()
+        
+        if not self.walking and self.movement_resume_timer > 0:
+            self.movement_resume_timer -= dt
+            if self.movement_resume_timer <= 0:
+                self.movement_resume_timer = 0
+                self.pookie.character.disable_movement = False
+                self.walking = True
 
         self.pookie.character.update(dt)
 
     def render(self, screen, debug_mode=False):
-        # Rendern der Gym-Szene
         screen.blit(self.bg, self.bg_rect)
         self.pookie.character.render(screen)
 
-    def move_character_to_mattress(self):
-        """ Pookie läuft von links zur Matte """
-        character_center = self.pookie.character.rect.center
+    def start_lifting_weights(self):
+        self.pookie.character.disable_movement = True
+        self.pookie.character.force_animation("hantel")
+        self.using_weights = True
+        self.walking = False
+        print("Pookie trainiert mit Hanteln!")
 
-        # Pookie soll NUR nach rechts laufen, ohne Y zu verändern
-        if character_center[0] < self.target_x:
-            self.pookie.character.rect.x += 2  # Bewegung nach rechts
-            self.pookie.character.force_animation("walk_right")  # Immer nach rechts laufen
+    def start_tiktok_mode(self):
+        self.pookie.character.disable_movement = True
+        self.pookie.character.force_animation("handy_modus")
+        self.using_phone = True
+        self.walking = False
+        print("Pookie schaut TikTok...")
+
+    def walk_around(self):
+        """ Pookie läuft zufällig im Gym herum """
+        self.pookie.character.disable_movement = False
+        speed = 0.02  # Super langsame Bewegung
+
+        if self.pookie.character.force_animation == "walk_right":
+            self.pookie.character.rect.x += speed
+            if self.pookie.character.rect.x > self.window_width - 50:
+                self.pookie.character.force_animation("walk_left")
         else:
-            self.pookie.character.disable_movement = True
-            self.pookie.character.force_animation("idle")
-            self.lifting_weights = True  # Starte Hantel-Animation
-    
-    def lift_weights(self):
-        if not self.weights_animation_done:  # Animation starten
-            self.pookie.character.animation_speed = 500  # Verlangsame die Animationsgeschwindigkeit
-            self.pookie.character.force_animation("hantel")
-            print("Startet Hantel-Animation...")
-            self.weights_animation_done = True  # Markiere als abgeschlossen
+            self.pookie.character.rect.x -= speed
+            if self.pookie.character.rect.x < 50:
+                self.pookie.character.force_animation("walk_right")

@@ -141,6 +141,7 @@ class ObjectDetector:
                     self.book_mode_active = True
                     print(f"Book/Laptop detected! Activate learn mode.")
                     self.pookie.learn += 1
+                    self.pookie.isLearning = True
                     self.handle_book_detection()
 
         # Save the image with detection results
@@ -158,6 +159,7 @@ class ObjectDetector:
         if not book_detected and self.book_mode_active:
             self.book_mode_active = False
             print("Book/Laptop no longer detected. Resetting to normal mode.")
+            self.pookie.isLearning = False
             self.reset_to_normal()
 
 

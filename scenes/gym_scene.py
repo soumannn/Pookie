@@ -5,10 +5,11 @@ class Gym:
         self.scene_manager = scene_manager
         self.pookie = pookie
 
-        self.pookie.calibrate_sensor()
+        if self.pookie.onRaspi:
+            self.pookie.calibrate_sensor()
 
         # Fenstergröße an Wohnzimmer anpassen
-        self.window_width, self.window_height = 640, 480  
+        self.window_width, self.window_height = 600, 480
 
         # Hintergrund
         self.bg_image = pygame.image.load("assets/backgrounds/gym_background__d4fc0171.png").convert()

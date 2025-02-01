@@ -133,9 +133,9 @@ class ObjectDetector:
                     self.tiktok_mode_active = True
                     print(f"Cell phone detected! Activating TikTok mode.")
                     self.pookie.handy += 1
-                    if self.scene_manager.current_scene[0]:
+                    if isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[0]):
                         self.activate_tiktok_mode()
-                    elif self.scene_manager.current_scene[1]:
+                    elif isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[1]):
                         self.scene_manager.current_scene.setUsingHandy(True)
 
             if label == "book" or label == "laptop":

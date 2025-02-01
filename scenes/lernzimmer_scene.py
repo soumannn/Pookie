@@ -5,7 +5,7 @@ from helper.debug_box import draw_debug_info
 from config import WEATHER_URL
 from datetime import datetime
 
-from scenes.wohnzimmer_scene import Wohnzimmer
+
 
 
 class Lernzimmer:
@@ -150,8 +150,7 @@ class Lernzimmer:
         self.pookie.character.rect.x -= movement_speed
 
         if self.pookie.character.rect.right < 0:
-            from scenes.wohnzimmer_scene import Wohnzimmer 
-            self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self.pookie, 618,278))
+            self.scene_manager.set_scene(self.scene_manager.scenes[0](self.scene_manager, self.pookie, 618,278))
 
     def handle_use_handy(self):
         self.is_walking = False
@@ -167,7 +166,7 @@ class Lernzimmer:
         self.pookie.letPookieSay(self.pookie.tikTokMessage())
 
     def update(self, dt):
-        self.pookie.check_tilt(Wohnzimmer)
+        self.pookie.check_tilt()
 
         if self.is_walking:
             self.handle_walk_to_chair()

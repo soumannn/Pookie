@@ -1,9 +1,4 @@
 import pygame
-from Items import Item
-from character.animated_character import AnimatedCharacter
-from helper.debug_box import draw_debug_info
-from scenes.wohnzimmer_scene import Wohnzimmer
-
 
 class Gym:
     def __init__(self, scene_manager, pookie):
@@ -54,8 +49,8 @@ class Gym:
     def handle_event(self, event):
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_ESCAPE:  # Zum Wohnzimmer zurückwechseln
-                from scenes.wohnzimmer_scene import Wohnzimmer
-                self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self.pookie))
+
+                self.scene_manager.set_scene(self.scene_manager.scenes[0](self.scene_manager, self.pookie))
             if event.key == pygame.K_r:
                 self.initialize_state()
 
@@ -65,7 +60,7 @@ class Gym:
         self.pookie.character.disable_movement = False
 
     def update(self, dt):
-        self.pookie.check_tilt(Wohnzimmer)
+        self.pookie.check_tilt()
 
          # Bewegung nur ausführen, wenn die Hantel-Animation nicht läuft
         if not self.lifting_weights:

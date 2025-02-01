@@ -1,6 +1,13 @@
+from scenes.wohnzimmer_scene import Wohnzimmer
+from scenes.lernzimmer_scene import Lernzimmer
+from scenes.joggen_scene import JoggenScene
+from scenes.gym_scene import Gym
+
+
 class SceneManager:
     def __init__(self):
         self.current_scene = None
+        self.scenes = [Wohnzimmer, Lernzimmer, JoggenScene, Gym]
 
     def set_scene(self, scene):
         self.current_scene = scene

@@ -2,11 +2,10 @@ import time
 
 from Items import Item
 from helper.debug_box import draw_debug_info
-from scenes.gym_scene import Gym
+
 
 import pygame
-from scenes.joggen_scene import JoggenScene
-from scenes.lernzimmer_scene import Lernzimmer
+
 import requests
 from datetime import datetime
 from config import WEATHER_URL
@@ -445,7 +444,7 @@ class Wohnzimmer:
 
             # Handle door open timer and transition
         if self.pookie.transition_to_sport_mode:
-            self.scene_manager.set_scene(JoggenScene(self.scene_manager, self.pookie))
+            self.scene_manager.set_scene(self.scene_manager.scenes[2](self.scene_manager, self.pookie))
 
         # Update weather every 5 minutes
         #if pygame.time.get_ticks() - self.last_weather_update > 300000:  # 5 minutes in milliseconds

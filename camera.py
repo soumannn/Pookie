@@ -174,10 +174,4 @@ class ObjectDetector:
 
     def reset_to_normal(self):
         """Reset to normal behavior."""
-        try:
-            from scenes.wohnzimmer_scene import Wohnzimmer
-        except ImportError as e:
-            print(f"ImportError occurred: {e}")
-            return
-        if isinstance(self.scene_manager.current_scene, Wohnzimmer):
-            self.scene_manager.current_scene.initialize_state() #reset animation
+        self.scene_manager.current_scene.initialize_state() #reset animation

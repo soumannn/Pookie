@@ -165,9 +165,6 @@ class Lernzimmer:
     def update(self, dt):
         self.pookie.check_shake()
 
-        if not self.pookie.isLearning:
-            self.initialize_state()
-
         if self.is_walking:
             self.handle_walk_to_chair()
         

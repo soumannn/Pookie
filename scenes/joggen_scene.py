@@ -177,6 +177,12 @@ class JoggenScene:
                 from scenes.wohnzimmer_scene import Wohnzimmer
                 self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self.pookie, 55, 206))
 
+
+    def initialize_state(self):
+        """Helper function to initialize scene state."""
+        print("trying to reset..")
+        self.pookie.character.disable_movement = False
+
     def render(self, screen, debug_mode=False):
         screen.blit(self.cozy_bg, self.bg_rect)
 
@@ -195,70 +201,4 @@ class JoggenScene:
             screen.blit(self.auto_left_tire_rotated, self.auto_left_tire_rect)
             screen.blit(self.auto_right_tire_rotated, self.auto_right_tire_rect)
 
-        if debug_mode:
-            # draw city layers debug info
-            for layer in self.city_layers:
-                draw_debug_info(
-                    screen,
-                    pygame.Rect(layer["x"], layer["y"], 600, 600),
-                    f"X: {layer['x']}, Y: {layer['y']}",
-                    self.debug_font,
-                    text_offset=(550, 0)
-                )
 
-            # Character debug info
-            draw_debug_info(
-                screen,
-                self.character.rect,
-                f"X: {self.character.rect.x}, Y: {self.character.rect.y}",
-                self.debug_font,
-                text_offset=(0, self.character.rect.height + 5)  # Below the rect
-            )
-
-            # Character status
-            draw_debug_info(
-                screen,
-                self.character.rect,
-                f"{self.character.current_animation}",
-                self.debug_font,
-                text_offset=(0, self.character.rect.height + 25)
-            )
-
-            # Autowalk status
-            draw_debug_info(
-                screen,
-                self.character.rect,
-                f"Autowalk {'off' if self.character.disable_movement else 'on'}",
-                self.debug_font,
-                text_offset=(0, self.character.rect.height + 45)
-            )
-
-            # draw red box on walking ground
-            pygame.draw.rect(screen, (255, 0, 0), (0, 346, 600, 600), 2)
-
-            # debug info about weather and day
-            draw_debug_info(
-                screen,
-                pygame.Rect(0, 0, 600, 20),
-                f"{self.day_night}",
-                self.debug_font,
-                text_offset=(0, 0)
-            )
-
-            # last weather update
-            draw_debug_info(
-                screen,
-                pygame.Rect(0, 20, 600, 20),
-                f"Last update: {self.last_weather_update}",
-                self.debug_font,
-                text_offset=(0, 0)
-            )
-
-            # city layer debug info
-            draw_debug_info(
-                screen,
-                pygame.Rect(0, 40, 600, 20),
-                f"City layer: {self.city_layers[0].items()}",
-                self.debug_font,
-                text_offset=(0, 0)
-            )

@@ -22,8 +22,8 @@ class Wohnzimmer:
 
 
         #self.pookie.startDetectionThread()
-
         self.pookie.character.disable_movement = False
+        self.pookie.character.force_animation("walk_left")
 
 
         # Character

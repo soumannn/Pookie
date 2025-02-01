@@ -155,6 +155,7 @@ class Pookie:
         if tilt_direction == "forward":
             self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self))
         elif tilt_direction == "backward":
+            print("trying to walk to door..")
             if isinstance(self.scene_manager, Wohnzimmer):
                 self.walk_to_door = True
             else:

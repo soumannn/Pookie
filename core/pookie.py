@@ -116,7 +116,6 @@ class Pookie:
         return accel_x, accel_y, accel_z
 
     def detect_tilt(self, accel_x, accel_y, accel_z, threshold=10.0):
-        print(f"X: {accel_x} Y: {accel_y} Z: {accel_z} + threshold {threshold}")
         """
         Detect a strong tilt based on accelerometer data relative to the baseline.
         We'll define:
@@ -151,9 +150,11 @@ class Pookie:
         tilt_direction = self.detect_tilt(accel_x, accel_y, accel_z)
 
         if tilt_direction == "forward":
+            print("forward ?")
             if not isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[0]):
                 self.scene_manager.set_scene(self.scene_manager.scenes[0](self.scene_manager, self))
         elif tilt_direction == "backward":
+            print("backward ?")
             if isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[0]):
                 self.walk_to_door = True
             else:

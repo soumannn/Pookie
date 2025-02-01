@@ -3,6 +3,7 @@ from picamera2 import Picamera2
 import cv2
 import numpy as np
 import os
+import time
 
 SAVE_DIR = "detections"
 if not os.path.exists(SAVE_DIR):
@@ -37,6 +38,9 @@ class ObjectDetector:
         # Track detection state
         self.tiktok_mode_active = False
         self.book_mode_active = False
+
+        self.last_cell_phone_detection = time.time()
+        self.last_book_detection = time.time()
 
     def start_detection(self):
         if not self.detection_thread.is_alive():
@@ -79,18 +83,20 @@ class ObjectDetector:
         return frame, detected_objects
 
     def handle_detected_objects(self, detected_objects):
-        """Handle detected objects and trigger events."""
+        """Handle detected objects and trigger events with a reset delay."""
         cell_phone_detected = False
         book_detected = False
+        current_time = time.time()
 
         for obj in detected_objects:
             label = obj["label"]
             confidence = obj["confidence"]
             print(f"Detected {label} with confidence {confidence:.2f}")
 
-            # Handle specific detections
+            # Handle cell phone detection
             if label in ["cell phone", "remote"]:
                 cell_phone_detected = True
+                self.last_cell_phone_detection = current_time  # Update detection time
                 if not self.tiktok_mode_active:
                     self.tiktok_mode_active = True
                     print("Cell phone detected! Activating TikTok mode.")
@@ -100,8 +106,10 @@ class ObjectDetector:
                     elif isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[1]):
                         self.scene_manager.current_scene.setUsingHandy(True)
 
+            # Handle book detection
             if label in ["book", "laptop"]:
                 book_detected = True
+                self.last_book_detection = current_time  # Update detection time
                 if not self.book_mode_active:
                     self.book_mode_active = True
                     print("Book/Laptop detected! Activating learn mode.")
@@ -109,20 +117,22 @@ class ObjectDetector:
                     self.pookie.isLearning = True
                     self.handle_book_detection()
 
-        # Reset states if objects are no longer detected
+        # Reset states **only if 20 seconds pass without detection**
         if not cell_phone_detected and self.tiktok_mode_active:
-            self.tiktok_mode_active = False
-            print("Cell phone no longer detected. Resetting to normal mode.")
-            self.reset_to_normal()
-            if isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[1]):
-                self.scene_manager.current_scene.setUsingHandy(False)
+            if current_time - self.last_cell_phone_detection > 20:  # 20 sec delay
+                self.tiktok_mode_active = False
+                print("Cell phone no longer detected for 20 seconds. Resetting to normal mode.")
+                self.reset_to_normal()
+                if isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[1]):
+                    self.scene_manager.current_scene.setUsingHandy(False)
 
         if not book_detected and self.book_mode_active:
-            self.pookie.walk_to_learnroom = False
-            self.book_mode_active = False
-            print("Book/Laptop no longer detected. Resetting to normal mode.")
-            self.pookie.isLearning = False
-            self.reset_to_normal()
+            if current_time - self.last_book_detection > 20:  # 20 sec delay
+                self.pookie.walk_to_learnroom = False
+                self.book_mode_active = False
+                print("Book/Laptop no longer detected for 20 seconds. Resetting to normal mode.")
+                self.pookie.isLearning = False
+                self.reset_to_normal()
 
     def handle_book_detection(self):
         self.pookie.walk_to_learnroom = True

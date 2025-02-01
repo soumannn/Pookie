@@ -41,7 +41,7 @@ class JoggenScene:
         self.street_image = pygame.image.load("assets/spritesheets/citybg/city_5/street.png").convert_alpha()
         self.street_image = pygame.transform.scale(self.street_image, (600, 10))  # Adjust height if needed
         self.street_x = 0  # Initial x position
-        self.street_speed = 2  # Movement speed
+        self.street_speed = 4 # Movement speed
 
         # Set initial city layers to day
         self.city_layers = self.city_layers_day

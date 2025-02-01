@@ -14,6 +14,7 @@ class Lernzimmer:
         self.pookie = pookie
 
         #self.pookie.startDetectionThread()
+        self.pookie.calibrate_sensor()
 
         # Debug font
         self.debug_font = pygame.font.Font(None, 24)

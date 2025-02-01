@@ -5,6 +5,8 @@ class Gym:
         self.scene_manager = scene_manager
         self.pookie = pookie
 
+        self.pookie.calibrate_sensor()
+
         # Fenstergröße an Wohnzimmer anpassen
         self.window_width, self.window_height = 640, 480  
 

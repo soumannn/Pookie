@@ -159,6 +159,9 @@ class ObjectDetector:
             print("Cell phone no longer detected. Resetting to normal mode.")
             self.reset_to_normal()
 
+            if isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[1]):
+                self.scene_manager.current_scene.setUsingHandy(False)
+
         if not book_detected and self.book_mode_active:
             self.pookie.walk_to_learnroom = False
             self.book_mode_active = False

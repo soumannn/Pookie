@@ -109,6 +109,9 @@ class Lernzimmer:
         if event.type == pygame.MOUSEBUTTONDOWN:
             print(f"Mouse clicked at position: {event.pos}")
 
+    def setUsingHandy(self, bool):
+        self.using_handy = bool
+
     def initialize_state(self):
         """Helper function to initialize scene state."""
         print("trying to reset..")

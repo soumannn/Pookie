@@ -61,14 +61,20 @@ class ObjectDetector:
             self.handle_detected_objects(detected_objects)
 
     def perform_detection(self, frame, threshold=0.45, nms=0.2):
-        """Run the SSD MobileNet model and get detections."""
+        """Run the SSD MobileNet model and get detections, filtering only relevant objects."""
         class_ids, confidences, boxes = self.net.detect(frame, confThreshold=threshold, nmsThreshold=nms)
         detected_objects = []
+
+        # Define the objects we care about
+        target_objects = ["book", "laptop", "remote", "cell phone"]
 
         if len(class_ids) != 0:
             for class_id, confidence, box in zip(class_ids.flatten(), confidences.flatten(), boxes):
                 class_name = self.class_names[class_id - 1]
-                detected_objects.append({"label": class_name, "confidence": confidence, "box": box})
+
+                # Only keep objects that are in the target list
+                if class_name in target_objects:
+                    detected_objects.append({"label": class_name, "confidence": confidence, "box": box})
 
         return frame, detected_objects
 

@@ -83,7 +83,7 @@ class ObjectDetector:
         return frame, detected_objects
 
     def handle_detected_objects(self, detected_objects):
-        """Handle detected objects and trigger events with a reset delay."""
+        """Handle detected objects and trigger events with reset on mode switch."""
         cell_phone_detected = False
         book_detected = False
         current_time = time.time()
@@ -96,7 +96,15 @@ class ObjectDetector:
             # Handle cell phone detection
             if label in ["cell phone", "remote"]:
                 cell_phone_detected = True
-                self.last_cell_phone_detection = current_time  # Update detection time
+                self.last_cell_phone_detection = current_time  # Update last detection time
+
+                # If book mode was active, immediately reset before activating phone mode
+                if self.book_mode_active:
+                    print("Switching from book to phone! Resetting mode.")
+                    self.reset_to_normal()
+                    self.book_mode_active = False
+                    self.pookie.isLearning = False
+
                 if not self.tiktok_mode_active:
                     self.tiktok_mode_active = True
                     print("Cell phone detected! Activating TikTok mode.")
@@ -109,7 +117,14 @@ class ObjectDetector:
             # Handle book detection
             if label in ["book", "laptop"]:
                 book_detected = True
-                self.last_book_detection = current_time  # Update detection time
+                self.last_book_detection = current_time  # Update last detection time
+
+                # If phone mode was active, immediately reset before activating book mode
+                if self.tiktok_mode_active:
+                    print("Switching from phone to book! Resetting mode.")
+                    self.reset_to_normal()
+                    self.tiktok_mode_active = False
+
                 if not self.book_mode_active:
                     self.book_mode_active = True
                     print("Book/Laptop detected! Activating learn mode.")

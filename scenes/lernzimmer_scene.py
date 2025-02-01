@@ -5,6 +5,9 @@ from helper.debug_box import draw_debug_info
 from config import WEATHER_URL
 from datetime import datetime
 
+from scenes.wohnzimmer_scene import Wohnzimmer
+
+
 class Lernzimmer:
     def __init__(self, scene_manager, pookie, detector=None):
         self.scene_manager = scene_manager
@@ -164,7 +167,7 @@ class Lernzimmer:
         self.pookie.letPookieSay(self.pookie.tikTokMessage())
 
     def update(self, dt):
-        self.pookie.check_tilt()
+        self.pookie.check_tilt(Wohnzimmer)
 
         if self.is_walking:
             self.handle_walk_to_chair()

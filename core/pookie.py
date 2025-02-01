@@ -142,20 +142,18 @@ class Pookie:
         else:
             return None  # No strong tilt
 
-    def check_tilt(self):
+    def check_tilt(self, scene=None):
         """Check for tilt and transition to sport mode if detected."""
         if not IS_RASPBERRY_PI:
             return
-
-        from scenes.wohnzimmer_scene import Wohnzimmer
 
         accel_x, accel_y, accel_z = self.read_sensor_data()
         tilt_direction = self.detect_tilt(accel_x, accel_y, accel_z)
 
         if tilt_direction == "forward":
-            self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self))
+            if scene:
+                self.scene_manager.set_scene(scene(self.scene_manager, self))
         elif tilt_direction == "backward":
-            print("trying to walk to door..")
             if isinstance(self.scene_manager, Wohnzimmer):
                 self.walk_to_door = True
             else:

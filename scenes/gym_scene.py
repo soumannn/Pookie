@@ -2,6 +2,8 @@ import pygame
 from Items import Item
 from character.animated_character import AnimatedCharacter
 from helper.debug_box import draw_debug_info
+from scenes.wohnzimmer_scene import Wohnzimmer
+
 
 class Gym:
     def __init__(self, scene_manager, pookie):
@@ -63,7 +65,7 @@ class Gym:
         self.pookie.character.disable_movement = False
 
     def update(self, dt):
-        self.pookie.check_tilt()
+        self.pookie.check_tilt(Wohnzimmer)
 
          # Bewegung nur ausführen, wenn die Hantel-Animation nicht läuft
         if not self.lifting_weights:

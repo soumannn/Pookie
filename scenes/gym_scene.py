@@ -2,7 +2,6 @@ import pygame
 from Items import Item
 from character.animated_character import AnimatedCharacter
 from helper.debug_box import draw_debug_info
-from scenes.wohnzimmer_scene import Wohnzimmer
 
 class Gym:
     def __init__(self, scene_manager, pookie):

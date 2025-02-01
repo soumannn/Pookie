@@ -147,6 +147,8 @@ class Pookie:
         if not IS_RASPBERRY_PI:
             return
 
+        from scenes.wohnzimmer_scene import Wohnzimmer
+
         accel_x, accel_y, accel_z = self.read_sensor_data()
         tilt_direction = self.detect_tilt(accel_x, accel_y, accel_z)
 

@@ -2,6 +2,8 @@ import time
 
 from Items import Item
 from helper.debug_box import draw_debug_info
+from scenes.gym_scene import Gym
+
 import pygame
 from scenes.joggen_scene import JoggenScene
 from scenes.lernzimmer_scene import Lernzimmer
@@ -202,6 +204,9 @@ class Wohnzimmer:
                 self.pookie.character.disable_movement = True
                 self.pookie.character.force_animation("hantel")
 
+            elif event.key == pygame.K_g:
+                self.pookie.walk_to_gym = True
+
             elif event.key == pygame.K_t:
                 """TikTok Modus
                 Walk to (426, 453) and switch to 'handy_modus'."""
@@ -235,7 +240,6 @@ class Wohnzimmer:
                 self.initialize_state()
                     #self.falling = False
                     #self.reset_positions()
-
 
     def reset_positions(self):
         self.pookie.character.rect.y = 0
@@ -413,6 +417,9 @@ class Wohnzimmer:
         if not self.pookie.character.dragging:
             self.pookie.character.update(dt)
 
+        if self.pookie.walk_to_gym:
+            self.pookie.handle_walk_to_gym()
+
         if self.falling:
             self.everything_falls()
 
@@ -424,6 +431,7 @@ class Wohnzimmer:
 
         if self.pookie.walk_to_learnroom:
             self.pookie.handle_walk_to_learnroom()
+
 
         if not self.walk_to_window and self.movement_resume_timer > 0:
             self.movement_resume_timer -= dt

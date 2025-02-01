@@ -4,6 +4,7 @@ from character.animated_character import AnimatedCharacter
 from scenes.lernzimmer_scene import Lernzimmer
 from scenes.wohnzimmer_scene import Wohnzimmer
 from scenes.secret.auto import AutoEvent
+from scenes.gym_scene import Gym
 import pygame
 import textwrap
 import numpy as np
@@ -34,11 +35,13 @@ class Pookie:
         self.message_font = pygame.font.SysFont('system-ui', 40)
         self.walk_to_learnroom = False
         self.walk_to_livingroom = False
+        self.walk_to_gym = False
         self.walk_to_door = False
         self.transition_to_sport_mode = False
         self.has_unlocked_car = False
 
         self.onRaspi = False
+
 
 
         # Gyrosensor setup (only on Raspberry Pi)
@@ -150,7 +153,10 @@ class Pookie:
         if tilt_direction == "forward":
             self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self))
         elif tilt_direction == "backward":
-            self.walk_to_door = True
+            if isinstance(self.scene_manager, Wohnzimmer):
+                self.walk_to_door = True
+            else:
+                return
 
     def perform_animation(self, animation_name: str, target: tuple, message: str=""):
         """
@@ -217,7 +223,9 @@ class Pookie:
                 self.walk_to_livingroom = False
                 self.scene_manager.set_scene(Wohnzimmer(self.scene_manager, self, 620))
 
-
+    def handle_walk_to_gym(self):
+            self.walk_to_gym = False
+            self.scene_manager.set_scene(Gym(self.scene_manager, self))
 
     def handle_walk_to(self):
         """Handle walking to the target position on the scene."""
@@ -228,7 +236,6 @@ class Pookie:
             if self.move_character_towards(target_x, target_y):
                 self.walk_to = False  # Stop walking
                 self.character.force_animation(self.walk_to_animation)
-
 
     def letPookieSay(self, message: str, duration: int = 5000):
         """Display a white box with the provided message and the character image on the left side."""

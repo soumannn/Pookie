@@ -164,6 +164,8 @@ class Lernzimmer:
         self.pookie.letPookieSay(self.pookie.tikTokMessage())
 
     def update(self, dt):
+        self.pookie.check_tilt()
+
         if self.is_walking:
             self.handle_walk_to_chair()
         

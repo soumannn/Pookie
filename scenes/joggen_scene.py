@@ -14,6 +14,9 @@ class JoggenScene:
         # set false so we can go back!
         self.pookie.transition_to_sport_mode = False
 
+
+        self.start_time = pygame.time.get_ticks()
+
         # Debug font
         self.debug_font = pygame.font.Font(None, 24)
 
@@ -112,6 +115,16 @@ class JoggenScene:
             self.city_layers = self.city_layers_day
 
     def update(self, dt):
+        if self.pookie.has_unlocked_car:
+            time = 5000
+        else:
+            time = 6000
+
+        if pygame.time.get_ticks() - self.start_time >= time:  # 4000 ms = 4 seconds
+            self.pookie.walk_to_gym = True
+
+        if self.pookie.walk_to_gym:
+            self.pookie.handle_walk_to_gym()
 
         # Update weather every 5 minutes
         if pygame.time.get_ticks() - self.last_weather_update > 300000:  # 5 minutes in milliseconds

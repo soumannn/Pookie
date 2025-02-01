@@ -2,7 +2,6 @@ import threading
 from picamera2 import Picamera2
 import cv2
 import numpy as np
-import os
 import time
 
 class ObjectDetector:
@@ -13,8 +12,8 @@ class ObjectDetector:
         self.scene_manager = scene_manager
         self.pookie = pookie
         self.picam2 = Picamera2()
-        self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (640, 480)}))
-        self.picam2.start()  # Start continuous video stream
+        self.picam2.configure(self.picam2.create_video_configuration(main={"size": (640, 480)}))
+        self.picam2.start()  # Start streaming video
 
         # Load YOLO model
         self.net = cv2.dnn.readNet("neural/yolov7-tiny.weights", "neural/yolov7-tiny.cfg")
@@ -43,8 +42,9 @@ class ObjectDetector:
         print("Detection stopped.")
 
     def detect_objects(self):
-        """Continuously process frames from the camera."""
-        for frame in self.picam2.capture_continuous():
+        """Continuously process frames from the video stream."""
+        print("Starting video stream processing...")
+        for frame in self.picam2.capture_video_frames():  # Capture video stream
             if self.stop_event.is_set():
                 break
 
@@ -69,7 +69,7 @@ class ObjectDetector:
                 class_id = np.argmax(scores)
                 confidence = scores[class_id]
 
-                if confidence > 0.3:  # Threshold for detection
+                if confidence > 0.3:  # Detection threshold
                     center_x, center_y, width, height = (
                             object_detection[0:4] * np.array([640, 480, 640, 480])
                     ).astype(int)
@@ -144,3 +144,4 @@ class ObjectDetector:
     def reset_to_normal(self):
         """Reset to normal behavior."""
         self.scene_manager.current_scene.initialize_state()
+

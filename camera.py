@@ -2,104 +2,88 @@ import threading
 from picamera2 import Picamera2
 import cv2
 import numpy as np
-import time
+import os
+
+SAVE_DIR = "detections"
+if not os.path.exists(SAVE_DIR):
+    os.makedirs(SAVE_DIR)
 
 class ObjectDetector:
     def __init__(self, scene_manager, pookie):
         self.stop_event = threading.Event()
-        self.detection_thread = threading.Thread(target=self.detect_objects, daemon=True)
+        self.detection_thread = threading.Thread(target=self.detect_objects)
 
         self.scene_manager = scene_manager
         self.pookie = pookie
         self.picam2 = Picamera2()
-        self.picam2.configure(self.picam2.create_video_configuration(main={"size": (640, 480)}))
-        self.picam2.start()  # Start streaming video
+        self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (640, 480)}))
+        self.picam2.start()
 
-        # Load YOLO model
-        self.net = cv2.dnn.readNet("neural/yolov7-tiny.weights", "neural/yolov7-tiny.cfg")
-        self.net.setPreferableBackend(cv2.dnn.DNN_BACKEND_OPENCV)
-        self.net.setPreferableTarget(cv2.dnn.DNN_TARGET_CPU)
-
-        with open("coco.names", "r") as f:
+        # Load COCO class names
+        class_file = "coco.names"
+        with open(class_file, "r") as f:
             self.class_names = [line.strip() for line in f.readlines()]
-        self.layer_names = self.net.getLayerNames()
-        self.output_layers = [self.layer_names[i - 1] for i in self.net.getUnconnectedOutLayers()]
+
+        # Load SSD MobileNet model
+        self.net = cv2.dnn_DetectionModel(
+            "neural/frozen_inference_graph.pb",
+            "neural/ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt"
+        )
+        self.net.setInputSize(320, 320)
+        self.net.setInputScale(1.0 / 127.5)
+        self.net.setInputMean((127.5, 127.5, 127.5))
+        self.net.setInputSwapRB(True)
 
         # Track detection state
         self.tiktok_mode_active = False
         self.book_mode_active = False
 
     def start_detection(self):
-        """Start the object detection in a separate thread."""
         if not self.detection_thread.is_alive():
-            self.detection_thread = threading.Thread(target=self.detect_objects, daemon=True)
+            self.detection_thread = threading.Thread(target=self.detect_objects)
             self.detection_thread.start()
 
     def stop_detection(self):
-        """Stop object detection."""
         self.stop_event.set()
         self.detection_thread.join()
         print("Detection stopped.")
 
     def detect_objects(self):
-        """Continuously process frames from the video stream."""
-        print("Starting video stream processing...")
-        for frame in self.picam2.capture_video_frames():  # Capture video stream
-            if self.stop_event.is_set():
-                break
+        """Continuously capture frames and detect objects."""
+        while not self.stop_event.is_set():
+            frame = self.picam2.capture_array()
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
 
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)  # Ensure correct color format
-            detections = self.perform_detection(frame)
-            detected_objects = self.process_detections(detections)
+            # Perform object detection
+            result, detected_objects = self.perform_detection(frame)
+
+            # Handle detected objects
             self.handle_detected_objects(detected_objects)
 
-    def perform_detection(self, frame):
-        """Run the YOLO model on a frame."""
-        blob = cv2.dnn.blobFromImage(frame, 1 / 255, (416, 416), (0, 0, 0), swapRB=True, crop=False)
-        self.net.setInput(blob)
-        return self.net.forward(self.output_layers)
+    def perform_detection(self, frame, threshold=0.45, nms=0.2):
+        """Run the SSD MobileNet model and get detections."""
+        class_ids, confidences, boxes = self.net.detect(frame, confThreshold=threshold, nmsThreshold=nms)
+        detected_objects = []
 
-    def process_detections(self, detections):
-        """Extract detected objects with confidence scores."""
-        boxes, confidences, class_ids = [], [], []
+        if len(class_ids) != 0:
+            for class_id, confidence, box in zip(class_ids.flatten(), confidences.flatten(), boxes):
+                class_name = self.class_names[class_id - 1]
+                detected_objects.append({"label": class_name, "confidence": confidence, "box": box})
 
-        for detection in detections:
-            for object_detection in detection:
-                scores = object_detection[5:]
-                class_id = np.argmax(scores)
-                confidence = scores[class_id]
-
-                if confidence > 0.3:  # Detection threshold
-                    center_x, center_y, width, height = (
-                            object_detection[0:4] * np.array([640, 480, 640, 480])
-                    ).astype(int)
-                    x = int(center_x - width / 2)
-                    y = int(center_y - height / 2)
-                    boxes.append([x, y, int(width), int(height)])
-                    confidences.append(float(confidence))
-                    class_ids.append(class_id)
-
-        indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.3, 0.4)
-        detected_objects = [
-            {"label": self.class_names[class_ids[i]], "confidence": confidences[i], "box": boxes[i]}
-            for i in indexes
-        ]
-
-        return detected_objects
+        return frame, detected_objects
 
     def handle_detected_objects(self, detected_objects):
-        """Handle detected objects without displaying video."""
+        """Handle detected objects and trigger events."""
         cell_phone_detected = False
         book_detected = False
 
         for obj in detected_objects:
             label = obj["label"]
             confidence = obj["confidence"]
-
             print(f"Detected {label} with confidence {confidence:.2f}")
 
             # Handle specific detections
-            if label == "cell phone" or label == "remote":
+            if label in ["cell phone", "remote"]:
                 cell_phone_detected = True
                 if not self.tiktok_mode_active:
                     self.tiktok_mode_active = True
@@ -110,7 +94,7 @@ class ObjectDetector:
                     elif isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[1]):
                         self.scene_manager.current_scene.setUsingHandy(True)
 
-            if label == "book" or label == "laptop":
+            if label in ["book", "laptop"]:
                 book_detected = True
                 if not self.book_mode_active:
                     self.book_mode_active = True
@@ -143,5 +127,5 @@ class ObjectDetector:
 
     def reset_to_normal(self):
         """Reset to normal behavior."""
-        self.scene_manager.current_scene.initialize_state()
+        self.scene_manager.current_scene.initialize_state()  # Reset animation
 

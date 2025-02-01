@@ -25,7 +25,7 @@ class ObjectDetector:
             self.class_names = [line.strip() for line in f.readlines()]
 
         # Load SSD MobileNet model
-        self.net = cv2.readNetFromTensorflow(
+        self.net = cv2.dnn_DetectionModel(
             "neural/frozen_inference_graph.pb",
             "neural/ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt"
         )

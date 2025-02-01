@@ -115,50 +115,22 @@ class Pookie:
 
         return accel_x, accel_y, accel_z
 
-    def detect_tilt(self, accel_x, accel_y, accel_z, threshold=10.0):
-        """
-        Detect a strong tilt based on accelerometer data relative to the baseline.
-        We'll define:
-            Forward tilt:   accel_x < -threshold
-            Backward tilt:  accel_x > threshold
-            Right tilt:     accel_y > threshold
-            Left tilt:      accel_y < -threshold
+    def detect_shake(self, accel_x, accel_y, accel_z, threshold=10.0):
+        if abs(accel_x) > threshold or abs(accel_y) > threshold or abs(accel_z) > threshold:
+            print("Shake detected!")
+            return True
+        return False
 
-        Adjust these definitions depending on how you hold the Pi.
-        """
-        if accel_x < -threshold:
-            print("Strong forward tilt detected!")
-            return "forward"
-        elif accel_x > threshold:
-            print("Strong backward tilt detected!")
-            return "backward"
-        elif accel_y > threshold:
-            print("Strong right tilt detected!")
-            return "right"
-        elif accel_y < -threshold:
-            print("Strong left tilt detected!")
-            return "left"
-        else:
-            return None  # No strong tilt
-
-    def check_tilt(self):
-        """Check for tilt and transition to sport mode if detected."""
+    def check_shake(self):
+        """Check for a shake event and transition to the new scene if detected."""
         if not IS_RASPBERRY_PI:
             return
 
         accel_x, accel_y, accel_z = self.read_sensor_data()
-        tilt_direction = self.detect_tilt(accel_x, accel_y, accel_z)
-
-        if tilt_direction == "forward":
-            print("forward ?")
-            if not isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[0]):
-                self.scene_manager.set_scene(self.scene_manager.scenes[0](self.scene_manager, self))
-        elif tilt_direction == "backward":
-            print("backward ?")
-            if isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[0]):
-                self.walk_to_door = True
-            else:
-                return
+        if self.detect_shake(accel_x, accel_y, accel_z):
+            self.character.disable_movement = False
+            self.character.force_animation("walk_down")
+            self.scene_manager.set_scene(self.scene_manager.scenes[0](self.scene_manager, self, 300, 300))
 
     def perform_animation(self, animation_name: str, target: tuple, message: str=""):
         """

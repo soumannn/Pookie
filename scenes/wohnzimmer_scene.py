@@ -405,7 +405,7 @@ class Wohnzimmer:
 
 
     def update(self, dt):
-        self.pookie.check_tilt()
+        self.pookie.check_shake()
 
         # Handle shake timer to re-enable movement
         if self.shake_timer is not None:

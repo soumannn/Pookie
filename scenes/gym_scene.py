@@ -62,7 +62,7 @@ class Gym:
         self.pookie.character.disable_movement = False
 
     def update(self, dt):
-        self.pookie.check_tilt()
+        self.pookie.check_shake()
 
          # Bewegung nur ausführen, wenn die Hantel-Animation nicht läuft
         if not self.lifting_weights:

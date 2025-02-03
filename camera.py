@@ -72,7 +72,7 @@ class ObjectDetector:
         detected_objects = []
 
         # Define the objects we care about
-        target_objects = ["book", "cell phone", "ball"]
+        target_objects = ["book", "laptop", "remote", "cell phone", "ball"]
 
         if len(class_ids) != 0:
             for class_id, confidence, box in zip(class_ids.flatten(), confidences.flatten(), boxes):
@@ -97,7 +97,7 @@ class ObjectDetector:
             print(f"Detected {label} with confidence {confidence:.2f}")
 
             # Handle cell phone detection
-            if label in ["cell phone"]:
+            if label in ["cell phone", "remote"]:
                 cell_phone_detected = True
                 self.last_cell_phone_detection = current_time  # Update last detection time
 
@@ -118,7 +118,7 @@ class ObjectDetector:
                         self.scene_manager.current_scene.setUsingHandy(True)
 
             # Handle book detection
-            if label in ["book"]:
+            if label in ["book", "laptop"]:
                 book_detected = True
                 self.last_book_detection = current_time  # Update last detection time
 

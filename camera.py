@@ -38,6 +38,7 @@ class ObjectDetector:
         # Track detection state
         self.tiktok_mode_active = False
         self.book_mode_active = False
+        self.ball_mode_active = False
 
         self.last_cell_phone_detection = time.time()
         self.last_book_detection = time.time()

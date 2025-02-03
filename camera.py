@@ -70,7 +70,7 @@ class ObjectDetector:
         detected_objects = []
 
         # Define the objects we care about
-        target_objects = ["book", "cell phone", "ball"]
+        target_objects = ["book", "cell phone", "sports ball"]
 
         if len(class_ids) != 0:
             for class_id, confidence, box in zip(class_ids.flatten(), confidences.flatten(), boxes):
@@ -133,7 +133,7 @@ class ObjectDetector:
                     self.pookie.isLearning = True
                     self.handle_book_detection()
 
-            if label == "ball":
+            if label == "sports ball":
                 ball_detected = True
                 self.last_ball_detection = current_time  # Update last detection time
 

@@ -70,7 +70,7 @@ class ObjectDetector:
         detected_objects = []
 
         # Define the objects we care about
-        target_objects = ["book", "laptop", "remote", "cell phone"]
+        target_objects = ["book", "cell phone", "ball"]
 
         if len(class_ids) != 0:
             for class_id, confidence, box in zip(class_ids.flatten(), confidences.flatten(), boxes):
@@ -86,6 +86,7 @@ class ObjectDetector:
         """Handle detected objects and trigger events with reset on mode switch."""
         cell_phone_detected = False
         book_detected = False
+        ball_detected = True
         current_time = time.time()
 
         for obj in detected_objects:
@@ -94,7 +95,7 @@ class ObjectDetector:
             print(f"Detected {label} with confidence {confidence:.2f}")
 
             # Handle cell phone detection
-            if label in ["cell phone", "remote"]:
+            if label == "cell phone":
                 cell_phone_detected = True
                 self.last_cell_phone_detection = current_time  # Update last detection time
 
@@ -115,7 +116,7 @@ class ObjectDetector:
                         self.scene_manager.current_scene.setUsingHandy(True)
 
             # Handle book detection
-            if label in ["book", "laptop"]:
+            if label == "book":
                 book_detected = True
                 self.last_book_detection = current_time  # Update last detection time
 
@@ -131,6 +132,15 @@ class ObjectDetector:
                     self.pookie.learn += 1
                     self.pookie.isLearning = True
                     self.handle_book_detection()
+
+            if label == "ball":
+                ball_detected = True
+                self.last_ball_detection = current_time  # Update last detection time
+
+                if not self.ball_mode_active:
+                    self.ball_mode_active = True
+                    print("Ball detected! Activating walk to door.")
+                    self.pookie.walk_to_door = True
 
         # Reset states **only if 20 seconds pass without detection**
         if not cell_phone_detected and self.tiktok_mode_active:
@@ -148,6 +158,12 @@ class ObjectDetector:
                 print("Book/Laptop no longer detected for 20 seconds. Resetting to normal mode.")
                 self.pookie.isLearning = False
                 self.reset_to_normal()
+
+        if not ball_detected and self.ball_mode_active:
+            if current_time - self.last_ball_detection > 20:  # 20 sec delay
+                self.ball_mode_active = False
+                print("Ball no longer detected for 20 seconds. Resetting walk to door.")
+                self.pookie.walk_to_door = False
 
     def handle_book_detection(self):
         self.pookie.walk_to_learnroom = True

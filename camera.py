@@ -92,16 +92,9 @@ class ObjectDetector:
         current_time = time.time()
 
         for obj in detected_objects:
-            #label = obj["label"]
-            #confidence = obj["confidence"]
-
-            x, y, w, h = obj["box"]
             label = obj["label"]
             confidence = obj["confidence"]
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            text = f"{label} {confidence:.2f}"
-            cv2.putText(frame, text, (x, y - 5),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
+
 
             print(f"Detected {label} with confidence {confidence:.2f}")
 

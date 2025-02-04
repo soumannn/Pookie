@@ -30,11 +30,6 @@ class Wohnzimmer:
         self.last_click_time = 0
         self.dragging_character = False
 
-        #waste
-        self.waste = self.pookie.apply_cozy_solo(pygame.image.load("assets/models/waste.png")).convert_alpha()
-        self.waste = pygame.transform.scale(self.waste, (200, 200))
-        self.waste_rect = self.waste.get_rect(topleft=(150, 350))
-
         # debug-font
         self.debug_font = pygame.font.Font(None, 24)
 
@@ -80,24 +75,9 @@ class Wohnzimmer:
         self.current_weather_index = 0
         self.window_sprites = Item("assets/spritesheets/windows.png", 32, 28, 1, 4)
         self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (130, 130))
-        self.window_rect = self.window.get_rect(topleft=(210, 60))
+        self.window_rect = self.window.get_rect(topleft=(380, 70))
         self.cozy_window = self.pookie.apply_cozy_solo(self.window.copy())
         self.walk_to_window = False
-
-        #treppe
-        self.treppe = self.pookie.apply_cozy_solo(pygame.image.load("assets/models/treppe.png")).convert_alpha()
-        self.treppe = pygame.transform.scale(self.treppe, (260, 320))
-        self.treppe_rect = self.treppe.get_rect(topleft=(385, -10))
-
-        #teppich
-        self.teppich = self.pookie.apply_cozy_solo(pygame.image.load("assets/models/teppich.png")).convert_alpha()
-        self.teppich = pygame.transform.scale(self.teppich, (350, 200))
-        self.teppich_rect = self.teppich.get_rect(topleft=(280, 336))
-
-        #plattenspieler
-        self.plattenspieler = self.pookie.apply_cozy_solo(pygame.image.load("assets/models/plattenspieler.png")).convert_alpha()
-        self.plattenspieler = pygame.transform.scale(self.plattenspieler, (120, 120))
-        self.plattenspieler_rect = self.plattenspieler.get_rect(topleft=(140, 300))
 
         # Sofa
         self.sofa_image = pygame.image.load("assets/models/sofa.png").convert_alpha()
@@ -479,33 +459,18 @@ class Wohnzimmer:
         screen.blit(self.cozy_bg, self.bg_rect)
         screen.blit(self.cozy_window, self.window_rect)
         screen.blit(self.cozy_door, self.door_rect)
-        screen.blit(self.treppe, self.treppe_rect)
-        screen.blit(self.teppich, self.teppich_rect)
 
-        #waste
-        if self.pookie.handy > 10:
-            screen.blit(self.waste, self.waste_rect)
+        # Charakter und Sofa-Logik
+        character_rect = self.pookie.character.rect
+        if character_rect.bottom <= self.sofa_rect.centery:
+            self.pookie.character.render(screen)
+            screen.blit(self.cozy_sofa, self.sofa_rect)
+        else:
+            screen.blit(self.cozy_sofa, self.sofa_rect)
+            self.pookie.character.render(screen)
 
-        screen.blit(self.cozy_sofa, self.sofa_rect)
-
-        objects = [
-
-            (self.plattenspieler, self.plattenspieler_rect),
-            (self.cozy_lamp, self.standing_lamp_rect),
-            (self.pookie.character, self.pookie.character.rect,)
-        ]
-
-        # Sort objects by their bottom position
-        objects.sort(key=lambda obj: obj[1].bottom)
-
-        # Render in the correct order
-        for obj, rect in objects:
-            if isinstance(obj, type(self.pookie.character)):  # Ensure character uses its render method
-                obj.render(screen)
-            else:
-                screen.blit(obj, rect)
-
-
+        # Stehlampe
+        screen.blit(self.cozy_lamp, self.standing_lamp_rect)
 
         # Zeit und Wetter rendern
         elapsed_time = time.time() - self.start_time
@@ -553,7 +518,6 @@ class Wohnzimmer:
                 del self.pookie.pookie_message_box
                 del self.pookie.pookie_message_text
                 del self.pookie.pookie_character_image
-
 
         if debug_mode:
             # sensor temp

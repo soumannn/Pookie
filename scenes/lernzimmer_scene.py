@@ -179,7 +179,7 @@ class Lernzimmer:
 
         if self.using_handy:
             self.handle_left_learn_room()
-            #self.handle_use_handy()
+            self.handle_use_handy()
 
         # Update the character animation
         self.pookie.character.update(dt)

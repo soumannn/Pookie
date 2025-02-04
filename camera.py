@@ -85,7 +85,7 @@ class ObjectDetector:
             # Frame im Fenster anzeigen
             #cv2.imshow("Detections", result_frame)
             timestamp = int(time.time())
-            filename = f"detection_{timestamp}.jpg"
+            filename = f"detections/detection_{timestamp}.jpg"
             cv2.imwrite(filename, result_frame)
 
             # Warte kurz, damit Fenster aktualisiert wird

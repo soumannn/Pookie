@@ -11,9 +11,11 @@ if not os.path.exists(SAVE_DIR):
 
 
 class ObjectDetector:
-    def __init__(self):
+    def __init__(self, scenemanager, pookie):
         self.stop_event = threading.Event()
         self.detection_thread = threading.Thread(target=self.detect_objects)
+        self.scenemanager = scenemanager
+        self.pookie = pookie
 
         self.picam2 = Picamera2()
         self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (640, 480)}))

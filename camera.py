@@ -62,14 +62,10 @@ class ObjectDetector:
             # Perform object detection
             result, detected_objects = self.perform_detection(frame)
 
-            timestamp = int(time.time())
-            save_path = os.path.join(SAVE_DIR, f"detection_{timestamp}.jpg")
-            cv2.imwrite(save_path, result)
-
             # Handle detected objects
             self.handle_detected_objects(detected_objects)
 
-    def perform_detection(self, frame, threshold=0.8, nms=0.2):
+    def perform_detection(self, frame, threshold=0.45, nms=0.2):
         """Run the SSD MobileNet model and get detections, filtering only relevant objects."""
         class_ids, confidences, boxes = self.net.detect(frame, confThreshold=threshold, nmsThreshold=nms)
         detected_objects = []
@@ -85,10 +81,7 @@ class ObjectDetector:
                 if class_name in target_objects:
                     detected_objects.append({"label": class_name, "confidence": confidence, "box": box})
 
-                    # Draw bounding box and label on frame
-                    cv2.rectangle(frame, box, (0, 255, 0), 2)
-                    cv2.putText(frame, f"{class_name} {confidence:.2f}", (box[0], box[1] - 10), 
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
+        return frame, detected_objects
 
     def handle_detected_objects(self, detected_objects):
         """Handle detected objects and trigger events with reset on mode switch."""

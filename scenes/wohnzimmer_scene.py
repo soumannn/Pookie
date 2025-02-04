@@ -486,25 +486,17 @@ class Wohnzimmer:
         if self.pookie.handy > 10:
             screen.blit(self.waste, self.waste_rect)
 
-        screen.blit(self.cozy_sofa, self.sofa_rect)
 
-        objects = [
+        screen.blit(self.cozy_lamp, self.standing_lamp_rect)
 
-            (self.plattenspieler, self.plattenspieler_rect),
-            (self.cozy_lamp, self.standing_lamp_rect),
-            (self.pookie.character, self.pookie.character.rect,)
-        ]
 
-        # Sort objects by their bottom position
-        objects.sort(key=lambda obj: obj[1].bottom)
-
-        # Render in the correct order
-        for obj, rect in objects:
-            if isinstance(obj, type(self.pookie.character)):  # Ensure character uses its render method
-                obj.render(screen)
-            else:
-                screen.blit(obj, rect)
-
+        character_rect = self.pookie.character.rect
+        if character_rect.bottom <= self.sofa_rect.centery:
+            self.pookie.character.render(screen)
+            screen.blit(self.cozy_sofa, self.sofa_rect)
+        else:
+            screen.blit(self.cozy_sofa, self.sofa_rect)
+            self.pookie.character.render(screen)
 
 
         # Zeit und Wetter rendern

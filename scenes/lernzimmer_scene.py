@@ -202,16 +202,33 @@ class Lernzimmer:
         screen.blit(self.cozy_bookshelf_s, self.bookshelf_s_rect)
         screen.blit(self.cozy_music_player, self.music_player_rect)
         screen.blit(self.cozy_fish_tank, self.fish_tank_rect)
-        screen.blit(self.cozy_tree_pot, self.tree_pot_rect)
+        #screen.blit(self.cozy_tree_pot, self.tree_pot_rect)
         screen.blit(self.cozy_wall_shelf, self.wall_shelf_rect)
         screen.blit(self.cozy_small_pot_1, self.small_pot_1_rect)
         screen.blit(self.cozy_small_pot_2, self.small_pot_2_rect)
         screen.blit(self.cozy_carpet, self.carpet_rect)
         screen.blit(self.cozy_chair, self.chair_rect)
-        screen.blit(self.cozy_table, self.table_rect)
+        #screen.blit(self.cozy_table, self.table_rect)
+
+        objects = [
+            (self.cozy_tree_pot, self.tree_pot_rect),
+            (self.cozy_table, self.table_rect),
+            (self.pookie.character, self.pookie.character.rect,)
+        ]
+
+        # Sort objects by their bottom position
+        objects.sort(key=lambda obj: obj[1].bottom)
+
+        # Render in the correct order
+        for obj, rect in objects:
+            if isinstance(obj, type(self.pookie.character)):  # Ensure character uses its render method
+                obj.render(screen)
+            else:
+                screen.blit(obj, rect)
+
+        #self.pookie.character.render(screen)
         screen.blit(self.cozy_tablelamp, self.table_lamp_rect)
 
-        self.pookie.character.render(screen)
 
         if hasattr(self.pookie, "pookie_message_box"):
             if pygame.time.get_ticks() - self.pookie.message_display_time < self.pookie.message_duration:

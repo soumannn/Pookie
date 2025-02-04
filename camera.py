@@ -22,6 +22,7 @@ class ObjectDetector:
 
         # Load COCO class names
         class_file = "neural/frozen/coco.names"
+        self.class_names = []
         with open(class_file, "r") as f:
             self.class_names = [line.strip() for line in f.readlines()]
 
@@ -57,7 +58,8 @@ class ObjectDetector:
         """Continuously capture frames and detect objects."""
         while not self.stop_event.is_set():
             frame = self.picam2.capture_array()
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+            #frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
+            print("Searching for clues..")
 
             # Perform object detection
             result, detected_objects = self.perform_detection(frame)
@@ -69,23 +71,19 @@ class ObjectDetector:
             # Handle detected objects
             self.handle_detected_objects(detected_objects)
 
-    def perform_detection(self, frame, threshold=0.5, nms=0.2):
-        """Run the SSD MobileNet model and get detections, filtering only relevant objects."""
+
+    def perform_detection(self, frame, threshold=0.45, nms=0.2):
+        """Run the SSD MobileNet model and get detections."""
         class_ids, confidences, boxes = self.net.detect(frame, confThreshold=threshold, nmsThreshold=nms)
         detected_objects = []
-
-        # Define the objects we care about
-        target_objects = ["book", "cell phone", "sports ball"]
 
         if len(class_ids) != 0:
             for class_id, confidence, box in zip(class_ids.flatten(), confidences.flatten(), boxes):
                 class_name = self.class_names[class_id - 1]
-
-                # Only keep objects that are in the target list
-                if class_name in target_objects:
-                    detected_objects.append({"label": class_name, "confidence": confidence, "box": box})
+                detected_objects.append({"label": class_name, "confidence": confidence, "box": box})
 
         return frame, detected_objects
+
 
     def handle_detected_objects(self, detected_objects):
         """Handle detected objects and trigger events with reset on mode switch."""

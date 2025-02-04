@@ -183,7 +183,7 @@ class Wohnzimmer:
                     self.current_weather_index = 1
 
                 # Update the window sprite
-                self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (130, 130))
+                self.cozy_window = pygame.transform.scale(self.pookie.apply_cozy_solo(self.window_sprites[self.current_weather_index]), (130, 130))
 
             # Detect character drag
             if self.pookie.character.rect.collidepoint(event.pos):  # Start dragging
@@ -210,8 +210,8 @@ class Wohnzimmer:
             if event.key == pygame.K_w:
                 # Use an index to toggle
                 self.current_weather_index = 1 - self.current_weather_index  # Toggles between 0 and 1
-                self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (130, 130))
-                self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index],
+                self.cozy_window = pygame.transform.scale(self.pookie.apply_cozy_solo(self.window_sprites[self.current_weather_index]), (130, 130))
+                self.cozy_lamp = pygame.transform.scale(self.pookie.apply_cozy_solo(self.stand_lamp_sprites[self.current_weather_index]),
                                                             (60, 180))
             elif event.key == pygame.K_s:
                 self.pookie.walk_to_door = True  # Start walking to the door
@@ -369,7 +369,7 @@ class Wohnzimmer:
                     self.current_weather_index = 1
 
                 # Update the window sprite
-                self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (130, 130))
+                self.window = pygame.transform.scale(self.pookie.apply_cozy_solo(self.window_sprites[self.current_weather_index]), (130, 130))
 
                 # Start movement resume timer
                 self.movement_resume_timer = self.resume_movement_delay

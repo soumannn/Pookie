@@ -5,10 +5,6 @@ import numpy as np
 import os
 import time
 
-SAVE_DIR = "detections"
-if not os.path.exists(SAVE_DIR):
-    os.makedirs(SAVE_DIR)
-
 class ObjectDetector:
     def __init__(self, scene_manager, pookie):
         self.stop_event = threading.Event()
@@ -17,7 +13,9 @@ class ObjectDetector:
         self.scene_manager = scene_manager
         self.pookie = pookie
         self.picam2 = Picamera2()
-        self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (640, 480)}))
+        self.picam2.configure(
+            self.picam2.create_preview_configuration(main={"size": (640, 480)})
+        )
         self.picam2.start()
 
         # Load COCO class names
@@ -52,10 +50,12 @@ class ObjectDetector:
     def stop_detection(self):
         self.stop_event.set()
         self.detection_thread.join()
+        # Fenster schließen, sobald gestoppt wird
+        cv2.destroyAllWindows()
         print("Detection stopped.")
 
     def detect_objects(self):
-        """Continuously capture frames and detect objects."""
+        """Continuously capture frames and detect objects, then show them on screen."""
         while not self.stop_event.is_set():
             frame = self.picam2.capture_array()
             # Konvertiere von BGRA zu BGR (falls Picamera2 es so liefert)
@@ -64,14 +64,14 @@ class ObjectDetector:
             # Perform object detection
             result_frame, detected_objects = self.perform_detection(frame)
 
-            # ---- NEU: Bounding Boxes und Labels in result_frame zeichnen ----
+            # Bounding Boxes und Labels in result_frame zeichnen
             for obj in detected_objects:
                 x, y, w, h = obj["box"]
                 label = obj["label"]
                 confidence = obj["confidence"]
 
-                # Rechteck zeichnen
-                color = (0, 255, 0)       # grüne Box
+                # Rechteck zeichnen (grün)
+                color = (0, 255, 0)
                 thickness = 2
                 cv2.rectangle(result_frame, (x, y), (x + w, y + h), color, thickness)
 
@@ -82,29 +82,39 @@ class ObjectDetector:
                 text_color = (0, 255, 0)
                 cv2.putText(result_frame, text, (x, y - 5), font, font_scale, text_color, 1, cv2.LINE_AA)
 
-            # Speichere das Bild mit Bounding Boxes
-            timestamp = int(time.time())
-            save_path = os.path.join(SAVE_DIR, f"detection_{timestamp}.jpg")
-            cv2.imwrite(save_path, result_frame)
+            # Frame im Fenster anzeigen
+            cv2.imshow("Detections", result_frame)
 
-            # Danach die Objekte weiterverarbeiten (Modi umschalten, etc.)
+            # Warte kurz, damit Fenster aktualisiert wird
+            # und überprüfe, ob 'q' gedrückt wurde
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                self.stop_detection()
+                break
+
+            # Handle detected objects (Modi umschalten, etc.)
             self.handle_detected_objects(detected_objects)
 
     def perform_detection(self, frame, threshold=0.5, nms=0.2):
         """Run the SSD MobileNet model and get detections, filtering only relevant objects."""
-        class_ids, confidences, boxes = self.net.detect(frame, confThreshold=threshold, nmsThreshold=nms)
+        class_ids, confidences, boxes = self.net.detect(
+            frame, confThreshold=threshold, nmsThreshold=nms
+        )
         detected_objects = []
 
         # Objekte definieren, die für uns relevant sind
         target_objects = ["book", "cell phone", "sports ball"]
 
         if len(class_ids) != 0:
-            for class_id, confidence, box in zip(class_ids.flatten(), confidences.flatten(), boxes):
+            for class_id, confidence, box in zip(
+                class_ids.flatten(), confidences.flatten(), boxes
+            ):
                 class_name = self.class_names[class_id - 1]
 
                 # Nur Objekte in target_objects behalten
                 if class_name in target_objects:
-                    detected_objects.append({"label": class_name, "confidence": confidence, "box": box})
+                    detected_objects.append(
+                        {"label": class_name, "confidence": confidence, "box": box}
+                    )
 
         return frame, detected_objects
 
@@ -123,15 +133,16 @@ class ObjectDetector:
             # Handle cell phone detection
             if label == "cell phone":
                 cell_phone_detected = True
-                self.last_cell_phone_detection = current_time
+                self.last_cell_phone_detection = current_time  # Update last detection time
 
-                # Wechsel von book_mode zu phone_mode
+                # Wenn Book-Mode aktiv war, wechsle erst zurück
                 if self.book_mode_active:
                     print("Switching from book to phone! Resetting mode.")
                     self.reset_to_normal()
                     self.book_mode_active = False
                     self.pookie.isLearning = False
 
+                # TikTok-Modus aktivieren
                 if not self.tiktok_mode_active:
                     self.tiktok_mode_active = True
                     print("Cell phone detected! Activating TikTok mode.")
@@ -146,12 +157,13 @@ class ObjectDetector:
                 book_detected = True
                 self.last_book_detection = current_time
 
-                # Wechsel von phone_mode zu book_mode
+                # Wenn TikTok-Modus aktiv war, wechsle erst zurück
                 if self.tiktok_mode_active:
                     print("Switching from phone to book! Resetting mode.")
                     self.reset_to_normal()
                     self.tiktok_mode_active = False
 
+                # Book-Modus aktivieren
                 if not self.book_mode_active:
                     self.book_mode_active = True
                     print("Book/Laptop detected! Activating learn mode.")
@@ -159,7 +171,7 @@ class ObjectDetector:
                     self.pookie.isLearning = True
                     self.handle_book_detection()
 
-            # Handle ball detection
+            # Handle sports ball detection
             if label == "sports ball":
                 ball_detected = True
                 self.last_ball_detection = current_time
@@ -169,7 +181,7 @@ class ObjectDetector:
                     print("Ball detected! Activating walk to door.")
                     self.pookie.walk_to_door = True
 
-        # Reset phone mode, wenn 20 Sekunden kein Handy erkannt
+        # Reset states, wenn 20 Sekunden lang kein passendes Objekt erkannt
         if not cell_phone_detected and self.tiktok_mode_active:
             if current_time - self.last_cell_phone_detection > 20:
                 self.tiktok_mode_active = False
@@ -178,7 +190,6 @@ class ObjectDetector:
                 if isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[1]):
                     self.scene_manager.current_scene.setUsingHandy(False)
 
-        # Reset book mode, wenn 20 Sekunden kein Buch erkannt
         if not book_detected and self.book_mode_active:
             if current_time - self.last_book_detection > 20:
                 self.pookie.walk_to_learnroom = False
@@ -187,7 +198,6 @@ class ObjectDetector:
                 self.pookie.isLearning = False
                 self.reset_to_normal()
 
-        # Reset ball mode, wenn 20 Sekunden kein Ball erkannt
         if not ball_detected and self.ball_mode_active:
             if current_time - self.last_ball_detection > 20:
                 self.ball_mode_active = False

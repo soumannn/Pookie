@@ -486,9 +486,7 @@ class Wohnzimmer:
         if self.pookie.handy > 10:
             screen.blit(self.waste, self.waste_rect)
 
-
         screen.blit(self.cozy_lamp, self.standing_lamp_rect)
-
 
         character_rect = self.pookie.character.rect
         if character_rect.bottom <= self.sofa_rect.centery:

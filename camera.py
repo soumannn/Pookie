@@ -16,7 +16,7 @@ class ObjectDetector:
         self.detection_thread = threading.Thread(target=self.detect_objects)
 
         self.picam2 = Picamera2()
-        self.picam2.configure(self.picam2.create_video_configuration(main={"size": (640, 480)}))
+        self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (640, 480)}))
         self.picam2.start()
 
         # COCO-Klassennamen laden

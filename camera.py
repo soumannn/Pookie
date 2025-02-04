@@ -73,7 +73,6 @@ class ObjectDetector:
         """Run the SSD MobileNet model and get detections."""
         class_ids, confidences, boxes = self.net.detect(frame, confThreshold=threshold, nmsThreshold=nms)
         detected_objects = []
-        print(f"test: {detected_objects}")
 
         if len(class_ids) != 0:
             for class_id, confidence, box in zip(class_ids.flatten(), confidences.flatten(), boxes):

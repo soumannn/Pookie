@@ -82,11 +82,11 @@ class ObjectDetector:
                 text_color = (0, 255, 0)
                 cv2.putText(result_frame, text, (x, y - 5), font, font_scale, text_color, 1, cv2.LINE_AA)
 
-            # Frame im Fenster anzeigen
-            #cv2.imshow("Detections", result_frame)
-            timestamp = int(time.time())
-            filename = f"detections/detection_{timestamp}.jpg"
-            cv2.imwrite(filename, result_frame)
+                # Frame im Fenster anzeigen
+                #cv2.imshow("Detections", result_frame)
+                timestamp = int(time.time())
+                filename = f"detections/detection_{timestamp}.jpg"
+                cv2.imwrite(filename, result_frame)
 
             # Warte kurz, damit Fenster aktualisiert wird
             # und überprüfe, ob 'q' gedrückt wurde

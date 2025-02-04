@@ -482,8 +482,6 @@ class Wohnzimmer:
         screen.blit(self.treppe, self.treppe_rect)
         screen.blit(self.teppich, self.teppich_rect)
 
-        self.pookie.calibrate_sensor()
-
         #waste
         if self.pookie.handy > 10:
             screen.blit(self.waste, self.waste_rect)

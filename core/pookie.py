@@ -131,6 +131,7 @@ class Pookie:
         if self.detect_shake(accel_x, accel_y, accel_z):
             self.character.disable_movement = False
             self.character.force_animation("walk_down")
+            self.calibrate_sensor()
             self.scene_manager.set_scene(self.scene_manager.scenes[0](self.scene_manager, self, 300, 300))
 
     def perform_animation(self, animation_name: str, target: tuple, message: str=""):

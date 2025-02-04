@@ -64,7 +64,7 @@ class ObjectDetector:
             result, detected_objects = self.perform_detection(frame)
 
             # Handle detected objects
-            self.handle_detected_objects(detected_objects)
+            self.handle_detected_objects(detected_objects, result)
 
 
     def perform_detection(self, frame, threshold=0.5, nms=0.1):
@@ -80,7 +80,7 @@ class ObjectDetector:
         return frame, detected_objects
 
 
-    def handle_detected_objects(self, detected_objects):
+    def handle_detected_objects(self, detected_objects, frame):
         """Handle detected objects and trigger events with reset on mode switch."""
         cell_phone_detected = False
         book_detected = False
@@ -88,9 +88,17 @@ class ObjectDetector:
         current_time = time.time()
 
         for obj in detected_objects:
+            #label = obj["label"]
+            #confidence = obj["confidence"]
+            print(f"Detected {label} with confidence {confidence:.2f}")
+
+            x, y, w, h = obj["box"]
             label = obj["label"]
             confidence = obj["confidence"]
-            print(f"Detected {label} with confidence {confidence:.2f}")
+            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
+            text = f"{label} {confidence:.2f}"
+            cv2.putText(frame, text, (x, y - 5),
+                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
 
             # Handle cell phone detection
             if label == "cell phone":
@@ -162,6 +170,10 @@ class ObjectDetector:
                 self.ball_mode_active = False
                 print("Ball no longer detected for 20 seconds. Resetting walk to door.")
                 self.pookie.walk_to_door = False
+
+        timestamp = int(time.time())
+        filename = f"detection_{timestamp}.jpg"
+        cv2.imwrite(filename, frame)
 
     def handle_book_detection(self):
         self.pookie.walk_to_learnroom = True

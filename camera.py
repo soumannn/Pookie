@@ -90,7 +90,6 @@ class ObjectDetector:
         for obj in detected_objects:
             #label = obj["label"]
             #confidence = obj["confidence"]
-            print(f"Detected {label} with confidence {confidence:.2f}")
 
             x, y, w, h = obj["box"]
             label = obj["label"]
@@ -99,6 +98,9 @@ class ObjectDetector:
             text = f"{label} {confidence:.2f}"
             cv2.putText(frame, text, (x, y - 5),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
+
+            print(f"Detected {label} with confidence {confidence:.2f}")
+
 
             # Handle cell phone detection
             if label == "cell phone":

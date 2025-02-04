@@ -22,7 +22,6 @@ class ObjectDetector:
 
         # Load COCO class names
         class_file = "neural/frozen/coco.names"
-        self.class_names = []
         with open(class_file, "r") as f:
             self.class_names = [line.strip() for line in f.readlines()]
 
@@ -63,10 +62,6 @@ class ObjectDetector:
 
             # Perform object detection
             result, detected_objects = self.perform_detection(frame)
-
-            timestamp = int(time.time())
-            save_path = os.path.join(SAVE_DIR, f"detection_{timestamp}.jpg")
-            cv2.imwrite(save_path, result)
 
             # Handle detected objects
             self.handle_detected_objects(detected_objects)

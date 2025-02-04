@@ -116,7 +116,7 @@ class Pookie:
 
         return accel_x, accel_y, accel_z
 
-    def detect_shake(self, accel_x, accel_y, accel_z, threshold=10.0):
+    def detect_shake(self, accel_x, accel_y, accel_z, threshold=50.0):
         if abs(accel_x) > threshold or abs(accel_y) > threshold or abs(accel_z) > threshold:
             print("Shake detected!")
             return True

@@ -2,196 +2,182 @@ import threading
 from picamera2 import Picamera2
 import cv2
 import numpy as np
+import os
+import time
 
+SAVE_DIR = "detections"
+if not os.path.exists(SAVE_DIR):
+    os.makedirs(SAVE_DIR)
 
 class ObjectDetector:
     def __init__(self, scene_manager, pookie):
+        self.stop_event = threading.Event()
+        self.detection_thread = threading.Thread(target=self.detect_objects)
+
         self.scene_manager = scene_manager
         self.pookie = pookie
         self.picam2 = Picamera2()
-        self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (1920, 1080)}))
+        self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (640, 480)}))
         self.picam2.start()
 
-        # Load YOLO model
-        self.net = cv2.dnn.readNet("yolov4.weights", "yolov4.cfg")
-        with open("coco.names", "r") as f:
+        # Load COCO class names
+        class_file = "neural/frozen/coco.names"
+        with open(class_file, "r") as f:
             self.class_names = [line.strip() for line in f.readlines()]
-        self.layer_names = self.net.getLayerNames()
-        self.output_layers = [self.layer_names[i - 1] for i in self.net.getUnconnectedOutLayers()]
 
-        # State
-        self.running = True
-        self.current_scene = self.scene_manager.current_scene
-
-        # Object-to-scene mapping
-        self.object_to_scene = {
-            # Kitchen objects
-            "banana": "KitchenScene",
-            "apple": "KitchenScene",
-            "sandwich": "KitchenScene",
-            "orange": "KitchenScene",
-            "broccoli": "KitchenScene",
-            "carrot": "KitchenScene",
-            "hot dog": "KitchenScene",
-            "pizza": "KitchenScene",
-            "donut": "KitchenScene",
-            "cake": "KitchenScene",
-            # learn room
-            "book": "LearnScene",
-            # Living room objects
-            "chair": "LivingRoomScene",
-            "sofa": "LivingRoomScene",
-            "potted plant": "LivingRoomScene",
-            "bed": "LivingRoomScene",
-            # TikTok mode
-            "cell phone": "TikTokMode",
-            # Sport objects
-            "frisbee": "SportMode",
-            "skis": "SportMode",
-            "snowboard": "SportMode",
-            "sports ball": "SportMode",
-            "kite": "SportMode",
-            "baseball bat": "SportMode",
-            "baseball glove": "SportMode",
-            "skateboard": "SportMode",
-            "surfboard": "SportMode",
-            "tennis racket": "SportMode",
-        }
+        # Load SSD MobileNet model
+        self.net = cv2.dnn_DetectionModel(
+            "neural/frozen/frozen_inference_graph.pb",
+            "neural/frozen/ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt"
+        )
+        self.net.setInputSize(320, 320)
+        self.net.setInputScale(1.0 / 127.5)
+        self.net.setInputMean((127.5, 127.5, 127.5))
+        self.net.setInputSwapRB(True)
 
         # Track detection state
-        self.cell_phone_detected = False
         self.tiktok_mode_active = False
+        self.book_mode_active = False
+        self.ball_mode_active = False
+
+        self.last_cell_phone_detection = time.time()
+        self.last_book_detection = time.time()
+
+    def start_detection(self):
+        if not self.detection_thread.is_alive():
+            self.detection_thread = threading.Thread(target=self.detect_objects)
+            self.detection_thread.start()
+
+    def stop_detection(self):
+        self.stop_event.set()
+        self.detection_thread.join()
+        print("Detection stopped.")
 
     def detect_objects(self):
         """Continuously capture frames and detect objects."""
-        while self.running:
-            print("Detect objects thread is running")
+        while not self.stop_event.is_set():
             frame = self.picam2.capture_array()
-
-            # Preprocess frame
-            frame = self.preprocess_frame(frame)
+            frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
 
             # Perform object detection
-            detections = self.perform_detection(frame)
+            result, detected_objects = self.perform_detection(frame)
 
-            # Process detections
-            detected_objects = self.process_detections(detections)
+            timestamp = int(time.time())
+            save_path = os.path.join(SAVE_DIR, f"detection_{timestamp}.jpg")
+            cv2.imwrite(save_path, result)
 
             # Handle detected objects
-            self.handle_detected_objects(detected_objects, frame)
+            self.handle_detected_objects(detected_objects)
 
-    def preprocess_frame(self, frame):
-        """Preprocess the frame for YOLO."""
-        frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        frame_equalized = cv2.equalizeHist(frame_gray)
-        return cv2.cvtColor(frame_equalized, cv2.COLOR_GRAY2BGR)
+    def perform_detection(self, frame, threshold=0.5, nms=0.2):
+        """Run the SSD MobileNet model and get detections, filtering only relevant objects."""
+        class_ids, confidences, boxes = self.net.detect(frame, confThreshold=threshold, nmsThreshold=nms)
+        detected_objects = []
 
-    def perform_detection(self, frame):
-        """Run the YOLO model and get detections."""
-        blob = cv2.dnn.blobFromImage(frame, 1 / 255, (416, 416), (0, 0, 0), swapRB=True, crop=False)
-        self.net.setInput(blob)
-        return self.net.forward(self.output_layers)
+        # Define the objects we care about
+        target_objects = ["book", "cell phone", "sports ball"]
 
-    def process_detections(self, detections):
-        """Process detections and apply Non-Max Suppression (NMS)."""
-        boxes, confidences, class_ids = [], [], []
+        if len(class_ids) != 0:
+            for class_id, confidence, box in zip(class_ids.flatten(), confidences.flatten(), boxes):
+                class_name = self.class_names[class_id - 1]
 
-        for detection in detections:
-            for object_detection in detection:
-                scores = object_detection[5:]
-                class_id = np.argmax(scores)
-                confidence = scores[class_id]
+                # Only keep objects that are in the target list
+                if class_name in target_objects:
+                    detected_objects.append({"label": class_name, "confidence": confidence, "box": box})
 
-                if class_id == 0:
-                    continue
+        return frame, detected_objects
 
-                if confidence > 0.3:  # Threshold for detection
-                    center_x, center_y, width, height = (
-                            object_detection[0:4] * np.array([640, 480, 640, 480])
-                    ).astype(int)
-                    x = int(center_x - width / 2)
-                    y = int(center_y - height / 2)
-                    boxes.append([x, y, int(width), int(height)])
-                    confidences.append(float(confidence))
-                    class_ids.append(class_id)
-
-        indexes = cv2.dnn.NMSBoxes(boxes, confidences, 0.3, 0.4)
-        detected_objects = [
-            {"label": self.class_names[class_ids[i]], "confidence": confidences[i], "box": boxes[i]}
-            for i in indexes
-        ]
-
-        return detected_objects
-
-    def handle_detected_objects(self, detected_objects, frame):
-        """Handle detected objects and trigger actions."""
-        cell_phone_detected = False  # Track whether the cell phone is detected in this frame
+    def handle_detected_objects(self, detected_objects):
+        """Handle detected objects and trigger events with reset on mode switch."""
+        cell_phone_detected = False
+        book_detected = False
+        ball_detected = True
+        current_time = time.time()
 
         for obj in detected_objects:
             label = obj["label"]
             confidence = obj["confidence"]
-            x, y, w, h = obj["box"]
             print(f"Detected {label} with confidence {confidence:.2f}")
 
-            # Highlight detected objects
-            cv2.rectangle(frame, (x, y), (x + w, y + h), (0, 255, 0), 2)
-            cv2.putText(frame, f"{label} {confidence:.2f}", (x, y - 10), cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1)
-
-            # Handle specific object detections
+            # Handle cell phone detection
             if label == "cell phone":
                 cell_phone_detected = True
+                self.last_cell_phone_detection = current_time  # Update last detection time
+
+                # If book mode was active, immediately reset before activating phone mode
+                if self.book_mode_active:
+                    print("Switching from book to phone! Resetting mode.")
+                    self.reset_to_normal()
+                    self.book_mode_active = False
+                    self.pookie.isLearning = False
+
                 if not self.tiktok_mode_active:
-                    self.tiktok_mode_active = True  # Mark TikTok mode as active
-                    print(f"Cell phone detected! Activating TikTok mode. +++ {self.tiktok_mode_active}")
+                    self.tiktok_mode_active = True
+                    print("Cell phone detected! Activating TikTok mode.")
                     self.pookie.handy += 1
-                    self.activate_tiktok_mode()
+                    if isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[0]):
+                        self.activate_tiktok_mode()
+                    elif isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[1]):
+                        self.scene_manager.current_scene.setUsingHandy(True)
 
+            # Handle book detection
             if label == "book":
-                self.pookie.learn += 1
-                self.handle_book_detection()
+                book_detected = True
+                self.last_book_detection = current_time  # Update last detection time
 
-            #self.execute_object_action(label)
+                # If phone mode was active, immediately reset before activating book mode
+                if self.tiktok_mode_active:
+                    print("Switching from phone to book! Resetting mode.")
+                    self.reset_to_normal()
+                    self.tiktok_mode_active = False
 
-        # Reset if cell phone is no longer detected
+                if not self.book_mode_active:
+                    self.book_mode_active = True
+                    print("Book/Laptop detected! Activating learn mode.")
+                    self.pookie.learn += 1
+                    self.pookie.isLearning = True
+                    self.handle_book_detection()
+
+            if label == "sports ball":
+                ball_detected = True
+                self.last_ball_detection = current_time  # Update last detection time
+
+                if not self.ball_mode_active:
+                    self.ball_mode_active = True
+                    print("Ball detected! Activating walk to door.")
+                    self.pookie.walk_to_door = True
+
+        # Reset states **only if 20 seconds pass without detection**
         if not cell_phone_detected and self.tiktok_mode_active:
-            self.tiktok_mode_active = False  # Reset TikTok mode flag
-            print("Cell phone no longer detected. Resetting to normal mode.")
-            self.reset_to_normal()
+            if current_time - self.last_cell_phone_detection > 20:  # 20 sec delay
+                self.tiktok_mode_active = False
+                print("Cell phone no longer detected for 20 seconds. Resetting to normal mode.")
+                self.reset_to_normal()
+                if isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[1]):
+                    self.scene_manager.current_scene.setUsingHandy(False)
 
-    def execute_object_action(self, label):
-        """Execute action based on the detected object."""
-        actions = {
-            "cell phone": self.activate_tiktok_mode,
-            "book": self.handle_book_detection,
+        if not book_detected and self.book_mode_active:
+            if current_time - self.last_book_detection > 20:  # 20 sec delay
+                self.pookie.walk_to_learnroom = False
+                self.book_mode_active = False
+                print("Book/Laptop no longer detected for 20 seconds. Resetting to normal mode.")
+                self.pookie.isLearning = False
+                self.reset_to_normal()
 
-        }
-        action = actions.get(label)
-        if action:
-            action()
+        if not ball_detected and self.ball_mode_active:
+            if current_time - self.last_ball_detection > 20:  # 20 sec delay
+                self.ball_mode_active = False
+                print("Ball no longer detected for 20 seconds. Resetting walk to door.")
+                self.pookie.walk_to_door = False
 
     def handle_book_detection(self):
-        """Handle book detection logic."""
-        from scenes.wohnzimmer_scene import Wohnzimmer
-        if isinstance(self.scene_manager.current_scene, Wohnzimmer):
-            self.scene_manager.current_scene.handle_walk_to_learnroom()
-
+        self.pookie.walk_to_learnroom = True
+        self.pookie.handle_walk_to_learnroom()
 
     def activate_tiktok_mode(self):
         self.pookie.perform_animation("handy_modus", (448, 303), self.pookie.tikTokMessage())
 
-
-
     def reset_to_normal(self):
         """Reset to normal behavior."""
-        try:
-            from scenes.wohnzimmer_scene import Wohnzimmer
-        except ImportError as e:
-            print(f"ImportError occurred: {e}")
-            return
-        if isinstance(self.scene_manager.current_scene, Wohnzimmer):
-            self.scene_manager.current_scene.initialize_state() #reset animation
+        self.scene_manager.current_scene.initialize_state()  # Reset animation
 
-    def stop(self):
-        """Stop the detection."""
-        self.running = False
-        self.picam2.stop()

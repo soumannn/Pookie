@@ -15,7 +15,7 @@ def main():
     # locale.setlocale(locale.LC_TIME, 'German_Germany.1252')
 
     scene_manager = SceneManager()
-    scene_manager.set_scene(Wohnzimmer(scene_manager, Pookie()))
+    scene_manager.set_scene(Wohnzimmer(scene_manager, Pookie(scene_manager)))
 
     debug_mode = False  # Debug mode toggle
     fullscreen = False  # Fullscreen toggle state

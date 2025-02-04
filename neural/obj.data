@@ -1,0 +1,5 @@
+classes = 80
+train = ../dataset/train.txt
+valid = ../dataset/valid.txt
+names = ../neural/coco.names
+backup = ../backup/

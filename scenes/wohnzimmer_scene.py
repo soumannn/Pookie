@@ -1,52 +1,44 @@
-import textwrap
 import time
 
 from Items import Item
 from helper.debug_box import draw_debug_info
+
+
 import pygame
 
-from scenes.joggen_scene import JoggenScene
-from scenes.lernzimmer_scene import Lernzimmer
 import requests
 from datetime import datetime
 from config import WEATHER_URL
 
-try:
-    from mpu6050 import mpu6050
-    import smbus
-    print("mpu und smbus erfolgreich importiert")
-    import camera
-    from threading import Thread
-    IS_RASPBERRY_PI = True
-except ImportError as e:
-    IS_RASPBERRY_PI = False
-    print(f"ImportError occurred: {e}")
+
 
 
 
 class Wohnzimmer:
-    def __init__(self, scene_manager, pookie):
+    def __init__(self, scene_manager, pookie, pookiePosX=0, pookiePosY=0):
         self.scene_manager = scene_manager
         self.pookie = pookie
+
+
+        #self.pookie.startDetectionThread()
+        self.pookie.character.disable_movement = False
+        self.pookie.character.force_animation("walk_left")
+
 
         # Character
         #self.character = AnimatedCharacter(373, 549)
         self.last_click_time = 0
         self.dragging_character = False
 
+        #waste
+        self.waste = self.pookie.apply_cozy_solo(pygame.image.load("assets/models/waste.png")).convert_alpha()
+        self.waste = pygame.transform.scale(self.waste, (200, 200))
+        self.waste_rect = self.waste.get_rect(topleft=(150, 350))
+
         # debug-font
         self.debug_font = pygame.font.Font(None, 24)
 
-        # Gyrosensor setup (only on Raspberry Pi)
-        if IS_RASPBERRY_PI:
-            self.sensor = mpu6050(0x68, bus=3)
-            self.calibrate_sensor()
-            self.object_detector = camera.ObjectDetector(self.scene_manager, pookie)
 
-            self.detection_thread = Thread(target=self.object_detector.detect_objects)
-            self.detection_thread.start()
-        else:
-            self.sensor = None
         self.tilt_detected = False
 
         #sensor temp
@@ -56,10 +48,6 @@ class Wohnzimmer:
         self.fall_speed = 5  # Geschwindigkeit des Fallens
         self.scene_flipped = False  # Tracks whether the scene is flipped
 
-        #self.walk_to = False  # New state for TikTok mode
-
-        #self.walk_to_target = None
-        #self.walk_to_animation = ""
 
         self.movement_resume_timer = 0
         self.resume_movement_delay = 500  # 500ms delay before resuming random movement
@@ -72,175 +60,71 @@ class Wohnzimmer:
         self.lamp_target_y = 320
 
         # Time and weather setup
-        self.message_font = pygame.font.SysFont('system-ui', 40)
-        self.message_font_uhrzeit = pygame.font.SysFont('system-ui', 40)
+        self.font = pygame.font.Font('assets/zh-cn.ttf', 24)
+        #self.message_font = pygame.font.SysFont('system-ui', 40)
+        self.message_font_uhrzeit = pygame.font.Font('assets/zh-cn.ttf', 40)
         self.weather_info = "Loading weather..."
         self.last_weather_update = pygame.time.get_ticks()
         self.update_weather()
 
-        # Clock setup
-        self.clock = pygame.time.Clock()
+        self.start_time = time.time()
 
         self.bg_sprites = Item("assets/spritesheets/floorwall.png", 64, 112, 1, 5)
         # Scale the first sprite from the list
         self.bg = pygame.transform.scale(self.bg_sprites[2], (640, 480))
         # Create a rect for positioning
         self.bg_rect = self.bg.get_rect(topleft=(0, 0))
+        self.cozy_bg = self.pookie.apply_cozy_effect(self.bg.copy())
 
         # Windows
         self.current_weather_index = 0
         self.window_sprites = Item("assets/spritesheets/windows.png", 32, 28, 1, 4)
         self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (130, 130))
-        self.window_rect = self.window.get_rect(topleft=(380, 70))
+        self.window_rect = self.window.get_rect(topleft=(210, 60))
+        self.cozy_window = self.pookie.apply_cozy_solo(self.window.copy())
         self.walk_to_window = False
+
+        #treppe
+        self.treppe = self.pookie.apply_cozy_solo(pygame.image.load("assets/models/treppe.png")).convert_alpha()
+        self.treppe = pygame.transform.scale(self.treppe, (260, 320))
+        self.treppe_rect = self.treppe.get_rect(topleft=(385, -10))
+
+        #teppich
+        self.teppich = self.pookie.apply_cozy_solo(pygame.image.load("assets/models/teppich.png")).convert_alpha()
+        self.teppich = pygame.transform.scale(self.teppich, (350, 200))
+        self.teppich_rect = self.teppich.get_rect(topleft=(280, 336))
+
+        #plattenspieler
+        self.plattenspieler = self.pookie.apply_cozy_solo(pygame.image.load("assets/models/plattenspieler.png")).convert_alpha()
+        self.plattenspieler = pygame.transform.scale(self.plattenspieler, (120, 120))
+        self.plattenspieler_rect = self.plattenspieler.get_rect(topleft=(140, 300))
 
         # Sofa
         self.sofa_image = pygame.image.load("assets/models/sofa.png").convert_alpha()
         self.sofa_image = pygame.transform.scale(self.sofa_image, (250, 150))  # Scale the sofa
         self.sofa_rect = self.sofa_image.get_rect(topleft=(300, 270))
+        self.cozy_sofa = self.pookie.apply_cozy_solo(self.sofa_image.copy())
 
         # State for transitioning to sport mode (Walk to Door)
         self.door_index = 0
-        self.transition_to_sport_mode = False
-        self.door_open_timer = 0
-        self.walk_to_door = False
-
-        # State for transitioning to learn mode (Walk to Learnroom)
-        #self.is_walking_to_learnroom = False
 
         # Door
         self.door_sprites = Item("assets/spritesheets/doors.png", 30, 51, 1, 3)
         self.door = pygame.transform.scale(self.door_sprites[self.door_index], (120, 200))
-        self.door_rect = self.window.get_rect(topleft=(30, 88))
+        self.door_rect = self.door.get_rect(topleft=(30, 88))
+        self.cozy_door = self.pookie.apply_cozy_solo(self.door.copy())
 
         # Standinglamp
         self.stand_lamp_sprites = Item("assets/spritesheets/standinglamps.png", 15, 46, 1, 2)
         self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index], (60, 180))
         self.standing_lamp_rect = self.standing_lamp.get_rect(topleft=(560, 290))
+        self.cozy_lamp = self.pookie.apply_cozy_solo(self.standing_lamp.copy())
 
         self.shake_timer = None
 
-        self.update_weather()
         self.set_day_night()
 
-    def calibrate_sensor(self, samples=50):
-        """Read the sensor multiple times and average out a baseline for x, y, z."""
-        sum_x, sum_y, sum_z = 0.0, 0.0, 0.0
-
-        for _ in range(samples):
-            # Small sleep to avoid saturating the I2C bus
-            time.sleep(0.01)
-
-            # Read raw accelerometer data
-            accel_data = self.sensor.get_accel_data()
-            sum_x += accel_data['x']
-            sum_y += accel_data['y']
-            sum_z += accel_data['z']
-
-        # Calculate the average
-        self.baseline_x = sum_x / samples
-        self.baseline_y = sum_y / samples
-        self.baseline_z = sum_z / samples
-
-        print(
-            f"Calibration done: baseline_x={self.baseline_x:.2f}, baseline_y={self.baseline_y:.2f}, baseline_z={self.baseline_z:.2f}")
-
-    def setWalking(self, set:bool):
-        self.pookie.character.disable_movement = set
-
-    """
-    def letPookieSay(self, message: str):
-        # Create the white box
-        box_width = 640
-        box_height = 130
-        box_x = (640 - box_width) // 2  # Center the box horizontally
-        box_y = 480 - box_height  # Position the box 10px above the bottom of the screen
-
-        white_box = pygame.Surface((box_width, box_height))
-        white_box.fill((255, 255, 255))  # Fill the box with white color
-
-        # Wrap the text to fit within the box width
-        wrapped_text = textwrap.wrap(message, width=30)  # Adjust width as needed
-        text_surfaces = []
-        for line in wrapped_text:
-            text_surface = self.message_font.render(line, True, (0, 0, 0))  # Black text
-            text_surfaces.append(text_surface)
-
-        # Load and scale the character image
-        character_image = pygame.image.load("assets/characters/Head.png").convert_alpha()
-        character_image = pygame.transform.scale(character_image, (150, 200))  # Scale the character image
-        character_rect = character_image.get_rect(
-            topleft=(box_x - 40, box_y - 60))  # Position in the left side of the box
-
-        # Save the elements for rendering
-        self.pookie_message_box = (white_box, (box_x , box_y))
-        self.pookie_message_text = (text_surfaces, (box_x + 140, box_y + 20))  # Adjusted text position
-        self.pookie_character_image = (character_image, character_rect)
-
-        # Set a timer to hide the message after a few seconds
-        self.message_display_time = pygame.time.get_ticks()
-        self.message_duration = 5000  # Show message for 5 seconds
-    """
-
-    def read_sensor_data(self):
-        """Read accelerometer data from the gyrosensor, adjusted by baseline."""
-        if not IS_RASPBERRY_PI:
-            return 0.0, 0.0, 0.0  # Default values when running on a PC
-
-        # Read the temperature, if needed
-        self.sensor_temp = self.sensor.get_temp()
-
-        # Read raw accelerometer data
-        accel_data = self.sensor.get_accel_data()
-        raw_x = accel_data['x']
-        raw_y = accel_data['y']
-        raw_z = accel_data['z']
-
-        # Subtract the baseline
-        accel_x = raw_x - self.baseline_x
-        accel_y = raw_y - self.baseline_y
-        accel_z = raw_z - self.baseline_z
-
-        return accel_x, accel_y, accel_z
-
-    def detect_tilt(self, accel_x, accel_y, accel_z, threshold=10.0):
-        """
-        Detect a strong tilt based on accelerometer data relative to the baseline.
-        We'll define:
-            Forward tilt:   accel_x < -threshold
-            Backward tilt:  accel_x > threshold
-            Right tilt:     accel_y > threshold
-            Left tilt:      accel_y < -threshold
-
-        Adjust these definitions depending on how you hold the Pi.
-        """
-        if accel_x < -threshold:
-            print("Strong forward tilt detected!")
-            return "forward"
-        elif accel_x > threshold:
-            print("Strong backward tilt detected!")
-            return "backward"
-        elif accel_y > threshold:
-            print("Strong right tilt detected!")
-            return "right"
-        elif accel_y < -threshold:
-            print("Strong left tilt detected!")
-            return "left"
-        else:
-            return None  # No strong tilt
-
-    def check_tilt(self):
-        """Check for tilt and transition to sport mode if detected."""
-        if not IS_RASPBERRY_PI:
-            return
-
-        accel_x, accel_y, accel_z = self.read_sensor_data()
-        tilt_direction = self.detect_tilt(accel_x, accel_y, accel_z)
-
-        if tilt_direction == "forward":
-            self.transition_to_sport_mode = True
-        elif tilt_direction == "backward":
-            self.walk_to_door = True
+        self.pookie.character.setPosition(pookiePosX, pookiePosY)
 
     def print_click_position(self, event):
         """Print the position of a mouse click to the terminal."""
@@ -274,38 +158,12 @@ class Wohnzimmer:
             else:
                 self.current_weather_index = 1  # Night
 
-            self.window = pygame.transform.scale(self.window_sprites[self.current_weather_index], (130, 130))
-            self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index], (60, 180))
+            self.cozy_window = pygame.transform.scale(self.pookie.apply_cozy_solo(self.window_sprites[self.current_weather_index]), (130, 130))
+            self.cozy_lamp = pygame.transform.scale(self.pookie.apply_cozy_solo(self.stand_lamp_sprites[self.current_weather_index]), (60, 180))
 
         except AttributeError:
             # Default to day if sunrise/sunset not available
             self.current_weather_index = 0
-
-    def handle_walk_to(self):
-        """Handle walking to the TikTok target position."""
-        target_x, target_y = self.pookie.walk_to_target
-        character_center = self.pookie.character.rect.center
-
-        # Calculate direction
-        direction_x = target_x - character_center[0]
-        direction_y = target_y - character_center[1]
-
-        # Normalize direction
-        distance = max(abs(direction_x), abs(direction_y))
-        if distance > 0:
-            self.pookie.character.velocity.x = direction_x / distance
-            self.pookie.character.velocity.y = direction_y / distance
-
-        # Move character
-        movement_speed = 2  # Speed for walking to the target
-        self.pookie.character.rect.x += self.pookie.character.velocity.x * movement_speed
-        self.pookie.character.rect.y += self.pookie.character.velocity.y * movement_speed
-
-        # Check if the character reached the target position
-        if abs(character_center[0] - target_x) < 5 and abs(character_center[1] - target_y) < 5:
-            #self.walk_to = False  # Stop walking
-            self.pookie.walk_to = False
-            self.pookie.character.force_animation(self.pookie.walk_to_animation)  # Switch to handy_modus
 
     def handle_event(self, event):
         if event.type == pygame.MOUSEBUTTONDOWN:
@@ -356,7 +214,7 @@ class Wohnzimmer:
                 self.standing_lamp = pygame.transform.scale(self.stand_lamp_sprites[self.current_weather_index],
                                                             (60, 180))
             elif event.key == pygame.K_s:
-                self.walk_to_door = True  # Start walking to the door
+                self.pookie.walk_to_door = True  # Start walking to the door
 
             elif event.key == pygame.K_o:
                 self.walk_to_window = True
@@ -364,6 +222,9 @@ class Wohnzimmer:
             elif event.key == pygame.K_h:
                 self.pookie.character.disable_movement = True
                 self.pookie.character.force_animation("hantel")
+
+            elif event.key == pygame.K_g:
+                self.pookie.walk_to_gym = True
 
             elif event.key == pygame.K_t:
                 """TikTok Modus
@@ -377,17 +238,17 @@ class Wohnzimmer:
                 self.pookie.walk_to_target = (448, 303)  # Target position for TikTok mode (244, 190)
                 self.pookie.handy += 1
                 self.pookie.letPookieSay(self.pookie.tikTokMessage())
-
-
+            elif event.key == pygame.K_l:
+                self.pookie.character.setPosition(55, 206)
+            elif event.key == pygame.K_a:
+                self.pookie.triggerAutoEvent()
 
             elif event.key == pygame.K_b:
                 """Buch lesen Modus"""
-                self.scene_manager.set_scene(Lernzimmer(self.scene_manager, self.pookie))
-                #self.pookie.character.disable_movement = True
-                #self.pookie.walk_to_animation = "buch_lesen"
-                #self.walk_to = True
-                #self.pookie.walk_to = True
-                #self.pookie.walk_to_target = (448, 303)
+                self.pookie.walk_to_learnroom = True
+                self.pookie.learn += 1
+                # print(f'{self.pookie.learn} {self.pookie.handy}')
+                self.pookie.letPookieSay(self.pookie.bookMessage())
 
 
             elif event.key == pygame.K_DOWN:  # Pfeil nach unten
@@ -398,7 +259,6 @@ class Wohnzimmer:
                 self.initialize_state()
                     #self.falling = False
                     #self.reset_positions()
-
 
     def reset_positions(self):
         self.pookie.character.rect.y = 0
@@ -538,24 +398,11 @@ class Wohnzimmer:
 
         # Check if the character reached the door
         if self.pookie.character.rect.colliderect(self.door_rect):
-            self.walk_to_door = False  # Stop walking
-            self.transition_to_sport_mode = True  # Start transition
+            self.pookie.walk_to_door = False  # Stop walking
+            self.pookie.transition_to_sport_mode = True  # Start transition
             self.door_index = 1  # Open door animation
-            self.door = pygame.transform.scale(self.door_sprites[self.door_index], (120, 200))  # Open door animation
-            self.door_open_timer = pygame.time.get_ticks()  # Start door open timer
+            self.cozy_door = pygame.transform.scale(self.pookie.apply_cozy_solo(self.door_sprites[self.door_index]), (120, 200))  # Open door animation
 
-    def handle_walk_to_learnroom(self):
-        print("wallk to learnroom triggered")
-        self.pookie.letPookieSay(self.pookie.bookMessage())
-        self.pookie.character.disable_movement = True
-        self.pookie.character.force_animation("walk_right")
-        #self.walk_to = True
-        self.pookie.walk_to = True
-        self.pookie.walk_to_target = (700, 300)
-
-        if self.pookie.character.rect.right > 670:
-            print("trying to switch scene")
-            self.scene_manager.set_scene(Lernzimmer(self.scene_manager, self.pookie, self.object_detector))
 
     """
     def perform_animation(self, animation_name: str, target: tuple, message: str=""):
@@ -578,9 +425,7 @@ class Wohnzimmer:
 
 
     def update(self, dt):
-
-        #sensor test
-        self.check_tilt()
+        self.pookie.check_shake()
 
         # Handle shake timer to re-enable movement
         if self.shake_timer is not None:
@@ -591,6 +436,9 @@ class Wohnzimmer:
         if not self.pookie.character.dragging:
             self.pookie.character.update(dt)
 
+        if self.pookie.walk_to_gym:
+            self.pookie.handle_walk_to_gym()
+
         if self.falling:
             self.everything_falls()
 
@@ -598,7 +446,11 @@ class Wohnzimmer:
             self.handle_walk_to_window()
 
         if self.pookie.walk_to:
-            self.handle_walk_to()
+            self.pookie.handle_walk_to()
+
+        if self.pookie.walk_to_learnroom:
+            self.pookie.handle_walk_to_learnroom()
+
 
         if not self.walk_to_window and self.movement_resume_timer > 0:
             self.movement_resume_timer -= dt
@@ -607,47 +459,75 @@ class Wohnzimmer:
                 self.pookie.character.disable_movement = False  # Resume movement
 
 
-        if self.walk_to_door:
+        if self.pookie.walk_to_door:
             self.handle_walk_to_door()
 
             # Handle door open timer and transition
-        if self.transition_to_sport_mode:
-            if pygame.time.get_ticks() - self.door_open_timer > 1000:  # 2-second delay
-                # wechsel zum joggen
-                self.scene_manager.set_scene(JoggenScene(self.scene_manager))
+        if self.pookie.transition_to_sport_mode:
+            self.scene_manager.set_scene(self.scene_manager.scenes[2](self.scene_manager, self.pookie))
 
         # Update weather every 5 minutes
-        if pygame.time.get_ticks() - self.last_weather_update > 300000:  # 5 minutes in milliseconds
-            self.update_weather()
-            self.last_weather_update = pygame.time.get_ticks()
+        #if pygame.time.get_ticks() - self.last_weather_update > 300000:  # 5 minutes in milliseconds
+        #    self.update_weather()
+        #    self.last_weather_update = pygame.time.get_ticks()
 
         #if self.is_walking_to_learnroom:
         #    self.handle_walk_to_learnroom()
 
     def render(self, screen, debug_mode=False):
         # Hintergrund rendern
-        screen.blit(self.bg, self.bg_rect)
-        screen.blit(self.window, self.window_rect)
-        screen.blit(self.door, self.door_rect)
+        screen.blit(self.cozy_bg, self.bg_rect)
+        screen.blit(self.cozy_window, self.window_rect)
+        screen.blit(self.cozy_door, self.door_rect)
+        screen.blit(self.treppe, self.treppe_rect)
+        screen.blit(self.teppich, self.teppich_rect)
 
-        # Charakter und Sofa-Logik
-        character_rect = self.pookie.character.rect
-        if character_rect.bottom <= self.sofa_rect.centery:
-            self.pookie.character.render(screen)
-            screen.blit(self.sofa_image, self.sofa_rect)
-        else:
-            screen.blit(self.sofa_image, self.sofa_rect)
-            self.pookie.character.render(screen)
+        #waste
+        if self.pookie.handy > 10:
+            screen.blit(self.waste, self.waste_rect)
 
-        # Stehlampe
-        screen.blit(self.standing_lamp, self.standing_lamp_rect)
+        screen.blit(self.cozy_sofa, self.sofa_rect)
+
+        objects = [
+
+            (self.plattenspieler, self.plattenspieler_rect),
+            (self.cozy_lamp, self.standing_lamp_rect),
+            (self.pookie.character, self.pookie.character.rect,)
+        ]
+
+        # Sort objects by their bottom position
+        objects.sort(key=lambda obj: obj[1].bottom)
+
+        # Render in the correct order
+        for obj, rect in objects:
+            if isinstance(obj, type(self.pookie.character)):  # Ensure character uses its render method
+                obj.render(screen)
+            else:
+                screen.blit(obj, rect)
+
+
 
         # Zeit und Wetter rendern
+        elapsed_time = time.time() - self.start_time
+        fade_duration = 4  # Seconds before fading starts
+        fade_out_time = 2  # Seconds for fade-out effect
+
         current_time = datetime.now().strftime("%A %H:%M")
-        time_surface = self.message_font_uhrzeit.render(f"{current_time}", False, (255, 255, 255))
-        weather_surface = self.message_font.render(self.weather_info, False, (255, 255, 255))
-        screen.blit(time_surface, (20, 20))
-        screen.blit(weather_surface, (20, 55))
+        if elapsed_time < fade_duration + fade_out_time:
+            alpha = 255  # Fully visible
+            if elapsed_time > fade_duration:
+                alpha = max(255 - int(((elapsed_time - fade_duration) / fade_out_time) * 255), 0)
+
+            # Render text with alpha fading
+            time_surface = self.message_font_uhrzeit.render(f"{current_time}", True, (255, 255, 255))
+            weather_surface = self.font.render(self.weather_info, True, (255, 255, 255))
+
+            # Apply alpha to surfaces
+            time_surface.set_alpha(alpha)
+            weather_surface.set_alpha(alpha)
+
+            screen.blit(time_surface, (30, 360))
+            screen.blit(weather_surface, (30, 410))
 
         # Szene auf den Kopf stellen, falls aktiviert
         if self.falling:
@@ -674,14 +554,18 @@ class Wohnzimmer:
                 del self.pookie.pookie_message_text
                 del self.pookie.pookie_character_image
 
+
         if debug_mode:
             # sensor temp
+            """
             if IS_RASPBERRY_PI:
                 temp_surface = self.message_font.render(f"PI temp: {self.sensor_temp:.1f}°C", False, (255, 255, 255))
                 screen.blit(temp_surface, (20, 90))
 
                 sensor_data = self.message_font.render(f"Sensor: {self.read_sensor_data()}", False, (255, 255, 255))
                 screen.blit(sensor_data, (20, 120))
+            """
+
 
             # Window debug info
             draw_debug_info(

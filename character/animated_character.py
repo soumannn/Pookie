@@ -80,6 +80,12 @@ class AnimatedCharacter(pygame.sprite.Sprite):
         self.is_falling = True
         self.current_animation = "fall_down"
 
+    def setPosition(self, x, y):
+        """Set the character's position (used during dragging)."""
+        print("Setting position to ({}, {})".format(x, y))
+        self.rect.x = x
+        self.rect.y = y
+
     def snap_to_grid(self):
         """Snap the character back to the allowed grid."""
         if self.rect.top < 346:
@@ -87,10 +93,10 @@ class AnimatedCharacter(pygame.sprite.Sprite):
         else:
             if self.rect.left < 0:
                 self.rect.left = 0
-            if self.rect.right > self.allowed_bottom:
-                self.rect.right = self.allowed_bottom
-            if self.rect.bottom > self.allowed_bottom:
-                self.rect.bottom = self.allowed_bottom
+            if self.rect.right > 480:
+                self.rect.right = 480
+            if self.rect.bottom > 480:
+                self.rect.bottom = 480
 
     def load_animations(self):
         """Load all animations from the sprite sheet."""

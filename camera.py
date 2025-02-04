@@ -9,23 +9,22 @@ SAVE_DIR = "detections"
 if not os.path.exists(SAVE_DIR):
     os.makedirs(SAVE_DIR)
 
+
 class ObjectDetector:
-    def __init__(self, scene_manager, pookie):
+    def __init__(self):
         self.stop_event = threading.Event()
         self.detection_thread = threading.Thread(target=self.detect_objects)
 
-        self.scene_manager = scene_manager
-        self.pookie = pookie
         self.picam2 = Picamera2()
-        self.picam2.configure(self.picam2.create_preview_configuration(main={"size": (640, 480)}))
+        self.picam2.configure(self.picam2.create_video_configuration(main={"size": (640, 480)}))
         self.picam2.start()
 
-        # Load COCO class names
+        # COCO-Klassennamen laden
         class_file = "neural/frozen/coco.names"
         with open(class_file, "r") as f:
             self.class_names = [line.strip() for line in f.readlines()]
 
-        # Load SSD MobileNet model
+        # SSD MobileNet-Modell laden
         self.net = cv2.dnn_DetectionModel(
             "neural/frozen/frozen_inference_graph.pb",
             "neural/frozen/ssd_mobilenet_v3_large_coco_2020_01_14.pbtxt"
@@ -34,14 +33,6 @@ class ObjectDetector:
         self.net.setInputScale(1.0 / 127.5)
         self.net.setInputMean((127.5, 127.5, 127.5))
         self.net.setInputSwapRB(True)
-
-        # Track detection state
-        self.tiktok_mode_active = False
-        self.book_mode_active = False
-        self.ball_mode_active = False
-
-        self.last_cell_phone_detection = time.time()
-        self.last_book_detection = time.time()
 
     def start_detection(self):
         if not self.detection_thread.is_alive():
@@ -54,21 +45,20 @@ class ObjectDetector:
         print("Detection stopped.")
 
     def detect_objects(self):
-        """Continuously capture frames and detect objects."""
+        """ Kontinuierliches Erfassen von Frames und Objekterkennung."""
         while not self.stop_event.is_set():
             frame = self.picam2.capture_array()
             frame = cv2.cvtColor(frame, cv2.COLOR_BGRA2BGR)
-            print("Searching for clues..")
+            print("Suche nach Objekten...")
 
-            # Perform object detection
+            # Objekterkennung durchführen
             result, detected_objects = self.perform_detection(frame)
 
-            # Handle detected objects
-            self.handle_detected_objects(detected_objects, result)
-
+            # Ergebnisse anzeigen
+            self.display_results(frame, detected_objects)
 
     def perform_detection(self, frame, threshold=0.5, nms=0.1):
-        """Run the SSD MobileNet model and get detections."""
+        """ Führt das SSD MobileNet-Modell aus und erhält Erkennungen."""
         class_ids, confidences, boxes = self.net.detect(frame, confThreshold=threshold, nmsThreshold=nms)
         detected_objects = []
 
@@ -79,18 +69,9 @@ class ObjectDetector:
 
         return frame, detected_objects
 
-
-    def handle_detected_objects(self, detected_objects, frame):
-        """Handle detected objects and trigger events with reset on mode switch."""
-        cell_phone_detected = False
-        book_detected = False
-        ball_detected = True
-        current_time = time.time()
-
+    def display_results(self, frame, detected_objects):
+        """ Zeigt das Bild mit den erkannten Objekten im Fenster an."""
         for obj in detected_objects:
-            #label = obj["label"]
-            #confidence = obj["confidence"]
-
             x, y, w, h = obj["box"]
             label = obj["label"]
             confidence = obj["confidence"]
@@ -99,92 +80,22 @@ class ObjectDetector:
             cv2.putText(frame, text, (x, y - 5),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 1, cv2.LINE_AA)
 
-            print(f"Detected {label} with confidence {confidence:.2f}")
-
-
-            # Handle cell phone detection
-            if label == "cell phone":
-                cell_phone_detected = True
-                self.last_cell_phone_detection = current_time  # Update last detection time
-
-                # If book mode was active, immediately reset before activating phone mode
-                if self.book_mode_active:
-                    print("Switching from book to phone! Resetting mode.")
-                    self.reset_to_normal()
-                    self.book_mode_active = False
-                    self.pookie.isLearning = False
-
-                if not self.tiktok_mode_active:
-                    self.tiktok_mode_active = True
-                    print("Cell phone detected! Activating TikTok mode.")
-                    self.pookie.handy += 1
-                    if isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[0]):
-                        self.activate_tiktok_mode()
-                    elif isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[1]):
-                        self.scene_manager.current_scene.setUsingHandy(True)
-
-            # Handle book detection
-            if label == "book":
-                book_detected = True
-                self.last_book_detection = current_time  # Update last detection time
-
-                # If phone mode was active, immediately reset before activating book mode
-                if self.tiktok_mode_active:
-                    print("Switching from phone to book! Resetting mode.")
-                    self.reset_to_normal()
-                    self.tiktok_mode_active = False
-
-                if not self.book_mode_active:
-                    self.book_mode_active = True
-                    print("Book/Laptop detected! Activating learn mode.")
-                    self.pookie.learn += 1
-                    self.pookie.isLearning = True
-                    self.handle_book_detection()
-
-            if label == "sports ball":
-                ball_detected = True
-                self.last_ball_detection = current_time  # Update last detection time
-
-                if not self.ball_mode_active:
-                    self.ball_mode_active = True
-                    print("Ball detected! Activating walk to door.")
-                    self.pookie.walk_to_door = True
-
-        # Reset states **only if 20 seconds pass without detection**
-        if not cell_phone_detected and self.tiktok_mode_active:
-            if current_time - self.last_cell_phone_detection > 20:  # 20 sec delay
-                self.tiktok_mode_active = False
-                print("Cell phone no longer detected for 20 seconds. Resetting to normal mode.")
-                self.reset_to_normal()
-                if isinstance(self.scene_manager.current_scene, self.scene_manager.scenes[1]):
-                    self.scene_manager.current_scene.setUsingHandy(False)
-
-        if not book_detected and self.book_mode_active:
-            if current_time - self.last_book_detection > 20:  # 20 sec delay
-                self.pookie.walk_to_learnroom = False
-                self.book_mode_active = False
-                print("Book/Laptop no longer detected for 20 seconds. Resetting to normal mode.")
-                self.pookie.isLearning = False
-                self.reset_to_normal()
-
-        if not ball_detected and self.ball_mode_active:
-            if current_time - self.last_ball_detection > 20:  # 20 sec delay
-                self.ball_mode_active = False
-                print("Ball no longer detected for 20 seconds. Resetting walk to door.")
-                self.pookie.walk_to_door = False
-
         timestamp = int(time.time())
-        filename = f"detection_{timestamp}.jpg"
+        filename = f"{SAVE_DIR}/detection_{timestamp}.jpg"
         cv2.imwrite(filename, frame)
 
-    def handle_book_detection(self):
-        self.pookie.walk_to_learnroom = True
-        self.pookie.handle_walk_to_learnroom()
+        cv2.imshow("Object Detection", frame)
+        cv2.waitKey(1)
 
-    def activate_tiktok_mode(self):
-        self.pookie.perform_animation("handy_modus", (448, 303), self.pookie.tikTokMessage())
 
-    def reset_to_normal(self):
-        """Reset to normal behavior."""
-        self.scene_manager.current_scene.initialize_state()  # Reset animation
+if __name__ == "__main__":
+    detector = ObjectDetector()
+    detector.start_detection()
+
+    try:
+        while True:
+            time.sleep(1)
+    except KeyboardInterrupt:
+        detector.stop_detection()
+        cv2.destroyAllWindows()
 

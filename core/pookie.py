@@ -346,15 +346,15 @@ class Pookie:
 
     def tikTokMessage(self) -> str:
         if self.handy <= 2:
-            return "Let's see what the world is doing today."
+            return "Mal sehen ob die Welt sich verändert hat seit meiner Abwesenheit."
         elif 3 <= self.handy <= 5:
-            return "Hmm, the world seems a bit weird today..."
+            return "Weiß deine Mutter, was du dir gerade am Handy ansiehst?"
         elif 6 <= self.handy <= 8:
-            return "Oh no, everything is starting to look cursed..."
+            return "Hast du auch Hobbys oder scrollst du nur?"
         elif 9 <= self.handy <= 12:
-            return "Why is everything so chaotic? My brain hurts..."
+            return "Ein Nichts bist du schon und zum Niemand ist es nicht weit!"
         elif self.handy > 12:
-            return "I can't take it anymore! The brainrot is consuming me!!!"
+            return "FBI open up!!!!"
 
     def bookMessage(self) -> str:
         if self.handy < self.learn:

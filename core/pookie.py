@@ -39,6 +39,7 @@ class Pookie:
         self.transition_to_sport_mode = False
         self.has_unlocked_car = False
         self.isLearning = False
+        self.feedforward = False
 
         self.onRaspi = False
 

@@ -12,18 +12,18 @@ from config import WEATHER_URL
 
 
 
-
-
 class Wohnzimmer:
     def __init__(self, scene_manager, pookie, pookiePosX=0, pookiePosY=0):
         self.scene_manager = scene_manager
         self.pookie = pookie
 
 
+        self.start_time = time.time()
+        self.message_shown = 0
+
         #self.pookie.startDetectionThread()
         self.pookie.character.disable_movement = False
         self.pookie.character.force_animation("walk_left")
-
 
         # Character
         #self.character = AnimatedCharacter(373, 549)
@@ -66,8 +66,6 @@ class Wohnzimmer:
         self.weather_info = "Loading weather..."
         self.last_weather_update = pygame.time.get_ticks()
         self.update_weather()
-
-        self.start_time = time.time()
 
         self.bg_sprites = Item("assets/spritesheets/floorwall.png", 64, 112, 1, 5)
         # Scale the first sprite from the list
@@ -426,6 +424,26 @@ class Wohnzimmer:
 
     def update(self, dt):
         self.pookie.check_shake()
+
+        elapsed_time = time.time() - self.start_time
+        fade_duration = 8  # Sekunden bevor das Fading beginnt
+        fade_out_time = 2  # Sekunden für den Fade-out-Effekt
+
+        if not self.pookie.feedforward:
+            current_time = datetime.now().strftime("%A %H:%M")
+
+            # Erste Nachricht nach 0 Sekunden
+            if self.message_shown == 0 and elapsed_time > 0:
+                self.pookie.letPookieSay("Hallo ich bin Pookie. Nimm mich in deinem Alltag mit und bring mir was bei!",
+                                         5000)
+                self.message_shown = 1  # Fortschritt speichern
+
+            # Zweite Nachricht nach 4 Sekunden
+            if self.message_shown == 1 and elapsed_time > fade_duration:
+                self.pookie.letPookieSay("Nimm doch mal dein Handy in die Hand.. und adde mich auf tiktok @pookie3", 5000)
+                self.message_shown = 2  # Fortschritt speichern
+
+                self.pookie.feedforward = True
 
         # Handle shake timer to re-enable movement
         if self.shake_timer is not None:

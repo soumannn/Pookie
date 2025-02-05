@@ -17,7 +17,7 @@ class ObjectDetector:
         self.scene_manager = scene_manager
         self.pookie = pookie
         self.picam2 = Picamera2()
-            self.picam2.configure(self.picam2.create_video_configuration(main={"size": (640, 480)}))
+        self.picam2.configure(self.picam2.create_video_configuration(main={"size": (640, 480)}))
         self.picam2.start()
 
         self.trackFor = ["sports ball", "cell phone", "book"]
